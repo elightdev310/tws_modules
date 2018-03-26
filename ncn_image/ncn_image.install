@@ -1,0 +1,18 @@
+<?php
+// $Id: ncn_image.install, $
+
+/**
+ * Implementation of hook_install().
+ */
+function ncn_image_install() {
+	if ($wrapper = file_stream_wrapper_get_instance_by_uri('public://')) {
+		$path = $wrapper->realpath();
+	}	
+	
+    $img_dir = $path."/user_files/tmp";	
+	
+	if (is_dir($img_dir)===false) {
+		@drupal_mkdir($img_dir,NULL,TRUE);
+	}
+
+}

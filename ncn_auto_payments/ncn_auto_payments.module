@@ -1,0 +1,473 @@
+<?php
+// $Id$
+
+/*
+$query = "";
+$result = db_query($query);
+$row_count = mysql_num_rows($result);
+$row = mysql_fetch_assoc($result);
+
+mysql_real_escape_string
+mysql_insert_id();
+*/
+
+require_once('ncn_auto_payments.inc');
+require_once('ncn_auto_payments.mail.inc');
+require_once('ncn_auto_payments.admin.inc');
+
+function ncn_auto_payments_menu() {
+    $items['payment/process'] = array(
+      'page callback' => 'ncn_auto_payments_process',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('Administer site configuration'),
+    );
+    
+    $items['payment/run_cron'] = array(
+        'page callback' => 'ncn_auto_payments_cron',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('Administer site configuration'),
+    );
+    
+    $items['assign/member_role'] = array(
+      'page callback' => 'ncn_auto_assign_member_role',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('Administer site configuration'),
+    );
+    
+    $items['admin/config/ncn_admin/declined_report'] = array(
+        'title' => 'Credit Card Declined Report',
+        'page callback' => 'ncn_auto_payments_declined_report',
+        'access arguments' => array('CC Declined Report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+    );
+    
+    $items['cc_declined/charge/%'] = array(
+        'page callback' => 'ncn_auto_payments_charge_again_handler',
+        'page arguments' => array(2), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('CC Declined Report'),
+    );
+    $items['cc_declined/delete/%'] = array(
+        'page callback' => 'ncn_auto_payments_cc_declined_delete_handler',
+        'page arguments' => array(2), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('CC Declined Report'),
+    );
+
+    return $items;
+}
+
+function ncn_auto_payments_permission() {
+    return array(
+        'CC Declined Report' => array(
+          'title' => t('CC Declined Report'),
+        ));
+}
+
+//http://www.netclaimsnow.com/payment/process?uid=&pid=
+function ncn_auto_payments_process() {
+    if(!empty($_REQUEST['uid']))
+    {
+        $uid = $_REQUEST['uid'];
+        $product_id = $_REQUEST['pid'];
+        $_user = user_load($uid);
+
+        $pid = 0;   // Payment Transaction ID
+        make_monthly_payment($_user, $product_id, $pid);
+
+        $node = node_load($product_id);
+        if (isset($node->data) && !is_array($node->data)) {
+            $node->data = unserialize($node->data);
+        }
+
+        echo "user($uid): ".$_user->name ."\n";
+        echo "product($product_id): ".$node->sell_price ."\n";
+    }
+}
+
+function ncn_auto_assign_member_role() {
+    $query = "SELECT * FROM users WHERE uid != 0 AND uid != 1";
+    $result = db_query($query);
+    $count = $result->rowCount();
+    for ($i=0; $i<$count; $i++) {
+        $row = $result->fetchAssoc();
+        $uid = $row['uid'];
+        $query1 = "SELECT * FROM users_roles WHERE uid=$uid";
+        $result1 = db_query($query1);
+        $count1 = $result1->rowCount();
+        if ($count1 == 0) {
+            $query2 = "INSERT INTO users_roles(uid, rid) VALUES($uid, 8)";
+            $result2 = db_query($query2);
+            echo ($row['name']."<br/>");
+        }
+    }
+}
+
+/**
+ * hook_mail()
+ * used to notify admin of any monthly payments that failed
+ */
+function ncn_auto_payments_mail($key, &$message, $params)
+{
+GLOBAL $auto_payment_messages;
+
+    $language = $message['language'];
+
+    switch ($key)
+    {
+        case 'message':
+          $message['subject'] = t('Automated Payment Watchdog', $params, array('langcode'=>$language->language));
+          $message['body'][] = $auto_payment_messages;
+            break;
+        case 'credit_card_declined':
+        case 'credit_card_expired':
+            $headers = array(
+                'MIME-Version' => '1.0',
+                'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+                'Content-Transfer-Encoding' => '8Bit',
+                'X-Mailer' => 'Drupal'
+            );
+            foreach ($headers as $key => $value) {
+                $message['headers'][$key] = $value;
+            }
+            $message['subject'] = $params['subject'];
+            $message['body'][] = $params['body'];
+            
+            //$bcc = "rayjakes@idesolutions.co.uk";
+            $bcc = '';
+            $site_mail = variable_get('site_mail', '');
+            if ($site_mail != "") {
+                $bcc .= ", $site_mail";
+            }
+            
+            $bcc .= ", forward.morning@gmail.com";
+            $message['headers']['Bcc'] = $bcc;
+            
+            break;
+            
+    }
+}
+
+/**
+ * hook_cron()
+ * Make monthly payment
+ */
+function ncn_auto_payments_cron()
+{
+    watchdog('cron_log', date('D, d M Y H:i:s'));
+    GLOBAL $auto_payment_messages;
+    
+    // Get All member-role Users
+    $query = "SELECT u.* FROM {users} as u 
+                LEFT JOIN {users_roles} AS ur ON (ur.uid = u.uid) 
+                WHERE ur.rid=:rid";
+    $result = db_query($query, array(':rid'=>USER_ROLE_MEMBER));
+    $row_count = $result->rowCount();
+    $res_users = $result->fetchAll();
+    //for ($i=0; $i<$row_count; $i++)
+    
+    foreach($res_users as $row)
+    {
+        //$row = $result->fetchAssoc();
+        $row = (array)$row;
+        
+        // Except for Gilbert
+        if ($row['uid'] == 71 || $row['uid'] == 74 || $row['uid'] == 77 || $row['uid'] == 78) {
+            continue;
+        }
+        
+        $user = user_load($row['uid']);
+        
+        // only for normal users (not distributors or account managers/admin/etc)
+        if ( (isset($user->profile_memberid)) && ($user->profile_memberid != '') )
+        {
+            // check member id is good and get last date
+            // $query2 = db_query("SELECT * FROM member_id_pool WHERE member_id=:a AND used=:b",array(":a"=>$user->profile_memberid,":b"=>1));
+            // $result2 = $query2;
+            // $row_count2 = $result2->rowCount();
+            
+            // if ($row_count2 > 0)
+            $member = get_member_from_id($user->profile_memberid);
+            if (!empty($member) && $member['used'] == 1)
+            {
+                $member_type = $member['member_type'];
+                $next_payment_date = $member['next_payment_date'];
+                
+                $create_time = $member['create'];
+                if ($create_time == 0) {
+                    $create_time = $row['created'];
+                }
+                
+                // check for payment never made
+                if ($next_payment_date == 0)
+                {
+                    $next_payment_date = calculate_next_month($create_time, ncn_user_get_member_renewal_day($user->profile_memberid));
+                    
+                    $query2 = db_query("UPDATE member_id_pool SET next_payment_date=".$next_payment_date." WHERE member_id=:a",array(":a"=>$user->profile_memberid));
+                    $result2 = $query2;
+                }
+                
+                // do we need to pay yet?
+                if ($next_payment_date <= date('U') )
+                {
+                    // calculate the next payment date (FROM CREATION DATE)
+                    $new_next_payment_date = calculate_next_month($next_payment_date, ncn_user_get_member_renewal_day($user->profile_memberid));
+                    
+                    // singup monthly fee for 3 months
+                    $months = $member['signup_fee_type'];
+                    if ($months > 0) {
+                        // ---------- charged $77 --------
+                        $pid = 0;   // Payment Transaction ID
+                        make_monthly_payment($user, 44, $pid); //$77
+                        // decrease months
+                        $months -= 1;
+                        $query2 = db_query("UPDATE member_id_pool SET signup_fee_type=".$months." WHERE member_id=:a",
+                                array(":a"=>$user->profile_memberid));
+                        $result2 = $query2;
+                    }
+                    
+                    
+                    // 
+                    $query2 = db_query("UPDATE member_id_pool SET next_payment_date=".$new_next_payment_date." WHERE member_id=:a",
+                        array(":a"=>$user->profile_memberid));
+                    $result2 = $query2;
+                    
+                    if ($user->status==0 && (!isset($user->profile_fblocked) || $user->profile_fblocked != 'first')) {
+                        continue;
+                    }
+                    
+                    // For Gold Member ,Gold Lite Member, Coach on Call Member, Gold Coach - v1
+                    // if ($member_type == MT_GOLD || 
+                    //     $member_type == MT_GOLD_LITE || 
+                    //     $member_type == MT_COACH_ON_CALL || 
+                    //     $member_type == MT_GOLD_COACH ) 
+                    
+                    // For Gold, Silver, Platinum - v2
+                    if ($member_type == MT_GOLD || 
+                        $member_type == MT_SILVER || 
+                        $member_type == MT_PLATINUM ) 
+                    {
+                        // standard monthly fee
+                        
+                        // Prevent from charging user for monthly recurring fee.
+                        $monthly_fee_free = false;
+                        if (ncn_admin_is_member_first_free($user->profile_memberid)) {
+                            if (  ncn_admin_member_first_free_month_passed($user->profile_memberid) == FALSE  ) {
+                                $monthly_fee_free = true;
+                            }
+                        }
+                        
+                        if ($monthly_fee_free) {
+                            ncn_admin_set_member_first_free_month($user->profile_memberid, date('U'));
+                            //make_monthly_payment($user, 85);  //$0 monthly
+                        } else {
+                            
+                        }
+                        
+                        $mmf_product_nid = ncn_auto_payments_get_mmf_product($member_type);
+                        if ($mmf_product_nid) {
+                            $pid = 0;   // Payment Transaction ID
+                            make_monthly_payment($user, $mmf_product_nid, $pid);
+                        }
+                    }
+                }
+            }
+        } //// 
+    } 
+    
+    ///////////////////////////////////////////////////////////////////
+    // Unactivated Member
+    $query = "SELECT * FROM member_id_pool WHERE used=0 AND status=1";
+    $result = db_query($query);
+    $member_count = $result->rowCount();
+    //for ($i=0; $i<$member_count; $i++)
+    $result_rows = $result->fetchAll();
+
+    foreach($result_rows as $member)
+    {
+        //$member = $result->fetchAssoc();
+        $member = (array)$member;
+        
+        if ($member['create'] == 0) { continue; }
+        
+        $next_payment_date = $member['next_payment_date'];
+            
+        $create_time = $member['create'];
+        
+        // check for payment never made
+        if ($next_payment_date == 0)
+        {
+            $next_payment_date = calculate_next_month($create_time, ncn_user_get_member_renewal_day($member['member_id']));
+            
+            $query2 = db_query("UPDATE member_id_pool SET next_payment_date=".$next_payment_date." WHERE member_id=:a",
+                array(":a"=>$member['member_id']));
+            $result2 = $query2;
+        }
+        
+        // do we need to pay yet?
+        if ($next_payment_date <= date('U') )
+        {
+            
+            // calculate the next payment date (FROM CREATION DATE)
+            $new_next_payment_date = calculate_next_month($next_payment_date, ncn_user_get_member_renewal_day($member['member_id']));
+            
+            // singup monthly fee for 3 months
+            
+            $months = $member['signup_fee_type'];
+            if ($months > 0) {
+                // ---------- charged $77 --------
+                $pid = 0;   // Payment Transaction ID
+                make_monthly_payment_from_memberid($member['member_id'], 44, $pid); //$77
+                // decrease months
+                $months -= 1;
+                $query2 = db_query("UPDATE member_id_pool SET signup_fee_type=".$months." WHERE member_id=:a",
+                array(":a"=>$member['member_id']));
+                $result2 = $query2;
+            }
+            
+            
+            $query2 = db_query("UPDATE member_id_pool SET next_payment_date=".$new_next_payment_date." WHERE member_id=:a",
+                array(":a"=>$member['member_id']));
+            $result2 = $query2;
+            if ($member['status'] == 0) {
+                continue;
+            }
+            
+            // v1
+            // if ($member['member_type'] == 0 || $member['member_type'] == 2 || $member['member_type'] == 3 || $member['member_type'] == 4)
+            // 
+            // For Gold, Silver, Platinum - v2
+            if ($member['member_type'] == MT_GOLD || 
+                $member['member_type'] == MT_SILVER || 
+                $member['member_type'] == MT_PLATINUM ) 
+            {
+                // standard monthly fee
+                
+                // Prevent from charging user for monthly recurring fee.
+                $monthly_fee_free = false;
+                if (ncn_admin_is_member_first_free($member['member_id'])) {
+                    if (  ncn_admin_member_first_free_month_passed($member['member_id']) == FALSE  ) {
+                        $monthly_fee_free = true;
+                    }
+                }
+                if ($monthly_fee_free) {
+                    ncn_admin_set_member_first_free_month($member['member_id'], date('U'));
+                    //make_monthly_payment_from_memberid($member['member_id'], 85); //$0 monthly
+                } else {        
+                    
+                }
+                
+                $mmf_product_nid = ncn_auto_payments_get_mmf_product($member['member_type']);
+
+                if ($mmf_product_nid) {
+                    $pid = 0;   // Payment Transaction ID
+                    make_monthly_payment_from_memberid($member['member_id'], $mmf_product_nid, $pid);
+                }
+            }
+        }
+    }
+    
+    
+    // Send Test Mail   
+    //drupal_mail('ncn_admin', 'cronmail', 'keyideas.admn@gmail.com', language_default() , array('!date' => date('Y-m-d H:i A T'),'!crontype' => 'ncn_auto_payments_cron'));
+    
+    // check to see if we need to notify admin of payment errors
+    if ($auto_payment_messages != '')
+    {
+        drupal_mail('ncn_auto_payments', 'message', variable_get('site_mail', ''), language_default());
+        //drupal_mail('ncn_auto_payments', 'message', "rayjakes@idesolutions.co.uk", language_default());
+        drupal_mail('ncn_auto_payments', 'message', "forward.morning@gmail.com", language_default());
+    }
+
+}
+
+/**
+ * Get Production NID based on Member Type
+ */
+function ncn_auto_payments_get_mmf_product($member_type) {
+    $mmf_product_nid = 0;
+    switch ($member_type) {
+        case MT_GOLD:
+            $mmf_product_nid = SKU_MMF;
+            break;
+        case MT_SILVER: //v2
+            $mmf_product_nid = SKU_MMF_SILVER;
+            break;
+        case MT_GOLD_LITE:
+            $mmf_product_nid = SKU_MMF_GL;
+            break;
+        case MT_COACH_ON_CALL:
+            $mmf_product_nid = SKU_MMF_COC;
+            break;
+        case MT_GOLD_COACH:
+            $mmf_product_nid = SKU_MMF_GC;
+            break;
+        case MT_PLATINUM: //v2
+            $mmf_product_nid = SKU_MMF_PLATINUM;
+            break;
+    }
+    return $mmf_product_nid;
+}
+
+// using expiration date , but it is impossible to get expirationDate via API, because this is masked.
+
+/*function ncn_auto_payments_get_cc_expiration($customerProfileId, $customerPaymentProfileId) {
+    $payment_profile = ncn_pp_getCustomerPaymentProfileRequest($customerProfileId, $customerPaymentProfileId);
+    if ($payment_profile != null) {
+        list($year, $month) = split("-", $payment_profile->payment->creditCard->expirationDate);
+        echo "<pre>";
+        print_r ($payment_profile);
+        echo "</pre>";
+        exit;
+        $year = intval($year);
+        $month = intval($month);
+        $expiration = mktime(0, 0, 0, $month, 1, $year);
+        
+        return $expiration;
+    }
+    return 0;
+}*/
+
+function ncn_auto_payments_get_cc_expiration($customerProfileId, $customerPaymentProfileId) {
+    set_time_limit(59);
+    $content =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+        "<validateCustomerPaymentProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"> ". 
+        MerchantAuthenticationBlock(). 
+        "<customerProfileId>$customerProfileId</customerProfileId>". 
+        "<customerPaymentProfileId>$customerPaymentProfileId</customerPaymentProfileId>". 
+        "<validationMode>liveMode</validationMode>".
+        "</validateCustomerPaymentProfileRequest>";
+        
+    $response = send_xml_request($content);
+    $parsedresponse = parse_api_response($response);
+    
+    if ( strcasecmp($parsedresponse->messages->message->text, 'The credit card has expired.') == 0 ) {
+        return true;
+    }
+    return false;
+    
+}
+
+function ncn_pp_getCustomerPaymentProfileRequest($customerProfileId, $customerPaymentProfileId) {
+    set_time_limit(59);
+    
+    $content =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+        "<getCustomerPaymentProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"> ". 
+        MerchantAuthenticationBlock(). 
+        "<customerProfileId>$customerProfileId</customerProfileId>". 
+        "<customerPaymentProfileId>$customerPaymentProfileId</customerPaymentProfileId>". 
+        "</getCustomerPaymentProfileRequest>";
+        
+    $response = send_xml_request($content);
+    $parsedresponse = parse_api_response($response);
+        
+    $auth_successful = true;
+    if ("Ok" == $parsedresponse->messages->resultCode)
+    {
+        return $parsedresponse->paymentProfile;
+    }
+    return NULL;
+}

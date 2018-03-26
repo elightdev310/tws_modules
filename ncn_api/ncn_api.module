@@ -1,0 +1,209 @@
+<?php
+// $Id: ncn_api.module
+
+define('NCN_API_PREFIX', 'api');
+//_ncn_api_include();
+
+function ncn_api_init() {
+  module_load_include('inc', 'ncn_api', 'ncn_api.checksum');
+}
+
+
+function ncn_api_menu() {
+	$items = array();
+	
+	$items[NCN_API_PREFIX.'/get_country_state/%'] = array(
+    'title' => 'User Profile',
+		'page callback' => 'ncn_api_get_country_state',
+		'page arguments' => array(2), 
+		'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+	
+	return $items;
+}
+
+//** NCN API Response using XML **/
+/*function ncn_api_response($data) {  
+	$output = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	$output.= "<netclaims>";
+	$data = ncn_api_object_to_array($data);
+	$str_data = ncn_api_get_xml_response($data['data']);
+  
+  $m_data = ncn_api_get_meta_data($data);
+  
+  $output.= ncn_api_get_response_with_checksum($str_data, $m_data);
+	$output.= "</netclaims>";
+	
+	drupal_add_http_header('Content-type: application/xml; charset=utf-8');
+	print $output;
+} */
+
+//** NCN API Response using JSON **/
+function ncn_api_response($data) {  
+  $data = ncn_api_object_to_array($data);
+  $m_data = ncn_api_get_meta_data($data);
+  
+  $r_data = ncn_api_get_json_response_with_checksum($data['data'], $m_data);
+  /*echo "<pre>";
+  print_r($r_data);
+  echo "</pre>";
+  exit;*/
+
+  $output = ncn_api_get_json_response($r_data);
+  
+  drupal_add_http_header('Content-type','application/json');
+  drupal_add_http_header('charset','utf-8');
+
+  print $output;
+  
+  //if($_SERVER['REMOTE_ADDR']=='103.240.34.101')
+  {
+  	/*db_query("INSERT INTO {1_mobile_api_log} (mil_date,mil_remote_address,mil_request_uri,mil_response) 
+	values  ('".date("Y-m-d H:i:s")."','".$_SERVER['REMOTE_ADDR']."','".$_SERVER['REQUEST_URI']."','".addslashes($output)."')");
+	*/
+  }
+  // Send Test Mail	
+  //drupal_mail('ncn_admin', 'cronmail', 'keyideas.admn@gmail.com', language_default() , array('!date' => date('Y-m-d H:i A T'),'!crontype' => ($output)));
+}
+
+function ncn_api_get_json_response($data) {
+  return json_encode($data);
+}
+
+function ncn_api_get_xml_response($data, $parent_key='', $node_name='') {
+	$output = "";
+	foreach ($data as $key=>$sub_data) {
+		$repeat_node_name = '';
+		if (substr($key, 0, 1)=='{' &&  substr($key, -1, 1)=='}') {
+			$repeat_node_name = substr($key, 1);
+			$repeat_node_name = substr($repeat_node_name, 0, -1);
+		}
+		
+		$next_parent_key = $key;
+		
+		if ($node_name) {
+			$output .= "<$node_name>";
+			$output .= "<id>".$key."</id>";
+			$next_parent_key = $node_name;
+		} else if ($repeat_node_name == '') {
+			if (is_numeric($key)) {
+				if ($parent_key != '') {
+					$output .= "<$parent_key"."_n_"."$key>";
+					$next_parent_key = $parent_key."_n_".$key;
+				} else {
+					$next_parent_key = "n_$key";
+					$output .= "<n_$key>";
+				}
+			} else {
+				$output .= "<$key>";
+			}
+		}
+		
+		if (is_array($sub_data)) {
+			if (!empty($sub_data)) {
+				$output .= ncn_api_get_xml_response($sub_data, $key, $repeat_node_name);
+			}
+		} else {
+			$output .= htmlspecialchars($sub_data);
+		}
+		
+		if ($node_name) {
+			$output .= "</$node_name>";
+		} else if ($repeat_node_name =='') {
+			if (is_numeric($key)) {
+				if ($parent_key != '') {
+					$output .= "</$parent_key"."_n_"."$key>";
+					$next_parent_key = $parent_key."_n_".$key;
+				} else {
+					$next_parent_key = "n_$key";
+					$output .= "</n_$key>";
+				}
+			} else {
+				$output .= "</$key>";
+			}
+		}
+		
+	}
+	return $output;
+}
+
+/**
+ * Include .inc files as necessary.
+ */
+function _ncn_api_include() {
+  static $used = array();
+  foreach (func_get_args() as $file) {
+    if (!isset($used[$file])) {
+      module_load_include('inc', 'ncn_api', "includes/$file");
+    }
+    $used[$file] = TRUE;
+  }
+}
+
+function ncn_api_object_to_array( $object )
+{
+	if( !is_object( $object ) && !is_array( $object ) )
+	{
+			return $object;
+	}
+	if( is_object( $object ) )
+	{
+			$object = get_object_vars( $object );
+	}
+	return array_map( 'ncn_api_object_to_array', $object );
+}
+
+function ncn_api_get_dp_message() {
+	$dp_msg = array();
+	$dp_messages = drupal_get_messages('error');
+	$timestamp = date('U');
+	$index = 0;
+	foreach ($dp_messages['error'] as $message) {
+		/*$index += 1;
+		$err_key = "err-$timestamp-$index";
+		$dp_msg[$err_key]['message'] = $message;*/
+    $dp_msg[] = array('message' => $message);
+	}
+	
+	return $dp_msg;
+}
+
+
+/********************************************************/
+function ncn_api_get_country_state($country) {
+	
+	list($country,$checksum) = @explode("&",$country);
+	
+	$op_country_state = array(
+		'response' => 0, 
+	);
+	
+	$m_data = array(
+		'request_type'=>'get', 
+		'response_status'=>0, 
+  	);
+	
+	$provinces = profile_location_states($country);
+	array_shift($provinces);
+	
+	$op_country_state['response'] = 1;
+	$op_country_state['states'] = $provinces;
+	
+	$output['countryState'] = $op_country_state;
+  
+  $m_data['response_status'] = $op_country_state['response'];
+	ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+function ncn_api_get_country_from_state($state) {
+	$countries = profile_location_countries();
+	foreach ($countries as $iso=>$full_name) {
+		$states = profile_location_states($iso);
+		if (isset($states[$state])) {
+			return $iso;
+		}
+	}
+	
+	return '';
+}

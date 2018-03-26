@@ -1,0 +1,282 @@
+<?php
+/**
+ * hook_init function
+ */
+ 
+require_once('ncn_ceportal.api.inc');
+require_once('ncn_ceportal.admin.inc');
+require_once('ncn_ceportal.inc');
+require_once('ncn_ceportal.page.inc');
+require_once('ncn_ceportal.additional_data.inc');
+require_once('ncn_ceportal.scopesheet.inc');
+
+function ncn_ceportal_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_ceportal').'/ncn_ceportal.js');
+	drupal_add_js(drupal_get_path('module', 'ncn_ceportal').'/ajaxupload.3.5.js');
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_ceportal_permission()
+{
+	return array('ncn ce-portal' => array(
+										  'title' => t('ncn ce-portal'),
+										 ), 
+				 'ncn ce-portal settings' => array(
+										  'title' => t('ncn ce-portal settings'),
+										), 
+				'ncn auto-assign settings' => array(
+										  'title' => t('ncn auto-assign settings'),
+										), 
+				'ncn ce-portal report' => array(
+										  'title' => t('ncn ce-portal report'),
+										)
+			);
+}
+
+/**
+ * hook_menu function
+ */
+function ncn_ceportal_menu()
+{
+	$items = array();
+	
+	$items['ce_portal/ava_claim/%/accept'] = array(
+    'page callback' => 'ncn_ceportal_ava_claim',
+		'page arguments' => array(2, 3), 
+		'access arguments' => array('ncn ce-portal'),
+		//'type' => MENU_CALLBACK,
+	);
+	 
+	$items['ajax_upload/ncn_ceportal/claim_file/%/%'] = array(
+    'page callback' => 'ncn_ceportal_ajax_upload_claim_file',
+		'page arguments' => array(3, 4), 
+		'access arguments' => array('ncn ce-portal'),
+		'type' => MENU_CALLBACK,
+	);
+	
+	$items['ce_portal/ava_claim/%/complete'] = array(
+    'page callback' => 'ncn_ceportal_ava_claim',
+		'page arguments' => array(2, 3), 
+		'access arguments' => array('ncn ce-portal'),
+		//'type' => MENU_CALLBACK,
+	);
+	
+	$items['account/ce.html/my-account'] = array(
+	  'page callback' => 'ncn_edit_my_account',
+	  'type' => MENU_CALLBACK,
+	  'access arguments' => array('ncn ce-portal'),
+	);
+	
+	$items['ce_portal/sales_report'] = array(
+    'page callback' => 'ncn_ceportal_sales_report_page',
+		'access arguments' => array('ncn ce-portal'),
+		'type' => MENU_CALLBACK,
+	);
+	
+	$items['ce_portal/re-available-to-accept/%'] = array(
+    'page callback' => 'ncn_ceportal_reavailable_for_completed_claim',
+		'page arguments' => array(2), 
+		'access arguments' => array('ncn ce-portal'),
+		'type' => MENU_CALLBACK,
+	);
+	
+	$items['ce_portal/review/claim/%/additional_data'] = array(
+		'page callback' => 'ncn_ceportal_review_claim_addtional_data',
+		'page arguments' => array(3), 
+		'access callback' => 'ncn_ceportal_check_claim_reviewable',
+		'access arguments' => array(3),
+	);
+	$items['ce_portal/review/claim/%/room/%/scopesheet'] = array(
+		'page callback' => 'ncn_ceportal_review_claim_room_scopesheet',
+		'page arguments' => array(3, 5), 
+		'access callback' => 'ncn_ceportal_check_claim_reviewable',
+		'access arguments' => array(3),
+	);
+	
+	
+	$items['admin/config/ncn_ceportal'] = array(
+		'title' => 'Net Claims Now CE Portal Settings',
+		'page callback' => 'ncn_ceportal_admin_settings', 
+    	'access arguments' => array('ncn ce-portal settings'),
+	);
+	$items['admin/config/ncn_ceportal/settings'] = array(
+		'title' => 'Settings',
+    	'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => -10, 
+	);
+	$items['admin/config/ncn_ceportal/settings'] = array(
+		'title' => 'Settings',
+    	'type' => MENU_LOCAL_TASK,
+		'weight' => -9, 
+		'page callback' => 'ncn_ceportal_admin_settings', 
+    	'access arguments' => array('ncn ce-portal settings'),
+	);
+	$items['admin/config/ncn_ceportal/mail_settings'] = array(
+		'title' => 'Email Settings',
+		'page callback' => 'ncn_ceportal_admin_mail_settings', 
+    	'access arguments' => array('ncn ce-portal settings'),
+	);
+	$items['admin/config/ncn_ceportal/weekly_sales_report'] = array(
+		'title' => 'Weekly Sales Report',
+		'page callback' => 'ncn_ceportal_admin_weekly_sales_report', 
+    	'access arguments' => array('ncn ce-portal report'),
+	);
+	
+	$items['admin/config/ncn_ceportal/sales/%/edit'] = array(
+		'title' => 'CE Sale Edit',
+		'page callback' => 'ncn_ceportal_admin_edit_sale', 
+		'page arguments' => array(4), 
+    	'access arguments' => array('ncn ce-portal report'),
+	);
+	
+	
+	return $items;
+}
+
+function ncn_ceportal_mail($key, &$message, $params) {
+	$language = $message['language'];
+	$options = array('langcode' => $message['language']->language);
+	
+	$headers = array(
+		'MIME-Version' => '1.0',
+		'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+		'Content-Transfer-Encoding' => '8Bit',
+		'X-Mailer' => 'Drupal'
+		);
+		foreach ($headers as $h_key =>$value) {
+		$message['headers'][$h_key] = $value;
+	}
+			
+	switch ($key)
+	{
+		case "ava_claim_notification":
+			$message['subject'] = t(variable_get('ce_ava_claim_note_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('ce_ava_claim_note_mail_body', ''), $params, $options);
+		break;
+		case "accept_ava_claim":
+			$message['subject'] = t(variable_get('ce_accept_ava_claim_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('ce_accept_ava_claim_mail_body', ''), $params, $options);
+		break;
+		case "assign_ava_claim":
+			$message['subject'] = t(variable_get('ce_assign_ava_claim_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('ce_assign_ava_claim_mail_body', ''), $params, $options);
+		break;
+		case "miss_ava_claim":
+			$message['subject'] = t(variable_get('ce_miss_ava_claim_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('ce_miss_ava_claim_mail_body', ''), $params, $options);
+		break;
+		case "ce_complete":
+			$message['subject'] = t(variable_get('ce_complete_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('ce_complete_mail_body', ''), $params, $options);
+		break;
+		case "checked_assign_to_ce":
+			$message['subject'] = t(variable_get('checked_assign_to_ce_mail_subject', ''), $params, $options);
+		  $message['body'][] = t(variable_get('checked_assign_to_ce_mail_body', ''), $params, $options);
+		break;
+	}
+}
+
+function ncn_ceportal_form_alter(&$form, &$form_state, $form_id) {
+	switch($form_id) {
+		case 'user_register':
+			$multi_question = _ncn_ceportal_get_multi_question();
+			$form['Company Information']['question_services'] = array(
+				'#value'=>$multi_question, 
+				'#weight'=>-30, 
+			);
+			break;
+		case 'user_extra_profile_form':
+			$user_id = $form['huser_id']['#default_value'];
+			$_user = user_load($user_id);
+			$profile_question_service = (isset($_POST['profile_question_service']) ? $_POST['profile_question_service']:$_user->profile_question_service);
+			$data = explode(",", $profile_question_service);
+			$sel_data = array();
+			for ($index = 0; $index<count($data); $index++) {
+				if (trim($data[$index]) != "") {
+					$sel_data[] = trim($data[$index]);
+				}
+			}
+			$multi_question = _ncn_ceportal_get_multi_question($sel_data);
+			$form['Company Information']['question_services'] = array(
+				'#markup'=>$multi_question, 
+				'#weight'=>-30,
+			);
+			break;
+	}
+}
+
+function _ncn_ceportal_get_question_list_data() {
+	return array(
+		'Water Restoration', 
+		'Fire Restoration', 
+		'Reconstruction', 
+		'Mold Remediation', 
+	);
+}
+
+function _ncn_ceportal_get_multi_question($sel_data=array()) {
+	ob_start();
+	$list_data = _ncn_ceportal_get_question_list_data();	
+?>
+	<label>What kind of restoration services do you provide: </label>
+	<div style="display: table-row">
+		<div id="multi_question_services_available" style="display: table-cell; vertical-align: middle;">
+			<select id="question_services_available" size="5" style="width: 150px;">
+				<?php foreach ( $list_data as $item): ?>
+					<?php if (!in_array($item, $sel_data)): ?>
+					<option value="<?php echo $item; ?>"><?php echo $item; ?></option>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			<select>
+		</div>
+		<div style="display: table-cell; padding: 10px; vertical-align: middle;">
+			<input type="button" id="multi_question_select" onclick="on_click_multi_question_select()" value=" >> "/><br/><br/>
+			<input type="button" id="multi_question_deselect" onclick="on_click_multi_question_deselect()" value=" << "/>
+		</div>
+		<div id="multi_question_services_selected" style="display: table-cell; vertical-align: middle;">
+			<select id="question_services_selected" size="5" style="width: 150px;">
+				<?php foreach ($sel_data as $item): ?>
+					<option value="<?php echo $item; ?>"><?php echo $item; ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+	</div>
+<?php
+	$output = ob_get_contents();
+	ob_end_clean();
+	
+	drupal_add_js('
+		jQuery(window).load(function(){
+			jQuery(".form-item-profile-question-service").hide();
+		});
+		
+		function on_click_multi_question_select() {
+			jQuery("#question_services_available option:selected").each(function () {
+				 jQuery("#question_services_selected").append(new Option(jQuery(this).text(), jQuery(this).text(), true, true));
+				 jQuery(this).remove();
+				 update_question_services();
+      });
+		}
+		
+		function on_click_multi_question_deselect() {
+			jQuery("#question_services_selected option:selected").each(function () {
+				 jQuery("#question_services_available").append(new Option(jQuery(this).text(), jQuery(this).text(), true, true));
+				 jQuery(this).remove();
+				 update_question_services();
+      });
+		}
+		
+		function update_question_services() {
+			var str = new Array();
+			jQuery("#question_services_selected option").each(function () {
+				str.push(jQuery(this).text());
+			});			
+			jQuery("#edit-profile-question-service").val(str.join());
+		}
+	'
+		, 'inline'
+	);
+	return $output;
+}

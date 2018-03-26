@@ -1,0 +1,4 @@
+name = NCN Claim Examiner Portal
+description = Claim Examiner Portal
+package = Net Claims Now
+core = 7.x

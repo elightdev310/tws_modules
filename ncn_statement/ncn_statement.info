@@ -1,0 +1,6 @@
+name = NCN Statement
+description = NCN Statements
+package = Net Claims Now
+core = 7.x
+
+dependencies[] = ncn_report

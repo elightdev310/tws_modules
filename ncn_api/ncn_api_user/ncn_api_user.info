@@ -1,0 +1,10 @@
+; $Id$
+name = NCN APIs for User
+description = NCN Public API for User Managements.
+package = NCN API
+
+dependencies[] = ncn_api
+dependencies[] = user
+
+version = "7.x-1.0"
+core = 7.x

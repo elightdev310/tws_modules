@@ -1,0 +1,820 @@
+<?php
+/**
+ *
+ *
+ *
+ */
+/**
+ * Implements hook_menu().
+ */
+
+function uc_authorizenet_sim_menu()
+{
+	// Always accessible, helps for testing while site is offline.
+	$items = array();
+	$items['cart/authorizenet_cim/complete'] = array(
+														'title' => 'Order complete',
+														'page callback' => 'uc_authorizenet_sim_complete',
+														'access arguments' => array('access content'),
+														'type' => MENU_CALLBACK,
+													);
+	return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for uc_cart_checkout_form().
+ */
+
+function uc_authorizenet_sim_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form_id)
+{
+	if ($form_id == 'uc_cart_checkout_review_form' && ($order_id = intval($_SESSION['cart_order'])) > 0)
+	{
+		$order = uc_order_load($order_id);
+		if ($order->payment_method == 'authorizenet_sim')
+		{
+			unset($form['submit']);
+			$form['#prefix'] = '<table style="display: inline; padding-top: 1em;"><tr><td>';
+			$form['#suffix'] = '</td><td>' . drupal_get_form('uc_authorizenet_sim_form', $order) . '</td></tr></table>';
+		}
+	}
+}
+
+/**
+ * Implements hook_uc_payment_method().
+ */
+
+function uc_authorizenet_sim_uc_payment_method()
+{
+	$path = base_path() . drupal_get_path('module', 'uc_authorizenet_sim');
+	$title = variable_get('uc_authorizenet_sim_method_title', t('Credit card on a secure server: Authorize.net'));
+	$cc_types = array(
+		'visa',
+		'mastercard',
+		'discover',
+		'amex',
+		'dc',
+		'jcb'
+	);
+	foreach($cc_types as $type)
+	{
+		if (variable_get('uc_credit_' . $type, TRUE))
+		{
+			$title.= ' <img src="' . $path . '/images/' . $type . '.gif" style="position: relative; top: 5px;">';
+		}
+	}
+
+	$methods[] = array(
+		'id' => 'authorizenet_sim',
+		'name' => t('Credit Card on File') ,
+		'title' => $title,
+		'desc' => t('Complete orders through Authorize.net SIM Checkout.') ,
+		'callback' => 'uc_payment_method_authorizenet_sim',
+		'redirect' => 'uc_authorizenet_sim_form',
+		'weight' => 3,
+		'checkout' => TRUE,
+		'no_gateway' => TRUE,
+	);
+	return $methods;
+}
+
+/**
+ * Handles the Website Payments Standard payment method.
+ */
+
+function uc_payment_method_authorizenet_sim($op, &$arg1, $silent = FALSE)
+{
+	switch ($op)
+	{
+		/*    case 'cart-details':
+		if (variable_get('uc_authorizenet_sim_check', FALSE)) {
+		if ($_SESSION['pay_method'] == 'CK') {
+		$sel[2] = ' selected="selected"';
+		}
+		else {
+		$sel[1] = ' selected="selected"';
+		}
+
+		unset($_SESSION['pay_method']);
+		$details = '<div class="form-item"><b>'. t('Select your payment type:')
+		.'</b> <select name="pay_method" class="form-select" id="edit-pay-method">'
+		.'<option value="CC"'. $sel[1] .'>'. t('Credit card') .'</option>'
+		.'<option value="CK"'. $sel[2] .'>'. t('Online check') .'</option></select></div>';
+		}
+
+		return $details;
+		*/
+	case 'cart-process':
+		$_SESSION['pay_method'] = $_POST['pay_method'];
+		return;
+	case 'settings':
+		$form['authnet_sim_settings'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('SIM settings') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_login_id'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Login ID') ,
+			'#default_value' => variable_get('authnet_sim_login_id', '') ,
+			'#description' => t('The login username used for the PracticePaySolutions SIM service.') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_transaction_key'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Transaction key') ,
+			'#default_value' => variable_get('authnet_sim_transaction_key', '') ,
+			'#description' => t('Your API transaction key for sending encrypting data.') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_md5_hash'] = array(
+			'#type' => 'textfield',
+			'#title' => t('MD5 Hash') ,
+			'#default_value' => variable_get('authnet_sim_md5_hash', '') ,
+			'#description' => t('Your MD5 Hash at authorize.net. If set response from authorize.net will be authenticated.') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_transaction_mode'] = array(
+			'#type' => 'select',
+			'#title' => t('Transaction mode') ,
+			'#description' => t('Transaction mode used for processing orders.') ,
+			'#options' => array(
+				'production' => t('Production') ,
+				'live_test' => t('Live Test') ,
+				'test' => t('Test') ,
+			) ,
+			'#default_value' => variable_get('authnet_sim_transaction_mode', 'test') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_transaction_type'] = array(
+			'#type' => 'select',
+			'#title' => t('Transaction type') ,
+			'#description' => t('Choosing <em>Capture</em> will authorize and capture funds at the same time.') ,
+			'#options' => array(
+				'capture' => t('Capture') ,
+				'authorization' => t('Authorization') ,
+			) ,
+			'#default_value' => variable_get('authnet_sim_transaction_type', 'capture') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_fds_ip'] = array(
+			'#type' => 'select',
+			'#title' => t('FDS IP') ,
+			'#description' => t('Fraud Detection Suite (FDS) - Set to Enabled if using FDS') ,
+			'#options' => array(
+				'true' => t('Enabled') ,
+				'false' => t('Disabled') ,
+			) ,
+			'#default_value' => variable_get('authnet_sim_fds_ip', 'false') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_customer_notification'] = array(
+			'#type' => 'select',
+			'#title' => t('Customer notifications') ,
+			'#description' => t('Should PracticePaySolutions SIM e-mail a receipt to the customer?') ,
+			'#options' => array(
+				'true' => t('Enabled') ,
+				'false' => t('Disabled') ,
+			) ,
+			'#default_value' => variable_get('authnet_sim_customer_notification', 'true') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_currency'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Currency Code') ,
+			'#description' => t('Currency code for the transaction.') ,
+			'#default_value' => variable_get('authnet_sim_currency', 'USD') ,
+		);
+		$form['authnet_sim_settings']['uc_authorize_sim_checkout_button'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Order review submit button text') ,
+			'#description' => t('Provide PracticePaySolutions SIM specific text for the submit button on the order review page.') ,
+			'#default_value' => variable_get('uc_authorize_sim_checkout_button', t('Submit Order')) ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_logo_url'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Logo URL') ,
+			'#description' => t('Add a logo to the PracticePaySolutions page') ,
+			'#default_value' => variable_get('authnet_sim_logo_url', '') ,
+		);
+		$form['authnet_sim_settings']['authnet_sim_background_url'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Background URL') ,
+			'#description' => t('Add a background to the PracticePaySolutions page') ,
+			'#default_value' => variable_get('authnet_sim_background_url', '') ,
+		);
+		return $form;
+	}
+}
+
+/**
+ * Form to build the submission to Authorize.net SIM
+ *
+ *
+ */
+
+function uc_authorizenet_sim_form($form, &$form_state, $order)
+{
+	global $user, $response, $base_url;
+	
+	$description = '';
+	if (is_array($order->products))
+	{
+		foreach($order->products as $product)
+		{
+			if (!empty($description))
+			{
+				$description.= ' / ';
+			}
+
+			$description.= $product->title . ' x' . $product->qty;
+			if (is_array($product->data['attributes']))
+			{
+				foreach($product->data['attributes'] as $key => $value)
+				{
+					$description.= ', ' . $key . ': ' . $value;
+				}
+			}
+		}
+	}
+
+	$description = substr($description, 0, 255);
+
+	// print_r ($order);
+
+	$country = uc_get_country_data(array(
+		'country_id' => $order->billing_country
+	));
+	if ($country === FALSE)
+	{
+		$country = array(
+			0 => array(
+				'country_iso_code_3' => 'USA'
+			)
+		);
+	}
+
+	//
+	// NOTE: i would love to use the 'x_line_item' param of Authorize.net but i haven't found a way of
+	// passing it the same param name with different values in one form without hacking.
+	// basically, and ive tested this, Authorize.net can accept several 'x_line_item' params in it's dll
+	// but php will overwrite it if you iterate over a list of items. so i decided to make do without.
+	//
+
+	$submit_data = array(
+
+		// essentials & good practice params
+
+		'x_login' => variable_get('authnet_sim_login_id', '') ,
+		'x_type' => variable_get('authnet_sim_transaction_type', 'capture') == 'capture' ? 'AUTH_CAPTURE' : 'AUTH_ONLY',
+		'x_amount' => uc_currency_format($order->order_total, FALSE, FALSE, '.') ,
+		'x_show_form' => 'PAYMENT_FORM',
+
+		// relay response settings
+
+		'x_delim_data' => 'FALSE',
+		'x_relay_response' => 'TRUE',
+		'x_relay_url' => url('cart/authorizenet_sim/complete/' . uc_cart_get_id() , array(
+			'absolute' => TRUE
+		)) ,
+
+		// customer ip if using FDS
+
+		'x_customer_ip' => variable_get('authnet_sim_fds_ip', 'true') == 'true' ? ip_address() : '',
+		'x_version' => '3.1',
+
+		// aesthetics
+
+		'x_logo_url' => variable_get('authnet_sim_logo_url', '') ,
+		'x_background_url' => variable_get('authnet_sim_background_url', '') ,
+
+		// non-required but good to have
+
+		'x_currency_code' => variable_get('authnet_sim_currency', 'USD') ,
+		'x_method' => 'CC',
+		'x_email_customer' => variable_get('authnet_sim_customer_notification', 'TRUE') ,
+		'x_cust_id' => $order->uid,
+		'x_invoice_num' => $order->order_id,
+		'x_first_name' => substr($order->billing_first_name, 0, 50) ,
+		'x_last_name' => substr($order->billing_last_name, 0, 50) ,
+		'x_company' => substr($order->billing_company, 0, 50) ,
+		'x_address' => substr($order->billing_street1, 0, 60) ,
+		'x_city' => substr($order->billing_city, 0, 40) ,
+		'x_state' => substr(uc_get_zone_code($order->billing_zone) , 0, 40) ,
+		'x_zip' => substr($order->billing_postal_code, 0, 20) ,
+		'x_country' => $country[0]['country_name'],
+		'x_phone' => substr($order->billing_phone, 0, 25) ,
+		'x_email' => $order->primary_email,
+		'x_ship_to_first_name' => substr($order->delivery_first_name, 0, 50) ,
+		'x_ship_to_last_name' => substr($order->delivery_last_name, 0, 50) ,
+		'x_ship_to_address' => substr($order->delivery_street1, 0, 60) ,
+		'x_ship_to_city' => substr($order->delivery_city, 0, 40) ,
+		'x_ship_to_state' => substr(uc_get_zone_code($order->delivery_zone) , 0, 40) ,
+		'x_ship_to_zip' => substr($order->delivery_postal_code, 0, 20) ,
+		'x_ship_to_country' => $country[0]['country_name'],
+		'x_description' => $description,
+		'created' => $order->created,
+		'modified' => $order->modified,
+		'order_id' => $order->order_id,
+	);
+
+	//
+	// create the MD5 hash fingerprint
+	//
+	// Seed random number for security and better randomness.
+
+	srand(time());
+	$sequence = rand(1, 1000);
+	$tstamp = time();
+	$login = variable_get('authnet_sim_login_id', '');
+	$txn_key = variable_get('authnet_sim_transaction_key', '');
+	$ccode = variable_get('authnet_sim_currency', 'USD');
+	$amount = $order->order_total;
+	$amount = uc_currency_format($amount, FALSE, FALSE, '.');
+	/*******************************************************************************
+	* Authorize.net SIM functions
+	******************************************************************************/
+	$fingerprint = hash_hmac('md5', $login . "^" . $sequence . "^" . $tstamp . "^" . $amount . "^" . $ccode, $txn_key);
+
+	// debugging
+	// print 'md5 ' . $login . "^" . $sequence . "^" . $tstamp . "^" . $amount . "^" . $ccode, $txn_key;
+	// print '<br / >' . $fingerprint;
+
+	$submit_data['x_fp_hash'] = $fingerprint;
+	$submit_data['x_fp_timestamp'] = $tstamp;
+	$submit_data['x_fp_sequence'] = $sequence;
+	$transaction_mode = variable_get('authnet_sim_transaction_mode', 'test');
+	if ($transaction_mode == 'test')
+	{
+		$submit_data['x_test_request'] = 'TRUE';
+		$url = $base_url.'/cart/authorizenet_cim/complete'; //    $url = 'https://secure.authorize.net/gateway/transact.dll';
+	}
+	elseif ($transaction_mode == 'live_test')
+	{
+		$submit_data['x_test_request'] = 'TRUE';
+		$url = $base_url.'/cart/authorizenet_cim/complete'; //    $url = 'https://secure.authorize.net/gateway/transact.dll';
+	}
+	else
+	{
+		$submit_data['x_test_request'] = 'FALSE';
+		$url = $base_url.'/cart/authorizenet_cim/complete'; //    $url = 'https://secure.authorize.net/gateway/transact.dll';
+	}
+
+	$form['#action'] = $url;
+	foreach($submit_data as $name => $value)
+	{
+		$form[$name] = array(
+			'#type' => 'hidden',
+			'#value' => $value
+		);
+	}
+
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#name' => 'submit_order',
+		'#id' => 'submit_order',
+		'#value' => variable_get('uc_authorize_sim_checkout_button', t('Submit Order')) ,
+	);
+	return $form;
+}
+
+function uc_authorizenet_sim_complete($cart_id = NULL)
+{
+	GLOBAL $user, $base_url;
+	$user = user_load($user->uid);
+	$user_id = $user->uid;
+	if (is_subuser($user))
+	{
+		$parent_mid = ncn_subuser_get_memberid_from_subuid($user_id);
+		$user_id = get_uid_from_memberid($parent_mid);
+	}
+
+	set_time_limit(120);
+
+	// enter a log entry about the payment
+
+	watchdog('uc_authnet_sim', 'Receiving new order notification for order !order_id.', array(
+		'!order_id' => check_plain($_POST['order_id'])
+	));
+
+	// print_r($_POST);
+
+	$_SESSION['uc_cart_id'] = $cart_id;
+	$order_id = $_POST['order_id'];
+	$_SESSION['cart_order'] = $order_id;
+	$claim_id = $_SESSION['claim']['id'];
+
+	// price
+
+	$price = $_POST["x_amount"];
+	if (ncn_cd($claim_id, 'expedite'))
+	{
+		$price = $price * 2;
+	}
+	
+	if (($order = uc_order_load($order_id)) && count(uc_cart_get_contents()))
+	{
+
+		// --- attempt to process the order via cim and get response from practicepay/auth.net ---
+		// patch up the product name
+
+		$_POST['x_description'] = explode(",", $_POST['x_description']);
+		$_POST['x_description'] = trim($_POST['x_description'][0]);
+
+		// get cim profile id's
+
+		$this_user = user_load($user_id);
+
+		// check for free
+
+		if ($this_user->profile_credit_card_number == '5424000000000015')
+		{
+			$auth_successful = true;
+			$response_code = 1;
+		}
+
+		// need to attempt payment for this
+
+		else
+		{
+			// carry on on
+			// watchdog("order-log", $this_user->profile_memberid, array() );
+
+			$query = "SELECT * FROM member_cim WHERE member_id = :mid";
+			$result = db_query($query,array(':mid'=>$this_user->profile_memberid));
+			$row_count = $result->rowCount();
+			
+			// if profile id was found and is good
+			if ($row_count > 0)
+			{
+
+				// watchdog("order-log", "follow:".$this_user->profile_memberid, array() );
+
+				$cim_profile = $result->fetchAssoc();
+				
+				if ($cim_profile["customerProfileId"] == "FREE" || $cim_profile["customerProfileId"] == "TEST" || intval($cim_profile["customerProfileId"]) == 0)
+				{
+					$auth_successful = true;
+					$response_code = 1;
+				}
+				else
+				{
+					$auth_successful = true;
+					$response_code = 1;
+					
+					// attempt payment
+					/*$content =  "<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+								"<createCustomerProfileTransactionRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
+								MerchantAuthenticationBlock().
+								"<transaction>".
+								"<profileTransAuthCapture>".
+								"<amount>" . $price . "</amount>". // should include tax, shipping, and everything.
+								"<shipping>".
+								"<amount>0.00</amount>".
+								"<name>".$_POST['x_description']."</name>".
+								"<description>".$_POST['x_description']."</description>".
+								"</shipping>".
+					
+								"<lineItems>".
+								"<itemId>123456</itemId>".
+								"<name>".$_POST['x_description']."</name>".
+								"<description>".$_POST['x_description']."</description>".
+								"<quantity>1</quantity>".
+								"<unitPrice>".$price."</unitPrice>".
+								"<taxable>false</taxable>".
+								"</lineItems>".
+					
+								"<customerProfileId>" . $cim_profile["customerProfileId"] . "</customerProfileId>".
+								"<customerPaymentProfileId>" . $cim_profile["customerPaymentProfileId"] . "</customerPaymentProfileId>".
+								"<order>".
+								"<invoiceNumber>".$_POST['order_id']."</invoiceNumber>".
+								"</order>".
+								"</profileTransAuthCapture>".
+								"</transaction>".
+								"</createCustomerProfileTransactionRequest>";
+					
+					// <?php
+
+					//				echo $content;
+
+					$response = send_xml_request($content);
+					$parsedresponse = parse_api_response($response);
+
+					//			"<customerShippingAddressId>" . $_POST["customerShippingAddressId"] . "</customerShippingAddressId>".
+
+					$auth_successful = true;
+					if ("Ok" == $parsedresponse->messages->resultCode)
+					{
+
+						//			echo "A transaction was successfully created for customerProfileId <b>"
+						//				. htmlspecialchars($_POST["customerProfileId"])
+						//				. "</b>.<br /><br />";
+
+						$auth_successful = true;
+						$response_code = 1; // success
+					}
+					else
+					{
+						$auth_successful = false;
+						$response_code = 3;
+						$response_reason_text = $parsedresponse->messages->message->text;
+
+						// Declined Mail
+
+						$params = array(
+							'member_name' => $user->profile_firstname . " " . $user->profile_lastname,
+							'activation' => true
+						);
+						if (strcasecmp($response_reason_text, 'This transaction has been declined') == 0)
+						{
+							$message = credit_card_declined_mail_template($params);
+							drupal_mail('ncn_auto_payments', 'credit_card_declined', $user->mail, language_default() , array(
+								'subject' => t('Credit Card Declined') ,
+								'body' => $message
+							));
+						}
+						else
+						if (strcasecmp($response_reason_text, 'The credit card has expired.') == 0)
+						{
+							$message = credit_card_expired_mail_template($params);
+							drupal_mail('ncn_auto_payments', 'credit_card_expired', $user->mail, language_default() , array(
+								'subject' => t('Credit Card Expired') ,
+								'body' => $message
+							));
+						}
+					}
+
+					### payment log ###
+
+					$products = uc_cart_get_contents();
+					$product_id = 0;
+					if (isset($products[0]->nid))
+					{
+						$product_id = $products[0]->nid;
+					}
+
+					$payment_success = ($auth_successful) ? 1 : 0;
+					$pid = ncn_report_payment_log($product_id, $payment_success, $this_user, 0, 0, $claim_id, 0, $price);
+
+					// claim product
+
+					$a_product = node_load($product_id);
+					$arr_products[] = array(
+						'item' => $product_id,
+						'description' => $a_product->body,
+						'quantity' => 1,
+						'taxable' => 'N',
+						'unit_price' => $a_product->cost,
+						'total_price' => $a_product->cost * 1,
+					);
+					if (ncn_cd($claim_id, 'expedite'))
+					{
+
+						// expedite
+
+						$arr_products[] = array(
+							'item' => '',
+							'description' => 'EXPEDITE',
+							'quantity' => '',
+							'taxable' => '',
+							'unit_price' => $a_product->cost,
+							'total_price' => $a_product->cost,
+						);
+					}
+
+					if ($pid)
+					{
+						$mail_params = array(
+							'merchant' => 'Net Claims Now',
+							'invoice_number' => $pid,
+							'claim_id' => $claim_id,
+							'customer_id' => $this_user->profile_memberid,
+							'timestamp' => date('d-M-Y h:i:s A T', time()) ,
+							'member_name' => $this_user->profile_firstname . ' ' . $this_user->profile_lastname,
+							'member_address' => $this_user->profile_address,
+							'member_city' => $this_user->profile_city,
+							'member_state' => $this_user->profile_state,
+							'member_zip' => $this_user->profile_zip,
+							'member_email' => $this_user->mail,
+							'member_phone' => _get_format_phone_string($this_user->profile_officephone) ,
+							'products' => $arr_products,
+							'total' => $price,
+						);
+					}*/
+				}
+			}
+			else
+			{
+				$auth_successful = false;
+				$response_code = 3; // error
+				$response_reason_text = "Customer Payment Profile not found";
+			}
+		} // END not free - tried to process it
+		/*
+		$auth_successful
+		case 1:  $status = 'APPROVED'; break;
+		case 2:  $status = 'DECLINED'; break;
+		case 3:  $status = 'ERROR';    break;
+		case 4:  $status = 'HELD for REVIEW'; break;
+		*/
+
+		// now dip back into ubercart to process it
+
+		if (!$auth_successful)
+		{
+
+			// display message to customers that something went wrong and add a log for auth failure
+
+			$results = "<p>We're sorry.  An error occurred while processing your order that prevents us from completing it at this time. Please contact us and we will resolve the issue as soon as possible.</p>";
+			$results.= "<p><strong>$response_reason_text</strong></p>";
+
+			watchdog('uc_authnet_sim', 'An unauthenticated response from authorize.net made it to checkout! Calculated MD5: !CMD5 Received MD5: !RMD5 Cart order ID: @cart_order', array(
+				'!CMD5' => $fingerprint,
+				'!RMD5' => $auth_md5_hash,
+				'@cart_order' => $_SESSION['cart_order']
+			) , WATCHDOG_ERROR);
+			$page = 'account';
+		}
+		else
+		{
+
+			// get order details
+
+			$order = uc_order_load($order_id);
+			switch ($response_code)
+			{
+			case 1:
+				$status = 'APPROVED';
+				break;
+
+			case 2:
+				$status = 'DECLINED';
+				break;
+
+			case 3:
+				$status = 'ERROR';
+				break;
+
+			case 4:
+				$status = 'HELD for REVIEW';
+				break;
+			}
+
+			/*
+			Visa#: 4007000000027
+			MC#: 5424000000000015
+			Discover#: 6011000000000012
+			AMEX#: 370000000000002
+			*/
+			if ($response_code == '1') // order APPROVED
+			{
+				if (abs($amount - $order->order_total) < 0.01)
+				{
+
+					// if payment was successful, zero out the balance, this should trigger order status change if using workflow-ng rules.
+
+					$comment = t('Paid by !type, Credit Card order with auth code: !auth_code. (subcode: !subcode, avscode: !avscode) !reason_text.', array(
+						'!type' => 'credit card',
+						'!auth_code' => check_plain($auth_code) ,
+						'!subcode' => $response_subcode,
+						'!avscode' => $avscode,
+						'!reason_text' => $response_reason_text
+					));
+					uc_payment_enter($order_id, 'Authorize.net', $amount, 0, NULL, $comment);
+				}
+
+				$query = "UPDATE claims SET claim_status='incomplete' WHERE claim_id=" . $claim_id;
+				$result = db_query($query);
+				ncn_create_claim_send_mail($claim_id);
+
+				// NCN Invoice Mail
+
+				if (isset($mail_params))
+				{
+					drupal_mail('ncn_admin', 'order_claim', $mail_params['member_email'], language_default() , $mail_params);
+				}
+			}
+			else
+			{ // order DECLINED (2), order ERROR (3), order HELD for REVIEW (4)
+				uc_order_comment_save($order_id, 0, t('There was a problem with your order: !response_code : (subcode: !subcode, avscode: !avscode) !reason_text.', array(
+					'!response_code' => check_plain($response_code) ,
+					'!subcode' => $response_subcode,
+					'!avscode' => $avscode,
+					'!reason_text' => $response_reason_text
+				)));
+			}
+
+			// log it.
+
+			$message = t('Credit card !status: !amount', array(
+				'!status' => $status,
+				'!amount' => uc_currency_format($amount)
+			));
+			uc_order_comment_save($order_id, $this_user->uid, $message, 'admin');
+
+			// complete the order
+
+			$results = uc_cart_complete_sale($order, FALSE);
+
+			// Add a comment to let sales team know this came in through the site.
+
+			uc_order_comment_save($order->order_id, 0, t('Order created through website.') , 'admin');
+			$page = variable_get('uc_cart_checkout_complete_page', '');
+			$results = t("<p>Thank you for your claim(#!claim_id).</p>", array(
+				'!claim_id' => $claim_id
+			));
+			$results.= '<p>Click <a href="'.$base_url.'/account/my-active-claims.html">here</a> to return to your account.</p>';
+			$page = '';
+		}
+	}
+	else
+	{
+		// Display messages to customers and the administrator if the order was lost.
+
+		$results = "<p>We're sorry.  An error occurred while processing your order that prevents us from completing it at this time. Please contact us and we will resolve the issue as soon as possible.</p>";
+		watchdog('uc_authnet_sim', 'An empty order made it to checkout! Cart order ID: @cart_order', array(
+			'@cart_order' => $_SESSION['cart_order']
+		) , WATCHDOG_ERROR);
+		$page = 'cart';
+	}
+
+	// add a specific return link, if requested
+
+	if (!empty($page))
+	{
+		$page = url($page, array(
+			'absolute' => TRUE
+		));
+		$results.= "<p>Click <a href=\"{$page}\">here</a> to return to your account.</p>";
+	}
+
+	// emulate authorize.net background and logo image handling
+
+	$bg_image = variable_get('authnet_sim_background_url', '');
+	if (empty($bg_image))
+	{
+		$background = '';
+	}
+	else
+	{
+		$background = "background-image: url({$bg_image});";
+	}
+
+	$logo_image = variable_get('authnet_sim_logo_url', '');
+	if (empty($logo_image))
+	{
+		$logo = '';
+	}
+	else
+	{
+		$logo = "<img alt=\"\" src=\"{$logo_image}\" />";
+	}
+
+	// build a transaction result page to be displayed in authorize.net's site
+	// context, emulating their default style
+
+	$output = <<<End_of_HTML
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+  <head>
+    <title>Payment Submission Results</title>
+    <style type="text/css">
+body {
+  background-color: #ffffff;
+  color: #000000;
+  font-family: Arial, Sans-Serif;
+  overflow: auto;
+  {$background}
+}
+div, body, p {
+  font-size: 12px;
+}
+img {
+  border-width: 0;
+}
+a:link {
+  color: #008080;
+}
+.PageOuter {
+  text-align: center;
+}
+.Page {
+  border: #828282 1px solid;
+  padding: 5px;
+  width: 580px;
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+}
+    </style>
+  </head>
+  <body>
+  <div class="PageOuter">
+    <div class="Page">
+      {$logo}
+      {$results}
+    </div>
+  </div>
+  </body>
+</html>
+
+End_of_HTML;
+
+	// dump the HTML back to authorize.net and end the request right here
+
+	print $output;
+	flush();
+	exit;
+}

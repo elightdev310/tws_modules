@@ -1,0 +1,716 @@
+<?php
+
+/**
+ *
+ */
+
+/**
+ * hook_init function
+ */
+function ncn_claim_report_init() {
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_claim_report_permission()
+{
+    return array('ncn claim report' => array(
+                                            'title' => t('ncn claim report'),
+                                         ),
+                'ncn claim report for qa & ms' => array(
+                                            'title' => t('ncn claim report for qa & ms'),
+                                         ),
+                'ncn claim report for am' => array(
+                                            'title' => t('ncn claim report for am'),
+                                         )
+                );
+}
+
+/**
+ * hook_menu function
+ */     
+function ncn_claim_report_menu()
+{
+    $items = array();
+    
+    $items['ncn/ncn_claim_report'] = array(
+        'title' => t('NCN Claim Report'),
+        'page callback' => 'ncn_claim_report_render_page',
+        'access arguments' => array('ncn claim report'),
+        'options' => array('attributes'=>array('target'=>'_blank')),
+        'weight' => 2,
+    );
+    
+    $items['ncn/ncn_claim_report_qa_ms'] = array(
+        'title' => t('NCN Claim Report For QA and MS'),
+        'page callback' => 'ncn_claim_report_render_page_qa_ms',
+        'access arguments' => array('ncn claim report for qa & ms'),
+        'options' => array('attributes'=>array('target'=>'_blank')),
+        'weight' => 3,
+    );
+    
+    $items['ncn/ncn_claim_report_am'] = array(
+        'title' => t('NCN Claim Report For AM'),
+        'page callback' => 'ncn_claim_report_render_page_am',
+        'access arguments' => array('ncn claim report for am'),
+        'options' => array('attributes'=>array('target'=>'_blank')),
+        'weight' => 2,
+    );
+    
+    return $items;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function ncn_claim_report_theme(){
+    return array(
+        'ncn_claim_report_page' => array(
+            'arguments' => array('t_data' => array(), 'sum'=>'$0.00'),
+            'template' => 'ncn_claim_report_page',
+        ),
+        'ncn_claim_report_page_qa_ms' => array(
+            'arguments' => array('t_data' => array(), 'sum'=>'$0.00'),
+            'template' => 'ncn_claim_report_page_qa_ms',
+        ),
+        'ncn_claim_report_page_am' => array(
+            'arguments' => array('t_data' => array(), 'sum'=>'$0.00'),
+            'template' => 'ncn_claim_report_page_am',
+        ),
+    );
+}
+
+function template_preprocess_ncn_claim_report_page(&$vars) {
+    
+}
+
+function ncn_claim_report_get_claim_data() {
+global $user;
+global $base_url;
+
+    $t_data = array();
+    $query = "SELECT * FROM claims WHERE user_id!=69 AND claim_status!='unpurchased' AND workflow!='completed_status' AND deleted=0";// AND last_modified>".strtotime('-1 year');
+    $query.= " ORDER BY last_modified DESC";
+    $result = db_query($query);
+
+    $start = date('U');
+    foreach($result as $claim)
+    {
+        $claim = (array)$claim;
+
+        if ($claim['workflow'] == '' && $claim['claim_status'] != 'incomplete' && $claim['claim_status'] != 'out for review' && $claim['claim_status'] != 'returned' ) { continue; }
+
+        //ncn_print_r(date('U') - $start, 0);
+        $r_data = array();
+        $_user = user_load($claim['user_id']);
+        if ($_user) {
+            $member = $_user->profile_firstname.' '.$_user->profile_lastname;
+        } else {
+            $member = 'User #'.$claim['user_id'];
+        }
+
+        $r_data['claim_id']     = $claim['claim_id'];
+        $r_data['member']       = $member;
+        $r_data['owner']        = ncn_cd($claim['claim_id'], 'customer_name');//ncn_claim_report_get_owner($_user->profile_memberid);
+        $r_data['type']         = ucwords($claim['claim_type']);                    // * VER 2.0 *
+        $r_data['product']      = ucwords($claim['claim_product']);             // * VER 2.0 *
+
+        if ($r_data['product']=='Fire/Smoke Contents Cleaning') { $r_data['product']='Contents Cleaning';  }
+        if ($r_data['product']=='Fire/Smoke Structure Cleaning'){ $r_data['product']='Structure Cleaning'; }
+
+        $r_data['pp']                   = (get_ncn_data_extra($claim['claim_id'], 'pp')=='on')? 'x':'';
+        $r_data['claim_docs_in_vos'] = ncn_claim_report_claim_docs_in_vos($claim['claim_id']);                  // * VER 2.0 *
+
+        $r_data['check_claim_logfile'] = (get_ncn_data_extra($claim['claim_id'], 'check_claim_logfile')=='on')? 'x':'';                 // * VER 2.1 *
+
+        //$r_data['claim_docs_recieved']    = (get_ncn_data_extra($claim['claim_id'], 'claim_docs_recieved')=='on')? 'x':'';
+        //$r_data['fax_in_dropbox']         = (get_ncn_data_extra($claim['claim_id'], 'fax_in_dropbox')=='on')? 'x':'';
+        //$r_data['scott_conf_receipt']     = (get_ncn_data_extra($claim['claim_id'], 'scott_conf_receipt')=='on')? 'x':'';
+
+
+        $r_data['rejected_claim_docs']  = '';   $r_data['all_docs_reieved'] = '';
+        ncn_claim_report_get_workflow_rcd_adr($claim['claim_id'], $r_data);
+        if ($claim['workflow']=='' || $claim['workflow']=='fax_doc_recieved') {
+            $r_data['rejected_claim_docs']  = '';
+        }
+
+        $r_data['claim_backend'] = (get_ncn_data_extra($claim['claim_id'], 'claim_backend')=='complete')? 'x':'';
+        ncn_claim_report_get_ce_data($claim['claim_id'], $r_data);
+
+        $r_data['esx_pdf_uploaded']     = (get_ncn_data_extra($claim['claim_id'], 'esx_pdf_uploaded')=='on')? 'x':'';
+        //$r_data['fax_in_vos']         = ncn_claim_report_get_fax_in_vos($claim['claim_id']);
+        if ($_user) {
+            $r_data['account_manager']      = ncn_claim_report_get_account_manager($_user->profile_memberid);
+        } else {
+            $r_data['account_manager']      = '';
+        }
+        $r_data['invoice_posted_on_vos']= ncn_claim_report_get_invoice_posted_on_vos($claim['claim_id']);
+        $r_data['claim_amount']         = ($claim['claim_amount']==0)? '': render_payment_cost($claim['claim_amount']);
+
+        $ts_rejected_invoice = intval(get_ncn_data_extra($claim['claim_id'], 'rejected_invoice_timestamp'));
+        if ($ts_rejected_invoice == 0) {
+            $r_data['rejected_invoice']     = '';
+        } else {
+            $r_data['rejected_invoice']     = date("m/d/Y H:i:s", $ts_rejected_invoice);
+        }
+
+        $r_data['#row_type'] = 'claim';
+        if (user_access('view ncn claim', $user)) {
+            $r_data['claim_id_url'] = "<a href='".$base_url.base_path()."admin/config/ncn_admin/viewclaim/".$r_data['claim_id']."' target='_blank'>".$r_data['claim_id']."</a>";
+        } else {
+            $r_data['claim_id_url'] = $r_data['claim_id'];
+        }
+
+        // Get Due to Time
+        $query = "SELECT * FROM claim_timer_trigger WHERE claim_id=".$r_data['claim_id']." AND status=1 ORDER BY start_time DESC";
+        $result1 = db_query($query);
+        if ($result1 && $row = $result1->fetchAssoc()) {
+            $r_data['due_to_time_tt'] = date('m/d/Y H:i', ncn_admin_get_due_to_time($row['start_time'], $row['limit_time']));
+        } else {
+            $r_data['due_to_time_tt'] = '';
+        }
+        $t_data[] = $r_data;
+    }
+    
+    
+    return $t_data;
+}
+
+function ncn_claim_report_render_page() {
+    $t_data = ncn_claim_report_get_claim_data();
+    $final_data = ncn_claim_report_grouping($t_data);
+    $sum = render_payment_cost(ncn_claim_report_get_total_amount());
+    return theme('ncn_claim_report_page',array("t_data"=>$final_data,"sum"=>$sum));
+}
+
+function ncn_claim_report_render_page_qa_ms() {
+    $t_data = ncn_claim_report_get_claim_data();
+    
+    $final_data = ncn_claim_report_grouping_qa_ms($t_data);
+    $sum = render_payment_cost(ncn_claim_report_get_total_amount());
+    return theme('ncn_claim_report_page_qa_ms',array("t_data"=>$final_data,"sum"=>$sum));
+}
+
+function ncn_claim_report_render_page_am() {
+    $t_data = ncn_claim_report_get_claim_data();
+    
+    $final_data = ncn_claim_report_grouping_am($t_data);
+    $sum = render_payment_cost(ncn_claim_report_get_total_amount());
+    return theme('ncn_claim_report_page_am',array("t_data"=>$final_data,"sum"=>$sum));
+}
+/*****************************************************************************/
+
+function ncn_claim_report_get_owner($member_id){
+    $query = "SELECT * FROM member_id_pool WHERE member_id='$member_id'";
+    $result = db_query($query);
+    foreach($result as $member)
+    {
+        $member = (array)$member;
+        if($member)
+        {
+            $owner_id = $member['owner'];
+            $_owner = user_load($owner_id);
+            return $_owner->profile_firstname.' '.$_owner->profile_lastname;
+        }
+        return '';
+    }
+
+
+//  if ($member = $result->fetchAssoc()) {
+//      $owner_id = $member['owner'];
+//      $_owner = user_load($owner_id);
+//      return $_owner->profile_firstname.' '.$_owner->profile_lastname;
+//  }
+//  return '';
+}
+
+function ncn_claim_report_get_workflow_rcd_adr($claim_id, &$r_data){
+    $query = "SELECT * FROM claims_log WHERE claim_id=$claim_id ORDER BY timestamp DESC ";
+    $result = db_query($query);
+    
+    $claim_workflow = get_claim_workflow_array();
+    foreach($result as $msg_log)
+    {
+        $msg_log = (array)$msg_log;
+        //$claim_workflow['all_doc_recieved']
+        $workflow = 'all_doc_recieved';
+        $match_msg = "Timer(claim: #$claim_id) has been started";
+        if (strpos($msg_log['message'], $match_msg) !== FALSE ) {
+            $r_data['all_docs_reieved'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+            return;
+        }
+        
+        //$claim_workflow['rejected_claim_docs']
+        $workflow = 'rejected_claim_docs';
+        if (strpos($msg_log['message'], $match_msg) !== FALSE && strpos($msg_log['message'], $claim_workflow[$workflow]) !== FALSE ) {
+            $r_data['rejected_claim_docs'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+            return;
+        } else {
+            $o_match_msg = "Claim workflow updated to: Rejected Claim Documents.";
+            $n_match_msg = "updated claim workflow to Rejected Claim Documents.";
+            if ( strpos($msg_log['message'], $o_match_msg) !== FALSE || strpos($msg_log['message'], $n_match_msg) !== FALSE ) {
+                $r_data['rejected_claim_docs'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+                return;
+            }
+        }
+    }
+}
+
+function ncn_claim_report_get_fax_in_vos($claim_id) {
+    $type = 2;
+    $query = "SELECT * FROM claims_invoices WHERE claim_id=".$claim_id." AND `live`=".$type." ORDER BY revision DESC LIMIT 0,1";
+    $result = db_query($query);
+    foreach($result as $claim_doc_file)
+    {
+        $claim_doc_file = (array)$claim_doc_file;
+        if($claim_doc_file)
+        {
+            return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+
+        }
+        return '';
+
+    }
+
+//  if ($claim_doc_file = $result->fetchAssoc()) {
+//      return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+//  }
+//  return '';
+}
+
+function ncn_claim_report_get_invoice_posted_on_vos($claim_id) {
+    $type = 1;
+    $query = "SELECT * FROM claims_invoices WHERE claim_id=".$claim_id." AND `live`=".$type." ORDER BY revision DESC LIMIT 0,1";
+    $result = db_query($query);
+    foreach($result as $claim_doc_file)
+    {
+        $claim_doc_file = (array)$claim_doc_file;
+        if($claim_doc_file)
+        {
+            return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+
+        }
+        return '';
+    }
+
+//
+//  if ($claim_doc_file = $result->fetchAssoc()) {
+//      return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+//  }
+//  return '';
+}
+
+function ncn_claim_report_get_account_manager($member_id){
+    $query = "SELECT * FROM member_id_pool WHERE member_id='$member_id'";
+    $result = db_query($query);
+    foreach($result as $member)
+    {
+        $member = (array)$member;
+        if($member)
+        {
+            $am_uid = $member['am_uid'];
+            $_am = user_load($am_uid);
+            if ($_am) {
+                return $_am->profile_firstname.' '.$_am->profile_lastname;
+            } else {
+                return "[User #{$am_uid}]";
+            }
+        }
+        return '';    }
+
+//
+//
+//  if ($member = $result->fetchAssoc()) {
+//      $am_uid = $member['am_uid'];
+//      $_am = user_load($am_uid);
+//      return $_am->profile_firstname.' '.$_am->profile_lastname;
+//  }
+//  return '';
+}
+
+function ncn_claim_report_get_total_amount() {
+    $query = db_query("SELECT SUM(claim_amount) FROM claims WHERE user_id!=69 AND claim_status!='unpurchased' AND deleted=0");
+    $sum = $query->fetchField();
+    return floatval($sum);
+}
+
+function ncn_claim_report_claim_docs_in_vos($claim_id) {
+    $file = ncn_admin_get_claim_file($claim_id, 2);
+    $timestamp = '';
+    if ($file) {
+        $timestamp = date("m/d/Y H:i:s", $file['timestamp']);
+    }
+    return $timestamp;
+}
+
+function ncn_claim_report_get_ce_data($claim_id, &$r_data) {
+    
+    $ce_claim = ncn_ceportal_get_ncn_ce_claim($claim_id);
+    
+    $r_data['ce_claim_ready_to_send'] = (ncn_admin_get_claim_file($claim_id, 10))? 'x':'';
+    $r_data['ce_claim_ava_email_sent'] = ($ce_claim['is_available'])? 'x':'';
+    
+    
+    if (!empty($ce_claim)) {
+        $r_data['#ce_uid'] = intval($ce_claim['ce_uid']);
+        $ce_claim_active_trigger = ncn_ceportal_get_active_ce_claim_trigger($claim_id, $ce_claim['ce_uid']);
+        if (!empty($ce_claim_active_trigger)) {
+            $r_data['ce_timer_start'] = date("m/d/Y H:i:s", $ce_claim_active_trigger['ts_start']);
+            $r_data['ce_timer_end'] = '';
+        }
+        
+        $ce_claim_completed_trigger = ncn_ceportal_get_completed_ce_claim_trigger($claim_id, $ce_claim['ce_uid']);
+        if (!empty($ce_claim_completed_trigger)) {
+            $r_data['ce_timer_start'] = date("m/d/Y H:i:s", $ce_claim_completed_trigger['ts_start']);
+            $r_data['ce_timer_end'] = date("m/d/Y H:i:s", $ce_claim_completed_trigger['ts_end']);
+        }
+    }
+}
+
+function ncn_claim_report_grouping($t_data) {
+    $final_data = array();
+    
+    $group_no_claim_docs = array(array('#row_type'=>'group', '#group'=>'No Claim Docs'));
+    $group_awaiting_review = array(array('#row_type'=>'group', '#group'=>'Awaiting Review'));
+    $group_ce = array(array('#row_type'=>'group', '#group'=>'CE'));
+    $group_ce_assigned = array();
+    $group_complete_cdr = array(array('#row_type'=>'group', '#group'=>'Complete Claim Docs Received'));
+    $group_rcd = array(array('#row_type'=>'group', '#group'=>'Rejected Claim Docs'));
+    $group_cdr = array(array('#row_type'=>'group', '#group'=>'Claim Docs Received'));
+    $group_coi = array(array('#row_type'=>'group', '#group'=>'Change Order Invoices'));
+    $group_expedite = array(array('#row_type'=>'group', '#group'=>'Expedite'));
+    
+    
+    foreach($t_data as $r_data) {
+        switch (ncn_claim_report_get_group($r_data)) {
+        case 'no_claim_docs':
+            $group_no_claim_docs[] = $r_data;
+            break;
+        case 'awaiting_review':
+          $group_awaiting_review[] = $r_data;
+          break;
+        case 'ce':
+            if (isset($r_data['#ce_uid']) && $r_data['#ce_uid']>0) {
+                if (!isset($group_ce_assigned[$r_data['#ce_uid']])) {
+                    $group_ce_assigned[$r_data['#ce_uid']] = array();
+                }
+                $group_ce_assigned[$r_data['#ce_uid']][] = $r_data;
+            } else {
+                $group_ce[] = $r_data;
+            }
+            break;
+        case 'complete_cdr':
+            $group_complete_cdr[] = $r_data;
+            break;
+        case 'rcd':
+            $group_rcd[] = $r_data;
+            break;
+        case 'cdr':
+            $group_cdr[] = $r_data;
+            break;
+        case 'coi': 
+            $group_coi[] = $r_data;
+            break;
+        case 'expedite':    
+            $group_expedite[] = $r_data;
+            break;
+        }
+    }
+    
+    $group_ce[0]['#total'] = count($group_ce)-1;
+    ncn_claim_report_empty_row($group_ce);
+    foreach ($group_ce_assigned as $ce_uid=>$group) {
+        $_user = user_load($ce_uid);
+        $group_ce[] = array('#row_type'=>'group', '#group'=>$_user->profile_firstname.' '.$_user->profile_lastname, '#total'=>count($group));
+        $group_ce = array_merge($group_ce, $group);
+    }
+    
+    $group_no_claim_docs[0]['#total'] = count($group_no_claim_docs)-1;
+    ncn_claim_report_empty_row($group_no_claim_docs);
+    
+    $group_awaiting_review[0]['#total'] = count($group_awaiting_review)-1;
+    ncn_claim_report_empty_row($group_awaiting_review);
+  
+    $group_complete_cdr[0]['#total'] = count($group_complete_cdr)-1;
+    ncn_claim_report_empty_row($group_complete_cdr);
+    
+    $group_rcd[0]['#total'] = count($group_rcd)-1;
+    ncn_claim_report_empty_row($group_rcd);
+    
+    $group_cdr[0]['#total'] = count($group_cdr)-1;
+    ncn_claim_report_empty_row($group_cdr);
+    
+    $group_coi[0]['#total'] = count($group_coi)-1;
+    ncn_claim_report_empty_row($group_coi);
+    
+    $group_expedite[0]['#total'] = count($group_expedite)-1;
+    ncn_claim_report_empty_row($group_expedite);
+    
+    $final_data = array_merge($group_expedite, $group_coi, $group_awaiting_review, $group_cdr, $group_rcd, $group_complete_cdr, $group_ce, $group_no_claim_docs);
+    return $final_data;
+}
+
+function ncn_claim_report_grouping_qa_ms($t_data) {
+    $final_data = array();
+    
+    $group_expedite = array(array('#row_type'=>'group', '#group'=>'Expedite'));
+    $group_first_claim = array(array('#row_type'=>'group', '#group'=>'First Claim'));
+    $group_cdr = array(array('#row_type'=>'group', '#group'=>'Claim Docs Received'));
+    $group_rcd = array(array('#row_type'=>'group', '#group'=>'Rejected Claim Docs'));
+    $group_ce = array(array('#row_type'=>'group', '#group'=>'CE'));
+    $group_ce_assigned = array();
+    $group_esx_pdf = array(array('#row_type'=>'group', '#group'=>'ESX/PDF Uploaded Email sent to AM'));
+    $group_no_claim_docs = array(array('#row_type'=>'group', '#group'=>'No Claim Docs'));
+    
+    foreach($t_data as $r_data) {
+        switch (ncn_claim_report_get_group_qa_ms($r_data)) {
+        case 'expedite':    
+            $group_expedite[] = $r_data;
+            break;
+        case 'first_claim':
+            $group_first_claim[] = $r_data;
+            break;
+        case 'cdr':
+            $group_cdr[] = $r_data;
+            break;
+        case 'rcd':
+            $group_rcd[] = $r_data;
+            break;
+        case 'ce':
+            if (isset($r_data['#ce_uid']) && $r_data['#ce_uid']>0) {
+                if (!isset($group_ce_assigned[$r_data['#ce_uid']])) {
+                    $group_ce_assigned[$r_data['#ce_uid']] = array();
+                }
+                $group_ce_assigned[$r_data['#ce_uid']][] = $r_data;
+            } else {
+                $group_ce[] = $r_data;
+            }
+            break;
+        case 'esx_pdf':
+            $group_esx_pdf[] = $r_data;
+            break;
+        case 'no_claim_docs':
+            $group_no_claim_docs[] = $r_data;
+            break;
+        }
+    }
+    
+    $group_expedite[0]['#total'] = count($group_expedite)-1;
+    ncn_claim_report_empty_row($group_expedite);
+    
+    $group_first_claim[0]['#total'] = count($group_first_claim)-1;
+    ncn_claim_report_empty_row($group_first_claim);
+    
+    $group_cdr[0]['#total'] = count($group_cdr)-1;
+    ncn_claim_report_empty_row($group_cdr);
+    
+    $group_rcd[0]['#total'] = count($group_rcd)-1;
+    ncn_claim_report_empty_row($group_rcd);
+    
+    $group_ce[0]['#total'] = count($group_ce)-1;
+    ncn_claim_report_empty_row($group_ce);
+    foreach ($group_ce_assigned as $ce_uid=>$group) {
+        $_user = user_load($ce_uid);
+        $group_ce[] = array('#row_type'=>'group', '#group'=>$_user->profile_firstname.' '.$_user->profile_lastname, '#total'=>count($group));
+        $group_ce = array_merge($group_ce, $group);
+    }
+    
+    $group_esx_pdf[0]['#total'] = count($group_esx_pdf)-1;
+    ncn_claim_report_empty_row($group_esx_pdf);
+    
+    $group_no_claim_docs[0]['#total'] = count($group_no_claim_docs)-1;
+    ncn_claim_report_empty_row($group_no_claim_docs);
+    
+    $final_data = array_merge($group_expedite, $group_first_claim, $group_cdr, $group_rcd, $group_ce, $group_esx_pdf, $group_no_claim_docs);
+    return $final_data;
+}
+
+function ncn_claim_report_grouping_am($t_data) {
+    $final_data = array();
+    
+    $group_expedite = array(array('#row_type'=>'group', '#group'=>'Expedite'));
+    $group_coi = array(array('#row_type'=>'group', '#group'=>'Change Order Invoices'));
+    $group_first_claim = array(array('#row_type'=>'group', '#group'=>'First Claim'));
+    $group_cdr = array(array('#row_type'=>'group', '#group'=>'Claim Docs Received'));
+    $group_rcd = array(array('#row_type'=>'group', '#group'=>'Rejected Claim Docs'));
+    $group_ce = array(array('#row_type'=>'group', '#group'=>'CE'));
+    $group_ce_assigned = array();
+    $group_esx_pdf = array(array('#row_type'=>'group', '#group'=>'ESX/PDF Uploaded Email sent to AM'));
+    $group_no_claim_docs = array(array('#row_type'=>'group', '#group'=>'No Claim Docs'));
+    
+    foreach($t_data as $r_data) {
+        switch (ncn_claim_report_get_group_am($r_data)) {
+        case 'expedite':    
+            $group_expedite[] = $r_data;
+            break;
+        case 'coi':
+            $group_coi[] = $r_data;
+            break;
+        case 'first_claim':
+            $group_first_claim[] = $r_data;
+            break;
+        case 'cdr':
+            $group_cdr[] = $r_data;
+            break;
+        case 'rcd':
+            $group_rcd[] = $r_data;
+            break;
+        case 'ce':
+            $group_ce[] = $r_data;
+            break;
+        case 'esx_pdf':
+            $group_esx_pdf[] = $r_data;
+            break;
+        case 'no_claim_docs':
+            $group_no_claim_docs[] = $r_data;
+            break;
+        }
+    }
+    
+    $group_expedite[0]['#total'] = count($group_expedite)-1;
+    ncn_claim_report_empty_row($group_expedite);
+    
+    $group_coi[0]['#total'] = count($group_coi)-1;
+    ncn_claim_report_empty_row($group_coi);
+    
+    $group_first_claim[0]['#total'] = count($group_first_claim)-1;
+    ncn_claim_report_empty_row($group_first_claim);
+    
+    $group_cdr[0]['#total'] = count($group_cdr)-1;
+    ncn_claim_report_empty_row($group_cdr);
+    
+    $group_rcd[0]['#total'] = count($group_rcd)-1;
+    ncn_claim_report_empty_row($group_rcd);
+    
+    $group_ce[0]['#total'] = count($group_ce)-1;
+    ncn_claim_report_empty_row($group_ce);
+    
+    $group_esx_pdf[0]['#total'] = count($group_esx_pdf)-1;
+    ncn_claim_report_empty_row($group_esx_pdf);
+    
+    $group_no_claim_docs[0]['#total'] = count($group_no_claim_docs)-1;
+    ncn_claim_report_empty_row($group_no_claim_docs);
+    
+    $final_data = array_merge($group_expedite, $group_coi, $group_first_claim, $group_cdr, $group_rcd, $group_ce, $group_esx_pdf, $group_no_claim_docs);
+    return $final_data;
+}
+
+function ncn_claim_report_empty_row(&$group) {
+    if (count($group)>1) { return; }
+    $group[] = array('#row_type'=>'claim');
+}
+
+function ncn_claim_report_get_group($r_data) {
+    if (ncn_cd($r_data['claim_id'], 'expedite')) {
+        return 'expedite';
+    }
+    
+    if ($r_data['rejected_invoice'] != '') {
+        /*if ($r_data['#ce_uid']==0 || trim($r_data['ce_timer_end'])=='') {} */
+        return 'coi';
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'assign_to_ce')=='on') {
+        return 'ce';
+        /*$ce_claim = ncn_ceportal_get_ncn_ce_claim($r_data['claim_id']);
+        if ($ce_claim && $ce_claim['is_available']) {
+            return 'ce';
+        }*/
+    } else if (isset($r_data['#ce_uid']) && $r_data['#ce_uid']>0) {
+        return 'ce';
+    }
+        
+    $claim = get_claim_data($r_data['claim_id']);
+    if (!empty($claim)) {
+        if ($claim['workflow'] == 'all_doc_recieved') {
+            return 'complete_cdr';
+        } else if ($claim['workflow'] == 'rejected_claim_docs') {
+            return 'rcd';
+        } 
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'claim_docs_recieved')=='on') {
+        return 'cdr';
+    }
+    
+  if (($claim['claim_status']=='out for review' || $claim['workflow']=='none')) {
+    return 'awaiting_review';
+  }
+  
+    return 'no_claim_docs';
+}
+
+function ncn_claim_report_get_group_qa_ms($r_data) {    
+    if (ncn_cd($r_data['claim_id'], 'expedite')) {
+        return 'expedite';
+    }
+    
+    if (ncn_admin_is_first_claim_for_member($r_data['claim_id'])) {
+        return 'first_claim';
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'assign_to_ce')=='on') {
+        return 'ce';
+    } else if (isset($r_data['#ce_uid']) && $r_data['#ce_uid']>0) {
+        return 'ce';
+    }
+        
+    $claim = get_claim_data($r_data['claim_id']);
+    if (!empty($claim)) {
+        /*if ($claim['workflow'] == 'all_doc_recieved') {
+            return 'complete_cdr';
+        } else */
+        if ($claim['workflow'] == 'rejected_claim_docs') {
+            return 'rcd';
+        } 
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'claim_docs_recieved')=='on') {
+        return 'cdr';
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'esx_pdf_uploaded')=='on') {
+        return 'esx_pdf';
+    }
+    
+    return 'no_claim_docs';
+}
+
+function ncn_claim_report_get_group_am($r_data) {   
+    if (ncn_cd($r_data['claim_id'], 'expedite')) {
+        return 'expedite';
+    }
+    
+    if ($r_data['rejected_invoice'] != '') {
+        return 'coi';
+    }
+    
+    if (ncn_admin_is_first_claim_for_member($r_data['claim_id'])) {
+        return 'first_claim';
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'assign_to_ce')=='on') {
+        return 'ce';
+    } else if (isset($r_data['#ce_uid']) && $r_data['#ce_uid']>0) {
+        return 'ce';
+    }
+        
+    $claim = get_claim_data($r_data['claim_id']);
+    if (!empty($claim)) {
+        /*if ($claim['workflow'] == 'all_doc_recieved') {
+            return 'complete_cdr';
+        } else*/
+        if ($claim['workflow'] == 'rejected_claim_docs') {
+            return 'rcd';
+        } 
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'claim_docs_recieved')=='on') {
+        return 'cdr';
+    }
+    
+    if (get_ncn_data_extra($r_data['claim_id'], 'esx_pdf_uploaded')=='on') {
+        return 'esx_pdf';
+    }
+    
+    return 'no_claim_docs';
+}

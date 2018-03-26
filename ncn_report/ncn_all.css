@@ -1,0 +1,416 @@
+.sales-report-header{
+	width: 100%;
+}
+
+.report-date{
+	width: 80%;
+	text-align: center;
+	float: left;
+}
+.download-report{
+	width: 20%;
+	text-align: right;
+	float: right;
+}
+
+.report-best-total{
+	margin-top: 15px;
+	padding-left: 5px;
+	font-weight: bold;
+	float:left;
+}
+.report-content{
+	margin-top: 0px;
+	float:left;
+	width:100%;
+}
+
+.column-3 .report-category{
+	float: left;
+	width: 20%;
+}
+select#report_category{
+	width: 120px;
+}
+
+.column-3 .report-date{
+	width: 50%;
+}
+.column-3 .download-report{
+	width: 30%;
+}
+
+.column-3.type-a .report-date{
+	width: 35%;
+}
+.column-3.type-a .download-report{
+	width: 45%;
+}
+
+.sales-report-header-name{
+	margin-top: 10px;
+}
+
+/* ncn_pvc.css */
+.ncn_pvc_table .pvc_group{
+	font-weight: bold;
+	background-color: #D4E7F3;
+    border-bottom: 1px solid #B4D7F0;
+	border-top: 1.5em solid #FFFFFF;
+}
+
+.ncn_pvc_table .pvc_item{
+	padding-left: 1.5em;
+}
+
+#ncn_pvc_settings .ncn_pvc_table th, #ncn_pvc_settings .ncn_pvc_table td{
+	text-align: center;
+}
+
+#ncn_pvc_settings .ncn_pvc_table .pvc_group, #ncn_pvc_settings .ncn_pvc_table .pvc_item{
+	text-align: left;
+}
+
+/* ncn_sponsor.css */
+.image_sponsor_image {
+	max-width: 728px;
+	
+}
+
+.ncn-month-report.report-content tr td { border-bottom: solid 1px #ddd; }
+.ncn-month-report.report-content tr.group td { background-color:#ddd; }
+
+/************************************************************/
+/* Additional Claim Information 														*/
+/************************************************************/
+.claims-detail.additional-claim-info {
+	width: 850px;
+}
+.claims-detail.additional-claim-info.scope-sheet {
+	width: 950px;
+}
+.claims-detail.additional-claim-info .claims-section-wrapper {
+	margin: 15px auto;
+}
+.additional-claim-info .claims-section-wrapper .title {
+	float: none;
+	text-transform: none;
+}
+.additional-claim-info .aci-claim-info {
+	padding-left: 2px;
+	margin-bottom: 10px;
+}
+.aci-section-links ul {
+	padding-left: 2px;
+}
+.aci-section-links .aci-section-link-item {
+	list-style-type: none;
+	float: left;
+}
+.aci-section-links .aci-section-link-item a {
+	margin-right: 15px;
+	font-weight: bold;
+	text-decoration: none;
+	color: #505050;
+	border-bottom: 0px;
+}
+.aci-section-links .aci-section-link-item a.active {
+	border-bottom: solid 3px #A4C440;
+}
+.additional-claim-info .aci-section-content {
+	padding: 10px;
+	background-color: white;
+	border-top: solid 2px #eee;
+}
+.additional-claim-info-inline-page .aci-section-content {
+	padding: 10px 2px;
+	background-color: white;
+	border-top: solid 3px #aaa;
+	border-bottom: solid 3px #aaa;
+}
+.aci-section-content table tr td {
+	padding: 4px;
+}
+table#aci_ci_content {
+	border-color: gray;
+}
+.aci-section-content .td-label {
+	width: 230px;
+}
+.aci-section-content #scopesheet_structural_moisture_reading_section .td-label {
+	width: 200px;
+}
+#aci_ci_content .td-label {
+	width: auto;
+}
+#aci_ci_content td {
+	border: solid 1px #AAA;
+}
+.aci-section-content .text-field-item input {
+	width: 350px;
+}
+.aci-section-content .text-field-item.small-size input {
+	width: 100px;
+}
+.aci-section-content-wrapper .aci-actions {
+	text-align: center;
+	margin-top: 15px;
+}
+.inline-field-item {
+	display: inline-block;
+	float: left;
+}
+li.inline-field-item {
+	list-style-type: none;
+}
+ul.inline-group-fields {
+	margin: 0px;
+	padding: 0px;
+	display: inline-block;
+}
+.aci-section-content .field-item.inline-field {
+	display: inline;
+}
+.aci-section-content #aci_insurance_claim_policy_section .field-item.inline-field.field-phone-number input {
+	width: 200px;
+}
+.aci-section-content #aci_insurance_claim_policy_section .field-item.inline-field.field-phone-ext label {
+	margin: 0 2px;
+}
+.aci-section-content #aci_insurance_claim_policy_section .field-item.inline-field.field-phone-ext input {
+	width: 124px;
+}
+.aci-section-content #aci_insurance_claim_policy_section .field-item.inline-field.field-date-from input, .aci-section-content #aci_insurance_claim_policy_section .field-item.inline-field.field-date-to input {
+	width: 168px;
+}
+.aci-section-content .dcl-action-panel {
+	margin: 20px 0px;
+}
+#dcl_log_list table tbody {
+	border-bottom: 1px solid #CCC;
+}
+#dcl_log_list table .dcl-day-week {
+	width: 100px;
+}
+#dcl_log_list table .dcl-date {
+	width: 120px;
+}
+#dcl_log_list table .dcl-men {
+	width: 100px;
+}
+#dcl_log_list table .dcl-hours-day {
+	width: 70px;
+}
+#dcl_log_list table .dcl-total-hours {
+	width: 120px;
+}
+#dcl_log_list table .dcl-after-hours {
+	width: 70px;
+}
+.aci-section-content .aci-section {
+	display: none;
+}
+.aci-section-content .aci-section.active {
+	display: block;
+}
+.aci-claim-info .aci-claim-info-item {
+	display: inline-block;
+	margin: 0px 10px;
+}
+.aci-claim-info .aci-claim-info-item.align-right {
+	float: right;
+	margin-right: 0px;
+	margin-left: 25px;
+	font-size: 0.9em;
+	margin-top: 5px;
+}
+
+.aci-claim-info .aci-claim-info-wrapper {
+	margin: 5px 20px;
+}
+/************************************************************/
+/* Room Scope Sheet																					*/
+/************************************************************/
+
+#ss_eit_list table .ss-eit-date {
+	width: 80px;
+}
+#ss_eit_list table .ss-eit-staff {
+	width: 80px;
+}
+#ss_eit_list table .ss-eit-exterior-temp {
+	width: 140px;
+}
+#ss_eit_list table .ss-eit-interior-temp {
+	width: 140px;
+}
+#ss_eit_list table .ss-eit-gpp {
+	width: 80px;
+}
+#ss_eit_list table .ss-eit-time-of-readings {
+	width: 120px;
+}
+#ss_smr_list table .ss-smr-date {
+	width: 70px;
+}
+#ss_smr_list table .ss-smr-wall {
+	width: 40px;
+}
+#ss_smr_list table .ss-smr-fd-area {
+	width: 40px;
+}
+#ss_smr_list table .ss-smr-fd-center {
+	width: 40px;
+}
+#ss_smr_list table .ss-smr-cd-area {
+	width: 40px;
+}
+#ss_smr_list table .ss-smr-cd-center {
+	width: 40px;
+}
+#tabcontent .ncn-room-action-panel {
+	text-align: right;
+	font-weight: bold;
+}
+table#ss_services_content th, table#ss_services_content td {
+	padding: 4px;
+	border: solid 1px #aaa;
+}
+table#ss_services_content th {
+	border-bottom: solid 2px #aaa;
+	padding: 8px 4px;
+}
+#ss_services_content .after-hours {
+	background-color: yellow;
+	width: 80px;
+	text-align: center;
+}
+#ss_services_content .reg-hours {
+	width: 80px;
+	text-align: center;
+}
+#ss_services_content .ss-services-sub-section {
+	background-color: #444;
+	color: white;
+}
+#ss_rd_room_info {
+	margin: 5px 0px 15px;
+}
+table.ss-list-table {
+	margin: 10px 5px;
+}
+table.ss-list-table tbody {
+	border-bottom: solid 3px #ccc;
+	min-height: 12px;
+}
+#ss_rd_list table .ss-rd-name {
+	width: 150px;
+}
+#ss_rd_list table .ss-rd-size {
+	width: 250px;
+}
+#ss_rd_list table .ss-rd-tfa {
+	width: 150px;
+}
+#ss_rd_list table .ss-rd-floor-type {
+	width: 100px;
+}
+#ss_ep_list table .ss-ep-panel-type-td {
+	width: 150px;
+}
+#ss_ep_list table .ss-ep-data-td {
+	width: 400px;
+}
+#ss_ep_action_panel_type_content, #ss_ep_action_panel_content {
+	margin-left: 100px;
+}
+#ss_ep_action_panel_content .ss-ep-actions {
+	margin-left: 200px;
+}
+.ss-actions input {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+/* Tiny Scrollbar */
+.tinyscrollbar .viewport {
+	overflow: hidden;
+	position: relative;
+}
+.tinyscrollbar .overview {
+	list-style: none;
+	position: absolute;
+	left: 0;
+	top: 0;
+	padding: 0;
+	margin: 0;
+}
+.tinyscrollbar .scrollbar {
+	background: transparent url(images/tinyscrollbar/bg-scrollbar-track-y.png) no-repeat 0 0;
+	position: relative;
+	background-position: 0 0;
+	float: right;
+	width: 15px;
+}
+.tinyscrollbar .track {
+	background: transparent url(images/tinyscrollbar/bg-scrollbar-trackend-y.png) no-repeat 0 100%;
+	height: 100%;
+	width:13px;
+	position: relative;
+	padding: 0 1px;
+}
+.tinyscrollbar .thumb {
+	background: transparent url(images/tinyscrollbar/bg-scrollbar-thumb-y.png) no-repeat 50% 100%;
+	height: 20px;
+	width: 25px;
+	cursor: pointer;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: -5px;
+}
+.tinyscrollbar .thumb .end {
+	background: transparent url(images/tinyscrollbar/bg-scrollbar-thumb-y.png) no-repeat 50% 0;
+	overflow: hidden;
+	height: 5px;
+	width: 25px;
+}
+.tinyscrollbar .disable {
+	display: none;
+}
+.noSelect {
+	user-select: none;
+	-o-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+#ss_claim_room_scope_sheet_form .aci-section-content .tinyscrollbar {
+}
+#ss_claim_room_scope_sheet_form .aci-section-content .tinyscrollbar .viewport {
+	width: 97%;
+	height: 380px;
+}
+#view_aci_addtional_claims_data {
+	line-height: 24px;
+}
+#view_aci_addtional_claims_data .inline-field-item {
+	margin: 5px 0px 0px 10px;
+}
+.aci-claim-info-wrapper .aci-claim-info-item .aci-claim-info-item-link {
+	float: left;
+	margin-left: 20px;
+}
+}
+.claim-notes-table .operation a:hover {
+	cursor: pointer;
+}
+
+
+/**
+ * 
+ */
+
+#upload_member_logo_form { margin-top: 20px; }
+.member-logo-legalname-block {}
+

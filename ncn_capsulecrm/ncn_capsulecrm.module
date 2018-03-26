@@ -1,0 +1,318 @@
+<?php
+
+
+/**
+ * hook_init function
+ */
+require_once('ncn_capsulecrm.sync.inc');
+require_once('ncn_capsulecrm.token.inc');
+require_once('ncn_capsulecrm.account.inc');
+require_once('ncn_capsulecrm.note.inc');
+function ncn_capsulecrm_init() {
+    
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_capsulecrm_permission()
+{   
+    //return array('ncn capsule_crm management');
+    return array(
+        'ncn capsule_crm management' => array(
+          'title' => t('ncn capsule_crm management'),
+        ));
+}
+
+/**
+ * hook_menu function
+ */
+/*function ncn_capsulecrm_menu()
+{
+    $item = array();
+    
+    return $item;
+}*/
+
+
+/**
+ * hook_user_update
+ */
+function ncn_capsulecrm_user_update(&$edit, $account, $category) {
+    $_user = user_load($account->uid);
+    if (isset($_user->profile_memberid) && $_user->profile_memberid) {
+        ncn_capsulecrm_set_user_detail_link($account->uid);
+    }
+}
+
+// When creating a member
+function ncn_capsulecrm_create_member($member_id) {
+    $_member = get_member_from_id($member_id);
+    if (empty($_member)) { return FALSE; }
+
+    // Check Map Info
+    if ($cr_info = ncn_capsulecrm_get_map_info($member_id)) {
+        return FALSE;
+    }
+
+    $c_first_name = $_member['first_name'];
+    $c_last_name  = $_member['last_name'];
+
+    $c_street       = $_member['address'];
+    $c_city         = $_member['city'];
+    $c_state        = $_member['state'];
+    $c_zip          = $_member['zip'];
+    $c_country      = profile_location_get_country($_member['country']);
+    $c_email_addr   = $_member['contactemail'];
+    $c_phone_number = _get_format_phone_string($_member['officephone']);
+    
+    // ******************* organization ********************* //
+    $organization = array();
+    
+    $organization['type'] = 'organisation';
+    $organization['name'] = $_member['legalname']." ($c_first_name $c_last_name)";
+
+    $organization['addresses'][0]['type']    = 'Office';
+    $organization['addresses'][0]['street']  = $c_street;
+    $organization['addresses'][0]['city']    = $c_city;
+    $organization['addresses'][0]['state']   = $c_state;
+    $organization['addresses'][0]['zip']     = $c_zip;
+    $organization['addresses'][0]['country'] = $c_country;
+    $organization['addresses'][0] = (object)$organization['addresses'][0];
+
+    $organization['emailAddresses'][0]['type']    = 'Work';
+    $organization['emailAddresses'][0]['address'] = $c_email_addr;
+    $organization['emailAddresses'][0] = (object)$organization['emailAddresses'][0];
+
+    $organization['phoneNumbers'][0]['type']       = 'Work';
+    $organization['phoneNumbers'][0]['number']= $c_phone_number;
+    $organization['phoneNumbers'][0] = (object)$organization['phoneNumbers'][0];
+
+    // Mobile Phone to Contacts
+    if (!empty($_member['mobilephone'])) {
+        $c_mobile_number = _get_format_phone_string($_member['mobilephone']);
+        $organization['phoneNumbers'][1]['type']        = 'Mobile';
+        $organization['phoneNumbers'][1]['number'] = $c_mobile_number;
+        $organization['phoneNumbers'][1] = (object)$organization['phoneNumbers'][1];
+    }
+
+    // Tag (Gold Member)
+    $member_type = "Gold Member";
+    if ($_member['member_type'] == MT_SILVER) {
+        $member_type = "Silver Member";
+    } else if ($_member['member_type'] == MT_GOLD_LITE) {
+        $member_type = "Gold Lite Member";
+    } else if ($_member['member_type'] == MT_COACH_ON_CALL) {
+        $member_type = "Coach on Call Member";
+    } else if ($_member['member_type'] == MT_GOLD_COACH) {
+        $member_type = "Gold Coach Member";
+    } else if ($_member['member_type'] == MT_CSI) {
+        $member_type = "CSI Member";
+    }
+    $organization['tags'][0]['name'] = $member_type;
+    $organization['tags'][0] = (object)$organization['tags'][0];
+
+    // NCN Tag
+    $organization['tags'][1]['name'] = 'NetClaimsNow';
+    $organization['tags'][1] = (object)$organization['tags'][1];
+
+    // Custom Field (Member ID #)
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_MEMBER_ID, (string)$member_id);
+
+    // Custom Field (Distributor / Associate)
+    $user_details = user_load($_member['owner']);
+    $dis_asso_name = $user_details->profile_legalname;
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_DIST_ASSO, (string)$dis_asso_name);
+
+    // Custom Field (Account Manager)
+    $user_details = user_load($_member['am_uid']);
+    $am_name = '';
+    if ($user_details) {
+        $am_name = $user_details->profile_firstname." ".$user_details->profile_lastname;
+        if ($am_name) {
+            $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_ACCT_MNGR, (string)$am_name);
+        }
+    }
+
+    // Custom Field (Username)
+    $username = strtolower($_member['first_name'].$_member['last_name']);
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_USERNAME, (string)$username);
+    
+    // Custom Field (Original Password)
+    $orginal_pass = date('j', $_member['create']).$_member['first_name'].date('Y', $_member['create']);
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_ORG_PWD, (string)$orginal_pass);
+
+    // Custom Field (Date of Purchase)
+    $purchase_date = date('Y-m-d', $_member['create']);//.'T00:00:00Z';
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_DATE_PURCHASE, (string)$purchase_date);
+    
+    // Custom Field (Sales Rep)
+    $sales_rep = $_member['sales_rep'];
+    $organization['fields'][] = ncn_capsulecrm_get_customfield_object(CRM_FIELD_SALES_REP, (string)$sales_rep);
+    
+    $organization = (object)$organization;
+    $response = capsule_add_organization( array('party'=>$organization) );
+    
+    if ($response->code != 201) {
+        drupal_set_message(t('Capsule CRM Error: Failed to add an organization into Capsule CRM'), 'error');
+        return FALSE;
+    }
+
+    //$party_id = substr($response->headers['location'], strrpos($response->headers['location'], '/')+1);
+    $party_id = $response->party->id;
+
+    drupal_set_message( t("Added an organization(#!party_id) into Capsule CRM", array('!party_id'=>$party_id)) );
+    ncn_capsulecrm_set_map_data($member_id, $party_id, 0);
+
+    /*// Custom Field (Sent Welcome Kit)
+    $data = array(
+        'label'=>'Sent Welcome Kit', 
+        'boolean'=>true
+    );
+    $response = capsule_add_party_customfield( $party_id, array('customField'=>$data) );
+    if ($response->code != 201)  {
+        drupal_set_message(t('Capsule CRM Error: Failed to add a customfield (!label : !text)', array('!label'=>$data['label'], '!text'=>$data['text'])), 'error');
+    }*/
+    
+    // ******************* person ********************* //
+    
+    $person = array();
+
+    $person['type']             = 'person';
+    $person['firstName']        = $c_first_name;
+    $person['lastName']         = $c_last_name;
+    $person['organisation']     = $party_id;
+
+    $person['emailAddresses'][0]['type']    = 'Work';
+    $person['emailAddresses'][0]['address'] = $c_email_addr;
+    $person['emailAddresses'][0] = (object)$person['emailAddresses'][0];
+
+    $person['phoneNumbers'][0]['type']       = 'Work';
+    $person['phoneNumbers'][0]['number']= $c_phone_number;
+    $person['phoneNumbers'][0] = (object)$person['phoneNumbers'][0];
+    
+    // NCN Tag
+    $person['tags'][0]['name'] = 'NetClaimsNow';
+    $person['tags'][0] = (object)$person['tags'][0];
+
+    $person = (object)$person;
+
+    $response = capsule_add_person( array('party'=>$person) );
+
+    if ($response->code != 201) { 
+        drupal_set_message(t('Capsule CRM Error: Failed to add a person into Capsule CRM'), 'error');
+        return FALSE; 
+    }
+    $person_party_id = $response->party->id;;
+    drupal_set_message( t("Added a person(#!party_id) into Capsule CRM", array('!party_id'=>$person_party_id)) );
+    
+    ncn_capsulecrm_set_map_data($member_id, $party_id, $person_party_id);
+    return TRUE;
+}
+
+/**
+ * Get Custom Field Object for Adding or Updating
+ */
+function ncn_capsulecrm_get_customfield_object($definition_id, $value) 
+{
+    $c_field = array(
+        'definition'=>(object)(array('id'=>$definition_id)),
+        'value'=>$value
+    );
+    return (object)$c_field;
+}
+
+function ncn_capsulecrm_get_party($party_id) {
+    $response = capsule_get_party($party_id, 'fields');
+    if ($response->code == 200 && isset($response->party)) {
+        return $response->party;
+    }
+    return FALSE;
+}
+
+function ncn_capsulecrm_get_customfield_value($party, $definition_id) {
+    if (isset($party->fields)) {
+        foreach($party->fields as $field) {
+            if ($field->definition->id == $definition_id) {
+                return $field->value;
+            }
+        }
+    }
+    return false;
+}
+
+function ncn_capsulecrm_get_parties($page=1, $perPage=50, $others=array()) {
+    $params = array(
+        'page'    => $page,
+        'perPage' => $perPage,
+    );
+    $params = array_merge($params, $others);
+    $query = _capsule_query_params($params);
+    $response = _capsule_request("/parties$query");
+    if ($response->code == 200) {
+        return $response->parties;
+    }
+    return false;
+}
+
+/**
+ * Front URL
+ */
+function ncn_capsulecrm_get_url() {
+    // $key = variable_get('capsule_url_key', '');
+    // $key = ($key!='' ? $key : 'netclaimsnow-com');
+    return "https://pherona.capsulecrm.com";
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// Bulk Action
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Synchronize VOS Account fields ( Maintain ) 
+ */
+ 
+function ncn_capsulecrm_set_user_detail_link_maintain() {
+    set_time_limit(-1);
+    $result = db_query("SELECT * FROM {users} WHERE uid!=0 ORDER BY uid DESC")->fetchAll();
+//  while ($row = db_fetch_array($result))
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+        $uid = $row['uid'];
+        $_user = user_load($uid);
+        if (isset($_user->profile_memberid) && $_user->profile_memberid) {
+            ncn_capsulecrm_set_user_detail_link($uid);
+        }
+    }
+}
+
+/**
+ * Synchronize Create Party using Member ( Maintain ) 
+ * Run only one time
+ */
+ 
+function ncn_capsulecrm_create_member_party_maintain() {
+    set_time_limit(-1);
+    $result = db_query("SELECT * FROM {member_id_pool}")->fetchAll();
+
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+        ncn_capsulecrm_create_member($row['member_id']);
+    }
+}
+
+function ncn_capsulecrm_update_party_name_maintain($party_id, $_member) {
+    $organization = array();
+    $c_first_name = $_member['first_name'];
+    $c_last_name  = $_member['last_name'];
+    $organization['name'] = $_member['legalname']." ($c_first_name $c_last_name)";
+
+    $organization = (object)$organization;
+    $response = capsule_update_organization( array('party'=>$organization), $party_id );
+}

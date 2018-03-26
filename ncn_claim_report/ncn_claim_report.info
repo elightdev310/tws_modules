@@ -1,0 +1,4 @@
+name = NCN Claim Report
+description = NCN Claim Report
+package = Net Claims Now
+core = 7.x

@@ -1,0 +1,7 @@
+; $Id$
+name = Net Claims Now APIs
+description = NCN Public API.
+package = NCN API
+
+version = "7.x-1.0"
+core = 7.x

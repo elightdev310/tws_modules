@@ -1,0 +1,4 @@
+name = NCN Capsule CRM
+description = Integration to Capsulecrm.com (netclaimsnow-com.capsulecrm.com)
+package = Net Claims Now
+core = 7.x

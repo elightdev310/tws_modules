@@ -1,0 +1,71 @@
+<?php
+// $Id: capsule.module,v 1.4 2010/12/08 14:31:47 redijedi Exp $
+
+/**
+ * @file
+ * Provides an API and settings forms for interacting with CapsuleCRM.
+ */
+
+
+_capsule_include('helpers', 'party', 'entry', 'users');
+
+/**
+ * Implementation of hook_permission().
+ */
+function capsule_perm() {
+  return array('administer capsule module');
+}
+/**
+ * Implementation of hook_menu().
+ */
+function capsule_menu() {
+  $items['admin/config/capsule'] = array(
+    'title'            => 'Capsule',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('capsule_admin_settings'),
+    'access arguments' => capsule_perm(),
+    'description'      => 'Allows adjustment of the settings for Capsule API.',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/admin.inc',
+  );
+  $items['admin/config/capsule/settings'] = array(
+    'title' => t('Settings'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  $items['admin/config/capsule/custom_fields'] = array(
+   'title'            => 'Custom Fields',
+   'page callback'    => 'capsule_api_custom_fields',
+   'access arguments' => capsule_perm(),
+   'description'      => 'Provides a list of custom fields with the Capsule API.',
+   'type' => MENU_LOCAL_TASK,
+   'file' => 'includes/admin.inc',
+   'weight' => 0,
+  );
+
+// TODO Not ready for prime time
+//  $items['admin/config/capsule/api'] = array(
+//    'title'            => 'API Functions',
+//    'page callback'    => 'capsule_api_functions',
+//    'access arguments' => capsule_perm(),
+//    'description'      => 'Provides a list of functions available for interacting with the Capsule API.',
+//    'type' => MENU_LOCAL_TASK,
+//    'file' => 'includes/admin.inc',
+//    'weight' => 0,
+//  );
+  return $items;
+}
+
+/**
+ * Include .inc files as necessary.
+ */
+function _capsule_include() {
+  static $used = array();
+  foreach (func_get_args() as $file) {
+    if (!isset($used[$file])) {
+      module_load_include('inc', 'capsule', "includes/$file");
+    }
+    $used[$file] = TRUE;
+  }
+}

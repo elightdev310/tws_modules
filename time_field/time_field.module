@@ -1,0 +1,66 @@
+<?php
+
+function time_field_elements() {
+  $type['time_field_time'] = array(
+    '#input' => TRUE,
+    '#process' => array('time_field_expand_time'),
+  );
+  return $type;
+}
+ 
+function time_field_expand_time($element) {
+  if (empty($element['#value'])) {
+    $element['#value'] = array(
+      'hour' => intval(format_date(time(), 'custom', 'h')),
+      'minute' => intval(format_date(time(), 'custom', 'i')),
+      'meridiem' => format_date(time(), 'custom', 'a'),
+    );
+  }
+   
+  $element['#tree'] = TRUE;
+ 
+  foreach ($element['#value'] as $type => $value) {
+    switch ($type) {
+      case 'hour':
+        $options = drupal_map_assoc(range(1, 12));
+        break;
+      case 'minute':
+        $options = drupal_map_assoc(range(0, 59));
+        break;
+      case 'meridiem':
+        $options = drupal_map_assoc(array('AM', 'PM'));
+        break;
+    }
+     
+    if ($type == 'hour' || $type == 'minute') {
+      foreach ($options as $option) {
+        $options[$option] = str_pad($options[$option], 2, '0', STR_PAD_LEFT);
+      }
+    }
+    $parents = $element['#parents'];
+    $parents[] = $type;
+    $element[$type] = array(
+      '#type' => 'select',
+      '#default_value' => $element['#value'][$type],
+      '#attributes' => $element['#attributes'],
+      '#options' => $options,
+    );
+  }
+ 
+  return $element;
+}
+ 
+/**
+ * Implementation of hook_theme().
+ */
+function time_field_theme($existing, $type, $theme, $path) {
+  return array(
+    'time_field_time' => array(
+      'arguments' => array('element' => NULL),
+    ),
+  );
+}
+ 
+function theme_time_field_time($element) {
+  return theme('form_element', $element, '<div class="container-inline">'. $element['#children'] .'</div>');
+}

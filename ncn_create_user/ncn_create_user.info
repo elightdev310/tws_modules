@@ -1,0 +1,5 @@
+; $Id: book.info,v 1.5 2007/07/30 18:20:21 dries Exp $
+name = NCN Create Users
+description = Create Users like Account Manager, Associate, Distributor, Lead User, User, Sub User etc...
+package = Net Claims Now
+core = 7.x

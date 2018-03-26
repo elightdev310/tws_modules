@@ -1,0 +1,117 @@
+/* --- TABLE --- */
+
+.claims_manager	{
+	width:990px;
+	border:0;
+}
+
+.claims_manager tr.header td	{
+	font-weight:bold;
+	font-size:11px;
+}
+
+.claims_manager tr.header	{
+	/*border-top:1px solid #ddd;*/
+	border-bottom:1px solid #ddd;
+}
+
+.claims_manager td	{
+	/*padding:6px;*/
+}
+
+.claims_manager td input	{
+	margin:0;
+}
+
+.basic_info{
+	display:none;
+	width: 100%;
+}
+.basic_info tr{
+	border:0px !important;
+}
+.basic_info td	{
+	padding:2px;
+	vertical-align: top !important;
+}
+
+
+/* --- STATUS ICONS --- */
+.status_in_progress, .status_out_for_review, .status_approved, .status_returned, .status_receivables, .status_paid_in_full	{
+	width:16px;
+	height:16px;
+	padding:0;
+	margin:0;
+	background-repeat:no repeat;
+}
+
+.status_approved, .status_receivables, .status_paid_in_full	{
+	background-image:url(images/icon_green_on.gif);
+}
+
+.status_in_progress	{
+	background-image:url(images/icon_yellow_on.gif);
+}
+
+.status_out_for_review	{
+	background-image:url(images/icon_gray_on.gif);
+}
+
+.status_returned	{
+	background-image:url(images/icon_red_on.gif);
+}
+
+/* ---- MISC ---- */
+#page_loading	{
+	background-image:url(images/ajax-loader.gif);
+	background-position:center; 
+	background-repeat:no-repeat;
+	height:32px;
+	margin-bottom:8px;
+	display:none;
+}
+
+/* ---- SMALL HREF ICONS ---- */
+.pdf-icon-link	{
+	width:16px;
+	height:16px;
+	background-image:url(images/pdf_icon_16.gif);
+	background-repeat:no-repeat;
+	display:block;
+}
+
+.pdf-icon-link-32	{
+	width:32px;
+	height:32px;
+	background-image:url(images/pdf-32x32.png);
+	background-repeat:no-repeat;
+	display:block;
+}
+
+.message-icon-link-unread, .message-icon-link-read	{
+	width:16px;
+	height:16px;
+	background-repeat:no-repeat;
+	display:block;
+}
+
+.message-icon-link-unread	{
+	background-image:url(images/message_icon_unread_16.gif);
+}
+
+.message-icon-link-read	{
+	background-image:url(images/message_icon_read_16.gif);
+}
+
+/* ---- submit claim ----- */
+
+.submit_title	{
+	background-image:url(images/tick.png);
+	background-repeat:no-repeat;
+	height:38px;
+	padding-left:45px;
+	padding-top:10px;
+	margin-left:22px;
+	font-size:16px;
+	font-weight:bold;
+}

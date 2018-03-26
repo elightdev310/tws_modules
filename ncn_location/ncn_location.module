@@ -1,0 +1,135 @@
+<?php
+
+/**
+hook_init function
+*/
+function ncn_location_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_location').'/ncn_location.js');
+}
+
+function ncn_location_menu()
+{
+
+	$items = array();
+
+/*	$items['ajax/ncn_loc_country'] = array(
+		'page callback' => 'ncn_loc_country',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);*/
+	$items['ajax/ncn_loc_change_state'] = array(
+		'page callback' => 'ncn_loc_change_state',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+
+  return $items;
+}
+
+/**
+ * $params: array
+ * 		$name, $id, $state_id, $class, $disabled, $required, $country='US'
+ */
+function ncn_loc_country($params) {
+	
+	if (!isset($params['country']) || $params['country'] == null || $params['country'] == "") {
+		$params['country'] = 'US';
+	}
+	
+	//$countries = profile_location_countries();
+	$countries = array(
+		'CA' => 'Canada',
+		'US' => 'United States'
+	);
+	
+	$field = '<select name="'.$params['name'].'" id="'.$params['id'].'" class="'.$params['class'].'"';
+	if ($params['disabled'] == true) {
+		$field .= ' disabled="disabled"';
+	}
+	$field .= ">\r\n";
+	
+	foreach ($countries as $iso=>$full_name) {
+		$selected = "";
+		if ($params['country'] == $iso ) { $selected = "selected"; }
+		$field .= "\t<option value=\"$iso\" $selected>$full_name ($iso)</option>\r\n";
+	}
+	$field .= "</select>\r\n";
+	
+	ob_start();
+?>
+<script type="text/javascript">
+	(function ($) {
+		$(document).ready(function() {
+			$('#<?php echo $params['id']; ?>').bind('change', onchange_country);
+		});	
+		
+		function onchange_country() {
+			var _url = Drupal.settings.basePath + "ajax/ncn_loc_change_state";
+			jQuery.ajax({
+				url: 	_url,
+				data: 	{
+					'country': $('#<?php echo $params['id']; ?>').val()
+				},
+				type:	'POST',
+				error: function() {
+					alert('Error: It is failed to change list of states/provinces.');
+				},
+				success: function(response) {
+					$('#<?php echo $params['state_id']; ?>').html(response);
+				}	// END OF SUCESS FUNCTION
+			});
+			return;
+		}
+		
+	})(jQuery);	
+</script>
+<?php
+	$javascript = ob_get_contents();
+	ob_end_clean();
+	
+	$field = $field . " \r\t" . $javascript;
+	return $field;
+}
+
+/**
+ * $params: array
+ * 		$name, $id, $class, $disabled, $required, $state, $country='US'
+ */
+function ncn_loc_state($params) {
+	if (!isset($params['country']) || $params['country'] == null || $params['country'] == "") {
+		$params['country'] = 'US';
+	}
+	
+	$provinces = profile_location_states($params['country']);
+	array_shift($provinces);	
+	$field = '<select name="'.$params['name'].'" id="'.$params['id'].'" class="'.$params['class'].'"';
+	if ($params['disabled'] == true) {
+		$field .= " disabled=\"disabled\"";
+	}
+	$field .= ">\r\n";
+	
+	foreach ($provinces as $abbrev=>$full_name) {
+		$selected = "";
+		if ($params['state'] == $abbrev ) { $selected = "selected"; }
+		$field .= "\t<option value=\"$abbrev\" $selected>$full_name ($abbrev)</option>\r\n";
+	}
+	$field .= "</select>\r\n";
+	
+	return $field;
+}
+
+function ncn_loc_change_state() {
+	$country = $_REQUEST['country'];
+
+	$provinces = profile_location_states($country);	// get provinces by using country
+	array_shift($provinces);
+	$field = "";
+	
+	foreach ($provinces as $abbrev=>$full_name) {
+		$field .= "<option value=\"$abbrev\" >$full_name ($abbrev)</option>\r\n";
+	}
+	
+	echo $field;
+}
+
+?>

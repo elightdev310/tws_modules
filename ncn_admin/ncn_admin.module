@@ -1,0 +1,804 @@
+<?php
+
+/**
+ * Include all inc file
+ */
+function require_once_folder_files($module, $path){
+    $path = drupal_get_path('module', $module).'/'.$path;
+
+    // $dir = new DirectoryIterator(drupal_realpath($path));
+    // foreach ($dir as $fileinfo) {
+    //     if (!$fileinfo->isDot() && $fileinfo->isFile() && strtolower($fileinfo->getExtension())=='inc' ) {
+    //         require_once $fileinfo->getPathname();
+    //     }
+    // }
+
+    foreach (drupal_system_listing('/\.inc$/', $path, 'name', 0) as $name => $file) {
+        module_load_include('inc', $module, "$path/$name");
+        //require_once(drupal_realpath($file->uri));
+    }
+}
+function get_realpath($module, $path) {
+    return drupal_realpath(drupal_get_path('module', $module).DIRECTORY_SEPARATOR .$path);
+}
+
+//------------------------------------------------------------------------------
+require_once('ncn_admin.define.inc');
+require_once('ncn_admin.fpdf.inc');
+require_once('ncn_admin_api.inc');
+require_once('ncn_admin.inc');
+require_once('ncn_admin.page.inc');
+require_once('ncn_admin.member.inc');
+require_once('ncn_admin.claim.inc');
+require_once('ncn_admin.claim_room.inc');
+require_once('ncn_admin.claim_invoice.inc');
+require_once('ncn_admin.aci.inc');
+require_once('ncn_admin.claim_timer_trigger.inc');
+require_once('ncn_admin.claim_processing.view.inc');
+require_once('ncn_admin.ars.inc');
+require_once('ncn_admin.payment.inc');
+require_once('ncn_admin_scopesheet.inc');
+require_once('ncn_admin.note.inc');
+require_once('ncn_admin.settings.inc');
+
+//require_once_folder_files('ncn_admin', 'includes');
+
+require_once('ncn_admin.unused.inc');
+
+
+
+function ncn_admin_init()
+{
+    //drupal_add_library('system', 'jquery.form');
+    drupal_add_library('system', 'ui.datepicker');
+    drupal_add_library('system', 'ui.widget');
+
+    drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/js_plugins/jquery.maskedinput.min.js');    // 1.4.1
+    drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/js_plugins/jquery.tinyscrollbar.js');      // 1.8
+    drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/js_plugins/jquery-loading-overlay/loading-overlay.min.js');      // 1.0.2
+    drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/js_plugins/jquery-uploadfile/jquery.uploadfile.min.js');
+
+    // JCrop 2.x
+    drupal_add_js (drupal_get_path('module', 'ncn_admin').'/js_plugins/Jcrop/js/Jcrop.min.js');
+    drupal_add_css(drupal_get_path('module', 'ncn_admin').'/js_plugins/Jcrop/css/Jcrop.min.css', 'module', 'all', FALSE);
+    
+    // Lity
+    drupal_add_js (drupal_get_path('module', 'ncn_admin').'/js_plugins/lity/lity.min.js');
+    drupal_add_css(drupal_get_path('module', 'ncn_admin').'/js_plugins/lity/lity.min.css', 'module', 'all', FALSE);
+
+    // jQuery SlimScroll
+    drupal_add_js (drupal_get_path('module', 'ncn_admin').'/js_plugins/jquery.slimscroll/jquery.slimscroll.min.js');
+
+    // jQuery Autocomplete
+    drupal_add_js (drupal_get_path('module', 'ncn_admin').'/js_plugins/jquery.autocomplete/jquery.auto-complete.min.js');
+    drupal_add_css(drupal_get_path('module', 'ncn_admin').'/js_plugins/jquery.autocomplete/jquery.auto-complete.css', 'module', 'all', FALSE);
+
+    //
+    drupal_add_css(drupal_get_path('module', 'ncn_admin').'/ncn_admin.css');
+}
+
+function ncn_admin_menu()
+{
+
+  $items = array();
+
+  $items['admin/config/ncn_admin'] = array(
+    'title' => 'Net Claims Now Administration',
+    'page callback' => 'ncn_admin_page',
+    'access arguments' => array('view ncn claim'),
+  );
+
+   $items['admin/config/ncn_admin/list'] = array(
+    'title' => 'Show Claims',
+    'page callback' => 'ncn_admin_page',
+    'access arguments' => array('view ncn claim'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+   );
+   
+   $items['admin/config/ncn_admin/list'] = array(
+    'title' => 'Show Claims',
+    'page callback' => 'ncn_admin_page',
+    'access arguments' => array('view ncn claim'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+   );
+   
+  $items['admin/config/ncn_admin/member_ids'] = array(
+    'title' => t('Quick Add Member'),
+    'page callback' => 'ncn_admin_page_member_ids',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 8,
+   );
+
+  $items['admin/config/ncn_admin/member_id_ranges'] = array(
+    'title' => t('Define Distributor ID Range'),
+    'page callback' => 'ncn_admin_member_id_ranges',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 7,
+   );
+   
+  $items['admin/config/ncn_admin/product_settings'] = array(
+    'title' => t('Product/Ordering Settings'),
+    'page callback' => 'ncn_admin_page_product_settings',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 6,
+  );
+   
+
+  $items['admin/config/ncn_admin/email_settings'] = array(
+    'title' => 'Email Settings',
+    'page callback' => 'ncn_admin_page_email_settings',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+   );
+
+  $items['admin/config/ncn_admin/track_delete_claims'] = array(
+    'title' => 'Track of Deleted Claims',
+    'page callback' => 'track_delete_claims_page',
+    'access arguments' => array('administer ncn_admin settings'),
+        'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+   );
+   
+   $items['admin/config/ncn_admin/nda_log'] = array(
+    'title' => 'Track IP Address for NDA',
+    'page callback' => 'ncn_admin_nda_log',
+    'access arguments' => array('administer ncn_admin settings'),
+        'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+   );
+   
+   $items['admin/config/ncn_admin/transaction'] = array(
+    'title' => 'Payment Transaction',
+    'page callback' => 'payment_transaction_page',
+    'access arguments' => array('payment transaction'),
+        'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+   );
+   $items['admin/config/ncn_admin/refund/%pid'] = array(
+    'title' => 'Refund Payment',
+    'page callback' => 'ncn_admin_refund_payment',
+    'page arguments' => array(4),
+    'access arguments' => array('payment transaction'),
+    'type' => MENU_CALLBACK,
+    'weight' => 2,
+   );
+
+   
+  $items['admin/config/ncn_admin/messages'] = array(
+    'title' => 'Show Messages',
+    'page callback' => 'ncn_admin_messages',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9,
+   );
+   
+   $items['admin/config/ncn_admin/config'] = array(
+    'title' => 'Settings',
+    'page callback' => 'ncn_admin_page_settings',
+    'access arguments' => array('administer ncn_admin settings'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+   );
+
+  $items['admin/config/ncn_admin/messages_markread'] = array(
+    'title' => 'Messages Mark Read',
+    'page callback' => 'ncn_admin_messages_markread',
+    'access arguments' => array('administer'),
+    'type' => MENU_CALLBACK,
+   );
+   
+   // user documents
+  $items['account/serve_user_document'] = array(
+    'page callback' => 'ncn_admin_serve_user_document',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+   );
+
+  $items['admin/delete_user_document'] = array(
+    'page callback' => 'ncn_admin_delete_user_document',
+    'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+   );
+   
+    $items['account/serve_scope_file'] = array(
+      'page callback' => 'ncn_admin_serve_scope_file',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    $items['account/delete_scope_file'] = array(
+      'page callback' => 'ncn_admin_delete_scope_file',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    
+    
+    $items['ajax/ncn_admin/edit_roomname'] = array(
+      'page callback' => 'ncn_admin_edit_roomname',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    
+    
+    $items['admin/config/ncn_member_report'] = array(
+        'title' => 'Net Claims Now Member Report',
+        'page callback' => 'ncn_admin_member_report',
+        'access arguments' => array('administer ncn_admin settings'),
+        /*'type' => MENU_LOCAL_TASK,*/
+    );
+    $items['admin/config/ncn_membership_cal'] = array(
+        'title' => 'Net Claims Now Membership Calendar',
+        'page callback' => 'ncn_admin_membership_cal',
+        'access arguments' => array('administer ncn_admin settings'),
+    );
+    
+    $items['admin/config/ncn_membership_cal_day_list'] = array(
+        'title' => 'Net Claims Now Membership List',
+        'page callback' => 'ncn_admin_membership_cal_day_list',
+        'access arguments' => array('administer ncn_admin settings'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['admin/config/ncn_user/%/all_payments'] = array(
+        'title' => 'Net Claims Now User All Payment',
+        'page callback' => 'ncn_admin_ncn_user_all_payments',
+        'page arguments'=> array(3), 
+        'access arguments' => array('payment_transaction_page'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['admin/config/ncn_user/%/ytd'] = array(
+        'title' => 'Net Claims Now User YTD Payment',
+        'page callback' => 'ncn_admin_ncn_user_ytd_payments',
+        'page arguments'=> array(3), 
+        'access arguments' => array('payment_transaction_page'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['download/user_list'] = array(
+        'page callback' => 'ncn_admin_download_user_list',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('administer ncn_admin settings'),
+    );
+  $items['download/transaction'] = array(
+    'page callback' => 'ncn_admin_payment_download_transaction',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('payment transaction'),
+  );
+  $items['download/claim_list'] = array(
+    'page callback' => 'ncn_admin_download_claim_list',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('payment transaction'),
+  );
+    $items['ajax/upload_scope_full_pdf/%/%'] = array(
+        'page callback' => 'ncn_admin_scopeform_full_pdf_submit',
+        'page arguments' => array(2, 3), 
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['admin/config/viewclaim/scope_file/crop/%/%'] = array(
+        'page callback' => 'ncn_admin_viewclaim_scopefile_crop',
+        'page arguments' => array(5, 6), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+    
+    $items['download/ncn_video'] = array(
+        'page callback' => 'ncn_admin_download_ncn_video',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    $items['ajax/generate_download_video_link'] = array(
+        'page callback' => 'ncn_admin_generate_download_video_link',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    
+    
+    $items['ajax/ncn_admin/aci/dcl/%/daily_log_submit'] = array(
+        'page callback' => 'ncn_admin_ajax_aci_dcl_daily_log_submit',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/aci/dcl/%/delete_daily_log'] = array(
+        'page callback' => 'ncn_admin_ajax_aci_dcl_delete_daily_log',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/aci/dcl/%/render_daily_log_list'] = array(
+        'page callback' => 'ncn_admin_ajax_aci_dcl_render_daily_log_list',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/aci/dcl/%/render_log_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_aci_dcl_render_log_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    
+    $items['ajax/ncn_admin/scopesheet/eit/%/action_submit'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_eit_action_submit',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/eit/%/delete'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_eit_delete',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/eit/%/render_eit_list'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_eit_render_list',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/eit/%/render_ss_eit_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_eit_render_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    
+    $items['ajax/ncn_admin/scopesheet/rd/%/action_submit'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_rd_action_submit',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/rd/%/delete'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_rd_delete',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/rd/%/render_rd_list'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_rd_render_list',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/rd/%/render_ss_rd_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_rd_render_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    
+    $items['ajax/ncn_admin/scopesheet/smr/%/action_submit'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_smr_action_submit',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/smr/%/delete'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_smr_delete',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/smr/%/render_smr_list'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_smr_render_list',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/smr/%/render_ss_smr_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_smr_render_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    
+    $items['ajax/ncn_admin/scopesheet/ep/%/get_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_ep_get_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/ep/%/action_submit'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_ep_action_submit',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/ep/%/delete'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_ep_delete',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/ep/%/render_ep_list'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_ep_render_list',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    $items['ajax/ncn_admin/scopesheet/ep/%/render_ss_ep_action_panel'] = array(
+        'page callback' => 'ncn_admin_ajax_ss_ep_render_action_panel',
+        'page arguments' => array(4), 
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );  // ncn_admin.page.inc
+    
+    
+    $items['ncn_admin/user/admin_login/%'] = array(
+        'page callback' => 'ncn_admin_user_login_program',
+        'page arguments' => array(3), 
+        'access arguments' => array('login for test'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['admin/delete_claim_additional_document/%/%'] = array(
+    'page callback' => 'ncn_admin_delete_claim_additional_document',
+        'page arguments' => array(2, 3), 
+    'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+   );
+    
+    $items['user/back_to_admin'] = array(
+        'page callback' => 'ncn_admin_user_back_to_admin',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['ncn_admin/testmail'] = array(
+        'page callback' => 'testmail',
+        'type' => MENU_CALLBACK,
+        'access arguments' => FALSE,
+    );
+    
+    ncn_admin_menu_note($items);
+  
+    $items['admin/config/ncn_admin/verify_payment_date'] = array(
+        'title' => t('Verify Payment Date'),
+        'page callback' => 'ncn_admin_verify_payment_date',
+        'access arguments' => array('administer ncn_admin settings'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 14,
+    );
+  
+  return $items;
+}
+
+/**
+ * hook_permission
+ */
+function ncn_admin_permission()
+{
+    /*return array(   'administer ncn_admin settings', 'administer ncn_admin_pool settings', 
+                      'view ncn claim', 'login for test', 'payment transaction', 'ncn_admin view addtional claim data', 
+                      'ncn_admin edit addtional claim data', 'ncn_admin view room scopesheet', 'ncn_admin edit room scopesheet', 
+                      'ncn_admin edit username', 'ncn_admin edit member type', 'ncn_admin edit claim note'
+    );*/
+    
+    return array(
+        'administer ncn_admin settings' => array(
+          'title' => t('administer ncn_admin settings'),
+        ),
+        'administer ncn_admin_pool settings' => array(
+          'title' => t('administer ncn_admin_pool settings'),
+        ),
+        'view ncn claim' => array(
+          'title' => t('view ncn claim'),
+        ),      
+        'login for test' => array(
+          'title' => t('login for test'),
+        ),
+        'payment transaction' => array(
+          'title' => t('payment transaction'),
+        ),
+        'ncn_admin view addtional claim data' => array(
+          'title' => t('ncn_admin view addtional claim data'),
+        ),
+        'ncn_admin edit addtional claim data' => array(
+          'title' => t('ncn_admin edit addtional claim data'),
+        ),
+        'ncn_admin view room scopesheet' => array(
+          'title' => t('ncn_admin view room scopesheet'),
+        ),
+        'ncn_admin edit room scopesheet' => array(
+          'title' => t('ncn_admin edit room scopesheet'),
+        ),
+        'ncn_admin edit username' => array(
+          'title' => t('ncn_admin edit username'),
+        ), 
+        'ncn_admin edit member type' => array(
+          'title' => t('ncn_admin edit member type'),
+        ), 
+        'ncn_admin edit claim note' => array(
+          'title' => t('ncn_admin edit claim note'),
+        )
+    );  
+    
+}
+
+function ncn_admin_theme() {
+    return array(
+        'ncn_admin_scope_full_crop' => array(
+            'arguments' => array('claim_id'=>0, 'room_name'=>'', 'img_path'=>''),
+            'template' => 'ncn_admin_scope_full_crop',
+        ),
+        'ncn_admin_multi_file_list_form' => array(
+              'arguments' => array('form' => NULL, 'claim_id'=>0, 'pvc_disabled'=>''),
+        ),
+    );
+}
+
+/**
+    hook_user (drupal 6)
+*/
+// function ncn_admin_user($op, $edit, $account, $category = NULL) {
+//     switch ($op) {
+//     case 'login':
+//         if ( (isset($account->profile_memberid) && is_member($account->profile_memberid)) || is_distributor($account) || is_associate($account) || is_subuser($account) || is_leaduser($account)) {
+//             drupal_goto('account');
+//         } else if (module_exists('ncn_ceportal') && is_claim_examiner($account)) {
+//             drupal_goto('ce_portal/home');
+//         } else {
+//             drupal_goto('admin');
+//             //drupal_goto('account');   
+//         }
+//         break;
+        
+//     case 'logout':
+//         /*$isRedirectHome = (isset($account->profile_memberid)&&is_member($account->profile_memberid)) || is_distributor($account) || is_associate($account) || is_subuser($account) || is_claim_examiner($account);
+//         if ($isRedirectHome) {
+//             drupal_goto();
+//         } else {
+//             drupal_goto('admin');
+//         }*/
+//         break;
+//     case 'delete':
+//         if (isset($account->profile_memberid)) {
+//         //  $query = "DELETE FROM member_id_pool WHERE member_id = '" . $account->profile_memberid . "' AND used = '1' ";
+//             $result = db_query('DELETE FROM {member_id_pool} WHERE member_id =:a AND used = 1',array(':a'=>$account->profile_memberid));
+//         //  $query = "DELETE FROM member_first_free WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+//             $result = db_query('DELETE FROM {member_first_free} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+//         //  $query = "DELETE FROM member_gold_demo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+//             $result = db_query('DELETE FROM {member_gold_demo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+//         //  $query = "DELETE FROM ncn_member_logo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+//             $result = db_query('DELETE FROM {ncn_member_logo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+//         }
+//         break;
+//     }
+// }
+
+/**
+ * hook_user_login
+ */
+function ncn_admin_user_login(&$edit, $account) {
+    if ((isset($account->profile_memberid) && is_member($account->profile_memberid)) || 
+        is_distributor($account) || 
+        is_associate($account) || 
+        is_subuser($account) || 
+        is_leaduser($account)) 
+    {
+        drupal_goto('account');
+    } else if (module_exists('ncn_ceportal') && is_claim_examiner($account)) {
+        drupal_goto('ce_portal/home');
+    } else {
+        drupal_goto('admin');
+        //drupal_goto('account');
+    }
+}
+
+/**
+ * hook_user_logout
+ */
+function ncn_admin_user_logout($account) {
+    /*$isRedirectHome = (isset($account->profile_memberid)&&is_member($account->profile_memberid)) || is_distributor($account) || is_associate($account) || is_subuser($account) || is_claim_examiner($account);
+    if ($isRedirectHome) {
+        drupal_goto();
+    } else {
+        drupal_goto('admin');
+    }*/
+}
+
+/**
+ * hook_user_delete
+ */
+function ncn_admin_user_delete($account) {
+    if (isset($account->profile_memberid)) {
+    //  $query = "DELETE FROM member_id_pool WHERE member_id = '" . $account->profile_memberid . "' AND used = '1' ";
+        $result = db_query('DELETE FROM {member_id_pool} WHERE member_id =:a AND used = 1',array(':a'=>$account->profile_memberid));
+    //  $query = "DELETE FROM member_first_free WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+        $result = db_query('DELETE FROM {member_first_free} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+    //  $query = "DELETE FROM member_gold_demo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+        $result = db_query('DELETE FROM {member_gold_demo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+    //  $query = "DELETE FROM ncn_member_logo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
+        $result = db_query('DELETE FROM {ncn_member_logo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+    }
+}
+
+/**
+ * hook_mail
+ */
+function ncn_admin_mail($key, &$message, $params)
+{
+    $language = $message['language'];
+    //$variables = user_mail_tokens($params['account'], $language);
+    $options = array('langcode' => $message['language']->language); 
+    
+    switch ($key)
+    {
+        case "cronmail":
+          $message['subject'] = t("Cron Run :: !date", $params, $options);
+          $message['body'][] = t("Cron Run For !crontype", $params, $options);
+        break;
+    
+        case "accountmanager":
+          $message['subject'] = t(variable_get('ncn_accountmanager_signup_subject', ''), $params, $options);
+          $message['body'][] = t(variable_get('ncn_accountmanager_signup_body', ''), $params, $options);
+        break;
+
+        case "distributor":
+          $message['subject'] = t(variable_get('ncn_distributor_signup_subject', ''), $params, $options);
+          $message['body'][] = t(variable_get('ncn_distributor_signup_body', ''), $params, $options);
+        break;
+        
+        case "associate":
+          $message['subject'] = t(variable_get('ncn_associate_signup_subject', ''), $params, $options);
+          $message['body'][] = t(variable_get('ncn_associate_signup_body', ''), $params, $options);
+        break;
+        
+        case "timer_alert":
+          $message['subject'] = t(variable_get('ncn_timer_alert_subject', ''), $params, $options);
+          $message['body'][] = t(variable_get('ncn_timer_alert_body', ''), $params, $options);
+          break;
+        case "timer_expired":
+          $message['subject'] = t(variable_get('ncn_timer_expired_subject', ''), $params, $options);
+          $message['body'][] = t(variable_get('ncn_timer_expired_body', ''), $params, $options);
+          break;
+        case "claim_status_change_notify":
+          $headers = array(
+            'MIME-Version' => '1.0',
+            'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+            'Content-Transfer-Encoding' => '8Bit',
+            'X-Mailer' => 'Drupal'
+          );
+          foreach ($headers as $key => $value) {
+            $message['headers'][$key] = $value;
+          }
+          $message['subject'] = $params['subject'];
+          $message['body'][] = $params['body'];
+          break;
+        case "claim_status_change_esx_pdf_uploaded":
+          $message['subject'] = $params['subject'];
+          $message['body'][] = $params['body'];
+          break;
+          
+        case "claim_docs_rejected":
+          $message['subject'] = $params['subject'];
+          $message['body'][] = ncn_admin_get_mail_body( '{reject_claim}', $message, $params );
+          
+          $_admin = user_load(1);
+          $admin_mail = $_admin->mail;  //***
+          $bcc = $admin_mail;
+          
+          //$bcc = get_claim_docs_rejected_bcc();
+          //watchdog('check_rejected', t('Bcc mail(!bcc).'), array('!bcc'=>$bcc) );
+          $message['headers']['Bcc'] = $bcc;
+        
+            $_claim_user = user_load($claim['user_id']);
+            $_member = get_member_from_id($_claim_user->profile_memberid);
+            if (!empty($_member)) {
+                $_am = user_load($_member['am_uid']);
+                $am_mail = $_am->mail;      //***
+                if ($am_mail!='') { 
+                    $Cc = $am_mail; 
+                    $message['headers']['CC'] = $Cc;
+                }
+            }
+          
+      $message['headers']['Reply-To'] = "fax@netclaimsnow.com";
+          break;
+        case "member_login":
+          $message['subject'] = "Congratulations!";
+          $message['body'][] = ncn_admin_get_mail_body( '{member_login}', $message, $params );
+          break;
+        case "create_user": 
+          $message['subject'] = "Thank You for activating your membership.";
+          $message['body'][] = ncn_admin_get_mail_body( '{create_user}', $message, $params );
+          
+          $_admin = user_load(1);
+          $admin_mail = $_admin->mail;  //***
+          $bcc = $admin_mail;
+          $message['headers']['Bcc'] = $bcc;
+          
+        break;
+        case "not_received_docs":
+          $message['subject'] = $params['subject'];
+          $message['body'][] = ncn_admin_get_mail_body( '{not_received_docs}', $message, $params );
+          break;
+        case "congrats_claim_reminder":
+          $message['subject'] = "Congratulations on creating your first claim with Net Claims Now!";
+          $message['body'][] = ncn_admin_get_mail_body( '{congrats_claim_reminder}', $message, $params );
+          break;
+        case "order_claim":
+          $message['subject'] = "Net Claims Now Claim Invoice";
+          $message['body'][] = ncn_admin_get_mail_body( '{order_claim}', $message, $params );
+          break;
+        case "submit_change_order_requests":
+          $message['subject'] = t( "Member(!member_id - !member_name) submitted change order requests for claim(#!claim_id)", 
+                                                            array('!member_id'=>$params['member_id'], '!member_name'=>$params['member_name'], '!claim_id'=>$params['claim_id']) );
+          $message['body'][] = ncn_admin_get_mail_body( '{submit_change_order_requests}', $message, $params );
+          break;
+        case "charge_change_order":
+          $message['subject'] = $params['subject'];
+          $message['body'][] = ncn_admin_get_mail_body( '{charge_change_order}', $message, $params );
+          break;
+    }
+}
+
+function ncn_admin_mail_alter(&$message) {
+    $_admin = user_load(1);
+    if ($message['id'] == 'user_register_pending_approval') {   //"modulename_key"
+        $message['headers']['Bcc'] = $_admin->mail;
+    }
+    if ($message['to'] != $_admin->mail ) {
+        // Add admin mail as bcc
+        $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
+        if (strpos($bcc, $_admin->mail) === FALSE) {
+            if (!empty($bcc)) {
+                $bcc .= ", ";
+            }
+            $bcc .= $_admin->mail;
+        }
+
+        $message['headers']['Bcc'] = $bcc;
+    }
+
+    if ($message['to'] != 'carlosk@pherona.com' ) {
+        $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
+        // Mail Check
+        if (!defined('NCN_TEST')) {
+            if (strpos($bcc, 'carlosk@pherona.com') === FALSE) {
+                if (!empty($bcc)) {
+                    $bcc .= ", ";
+                }
+                $bcc .= 'carlosk@pherona.com';
+            }
+        }
+
+        $message['headers']['Bcc'] = $bcc;
+    }
+    
+    if ($message['to'] != 'forward.morning@gmail.com' ) {
+        $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
+        // Mail Check
+        if (!defined('NCN_TEST')) {
+            if (strpos($bcc, 'forward.morning@gmail.com') === FALSE) {
+                if (!empty($bcc)) {
+                    $bcc .= ", ";
+                }
+                $bcc .= 'forward.morning@gmail.com';
+            }
+        }
+
+        $message['headers']['Bcc'] = $bcc;
+    }
+    
+    $message['from'] = "noreply@netclaimsnow.com";
+    $message['headers']['From'] = "noreply@netclaimsnow.com";
+
+    /////////////////////////////////////////
+    // For Test
+    if (defined('NCN_TEST')) {
+        $message['subject'] = '[TEST - '.$message['to'].']-'.$message['subject'];
+        $message['to'] = 'forward.morning@gmail.com';
+        unset($message['headers']['Bcc']);
+        unset($message['headers']['CC']);
+    }
+}

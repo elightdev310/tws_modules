@@ -1,0 +1,6 @@
+; $Id: book.info,v 1.5 201/04/06 18:20:21 dries Exp $
+name = NCN Location
+description = International Address
+package = Net Claims Now
+core = 7.x
+dependencies[] = profile_location

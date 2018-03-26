@@ -1,0 +1,316 @@
+<?php
+
+/*
+to the right of "Service Invoice"
+ lets add a new column
+ "Final Approval"
+ under it is "Yes | No" buttons
+ or "Do you appove this invoice"
+ "Yes or No"
+ this allows the member to make the final decision
+ if yes > move to receivables
+ if no... pop message box so member can explain problem with invoice.... the claim goes back in out for review status
+ 
+*/
+
+require_once('ncn_claims_manager.inc');
+require_once('ncn_claims_manager.ui.inc');
+require_once('ncn_claims_manager.page.inc');
+require_once('ncn_claims_manager.page.v1.inc');
+
+require_once('ncn_claims_manager.aci.v1.inc');
+require_once('ncn_claims_manager.scopesheet.inc');
+require_once('ncn_claims_manager.note.inc');
+
+require_once('ncn_claims_manager.search.inc');
+
+require_once('distributor/ncn_distributor.inc');
+require_once('associate/ncn_associate.inc');
+
+/**
+ * hook_init
+ */
+function ncn_claims_manager_init()
+{
+    drupal_add_js(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.js');
+}
+
+/**
+ * hook_menu
+ */
+function ncn_claims_manager_menu()
+{
+    // complete distributor control page
+    $items['account/distributor.html'] = array(
+        'page callback' => 'ncn_distributor_page',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // complete associate control page
+    $items['account/associate.html'] = array(
+        'page callback' => 'ncn_associate_page',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // ajax call back for updating clains preview list
+    $items['account/update_claim_preview'] = array(
+        'page callback' => 'ncn_claims_manager_update_handler',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // ajax call to save the file note
+    $items['account/save_file_note'] = array(
+        'page callback' => 'ncn_claims_manager_save_file_note',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // ajax call back for sending to archives
+    $items['account/send_to_archive'] = array(
+        'page callback' => 'ncn_claims_manager_send_to_archive',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // ajax call back for defining a partial payment
+    $items['account/set_partial_payment'] = array(
+        'page callback' => 'ncn_claims_manager_set_partial_payment',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // approve invoice and bounce to receivables
+    $items['account/approve_invoice/%'] = array(
+        'page callback' => 'ncn_claims_manager_approve_invoice',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // purchase invoice and bounce to receivables
+    $items['account/purchase_invoice'] = array(
+        'page callback' => 'ncn_claims_manager_purchase_invoice',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    // reject invoice and bounce to thread reply
+    $items['account/reject_invoice'] = array(
+        'page callback' => 'ncn_claims_manager_reject_invoice',
+        'template' => 'page-inline',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $items['account/serve_invoice_file'] = array(
+        'page callback' => 'ncn_claims_manager_serve_invoice_file',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $items['account/delete_invoice_file'] = array(
+        'page callback' => 'ncn_claims_manager_delete_invoice_file',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $items['account/submit_claim'] = array(
+        'page callback' => 'ncn_claims_manager_submit_claim_outforreview',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $items['account/confirm_submit_claim'] = array(
+        'page callback' => 'ncn_claims_manager_submit_claim_confirm',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $items['account/additional_claim_info/%'] = array(
+        'page callback' => 'ncn_claims_manager_additional_claim_info',
+        'page arguments' => array(2),
+        'access callback' => 'ncn_claims_manager_check_access_additional_page',
+        'access arguments' => array(2),
+    );
+    $items['account/additional_claim_info_view/%'] = array(
+        'page callback' => 'ncn_claims_manager_additional_claim_info_view',
+        'page arguments' => array(2),
+        'access callback' => 'ncn_claims_manager_check_access_additional_page',
+        'access arguments' => array(2),
+    );
+
+    $items['account/scope_sheet/%/%'] = array(
+        'page callback' => 'ncn_claims_manager_scope_sheet',
+        'page arguments' => array(2, 3),
+        'access callback' => 'ncn_claims_manager_check_access_scopesheet_page',
+        'access arguments' => array(2, 3),
+    );
+    $items['account/scope_sheet_view/%/%'] = array(
+        'page callback' => 'ncn_claims_manager_scope_sheet_view',
+        'page arguments' => array(2, 3),
+        'access callback' => 'ncn_claims_manager_check_access_scopesheet_page',
+        'access arguments' => array(2, 3),
+    );
+    $items['account/approve_invoice'] = array(
+        'title' => 'approve invoice notification',
+        'description' => 'approve invoice notification(claim moved from "Out for Review" to "Receivables").',
+        'page callback' => 'dblog_top',
+        'page arguments' => array('invoice_notification'),
+        'access arguments' => array('access invoice notification'),
+        'file' => 'dblog.admin.inc',
+        'file path' => drupal_get_path('module', 'dblog'),
+    );
+
+    ncn_claims_manager_menu_note($items);
+    ncn_claims_manager_menu_search($items);
+
+    return $items;
+}
+
+/**
+ * hook_theme
+ */
+function ncn_claims_manager_theme()
+{
+    return array(
+        'ncn_confirm_submit_claim' => array(
+            'arguments' => array('claim_id' => 0, 'stat' => NULL),
+            'template' => 'ncn_confirm_submit_claim',
+        ),
+        'ncn_dist_page' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_dist_page',
+        ),
+        'ncn_asso_page' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_asso_page',
+        ),
+    );
+}
+
+/**
+ * hook_mail
+ */
+function ncn_claims_manager_mail($key, &$message, $params)
+{
+    $language = $message['language'];
+    $options = array('langcode' => $message['language']->language);
+   // $variables = user_mail_tokens($params['account'], $language);
+
+    switch ($key) {
+        case "id_to_member":
+            $message['subject'] = t(variable_get('ncn_id_to_member_subject', ''), $params, $options);
+            $message['body'][] = ncn_admin_get_mail_body(t(variable_get('ncn_id_to_member_body', ''), $params, $options), $message, $params);
+            $bcc = "newmembers@netclaimsnow.com";
+            $message['headers']['Bcc'] = $bcc;
+            break;
+
+        case "create_my_invoice":
+            $message['subject'] = t(variable_get('ncn_create_my_invoice_subject', ''), $params, $options);
+            $message['body'][] = t(variable_get('ncn_create_my_invoice_body', ''), $params, $options);
+            break;
+    }
+}
+
+/**
+ * hook_permission
+ */
+function ncn_claims_manager_permission()
+{
+    //return array('access ncn_claims_manager content');
+    return array(
+                    'access ncn_claims_manager content' =>  array(
+                      'title' => t('access ncn_claims_manager content'),
+                    ),  
+                );      
+}
+
+/**
+ * hook_help
+ */
+function ncn_claims_manager_help($section)
+{
+
+    switch ($section) {
+        case 'admin/modules#description':
+            // This description is shown in the listing at admin/modules.
+            return t('The ncn_claims_manager module multiplies two numbers together.');
+    }
+}
+
+//------------------------------------------------------------------------------
+// main entry function - handles all the form input and sets up the display
+function ncn_claims_manager_preprocess(&$vars)
+{
+
+    // check if this is an alias rewritten page
+    if (!isset($vars['node']->field_theme_alias[0]['value'])) {
+        return;
+    }
+
+//  if ($vars['node']->field_theme_alias[0]['value'] != 'create-new-claim')
+//  {   return;     }
+
+    // add the css file (always required for this)
+    // drupal_add_css(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.css', 'module', 'all', FALSE);
+    drupal_add_css(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
+}
+
+
+
+
+/**
+ * Get Unserialized Claims Data (table - claims_data)
+ * @param $array_val : if true, return 'val' column data
+ */
+function ncn_cd($claim_id, $key, $array_val=false)
+{
+//    $query = "SELECT * FROM claims_data WHERE `claim_id`=" . $claim_id . " AND `key`='" . AddSlashes($key) . "';";
+    $result = db_query('SELECT * FROM {claims_data} WHERE claim_id=:a AND `key`=:b',array(':a'=>$claim_id,':b'=>$key));
+    if ($result) {
+        $row_count = $result->rowCount();
+    } else {
+        $row_count = 0;
+    }   
+
+    if ($row_count == 0) {
+        return false;
+    }
+    $row = $result->fetchAssoc();
+    $res = unserialize($row['val']);
+
+    if ($array_val) {
+        return $res;
+    }
+
+    if (is_array($res)) // check for array (new style)
+    {
+        if (is_array($res['val'])) {
+            $res = implode(" ", $res['val']);
+        } else {
+            $res = $res['val'];
+        }
+    }
+    
+    /* Hack for Mobile App Data */
+    if($key=='date_of_loss'){
+        $res = date("F j Y", strtotime($res));
+    }
+    if($key=='insured_state'){
+        preg_match('/\(([^\)]*)\)/', $res, $ins_match);
+        if(isset($ins_match[1]) && trim($ins_match[1])!=''){
+            $res = $ins_match[1];
+        }
+    }
+    /* Hack for Mobile App Data */
+    
+    return $res;
+}

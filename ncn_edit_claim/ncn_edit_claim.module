@@ -1,0 +1,44 @@
+<?php
+require_once('ncn_edit_claim.claim_processing.inc');
+require_once('ncn_edit_claim.ars.inc');
+require_once('ncn_edit_claim.photo.inc');
+
+//------------------------------------------------------------------------------
+function ncn_edit_claim_menu()
+{
+    $items['account/edit_claim/%'] = array(
+      'page callback' => 'ncn_edit_claim_processing_page',
+      'page arguments'=> array(2), 
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    $items['account/claim/%/add-room'] = array(
+      'page callback' => 'ncn_edit_claim_add_room',
+      'page arguments'=> array(2), 
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+
+    $items['account/ar/%'] = array(
+      'page callback' => 'ncn_edit_claim_ar_page',
+      'page arguments'=> array(2), 
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    $items['account/ar/%/approve_invoice'] = array(
+      'page callback' => 'ncn_edit_claim_ar_approve_invoice',
+      'page arguments'=> array(2), 
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+
+
+    $items['account/edit_claim_inline'] = array(
+      'page callback' => 'ncn_edit_claim_handler',
+      'template' => 'page-inline',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+    return $items;
+}
+

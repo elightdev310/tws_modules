@@ -1,0 +1,735 @@
+<?php
+/**
+ *
+ */
+/**
+ * hook_init function
+ */
+
+function ncn_pvc_init()
+{
+	drupal_add_js(drupal_get_path('module', 'ncn_pvc') . '/ncn_pvc.js');
+}
+
+/**
+ * hook_perm function
+ */
+
+function ncn_pvc_permission()
+{
+	return array(
+		'ncn permission of view claim'=>array('title'=>t('ncn permission of view claim'))
+	);
+}
+
+/**
+ * hook_menu function
+ */
+
+function ncn_pvc_menu()
+{
+	$items = array();
+	$items['admin/config/ncn_admin/ncn_pvc'] = array(
+		'title' => t('NCN Permission of View Claim') ,
+		'page callback' => 'ncn_pvc_settings',
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'weight' => 2,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/settings'] = array(
+		'title' => t('Settings') ,
+		'page callback' => 'ncn_pvc_settings',
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => -1,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/settings'] = array(
+		'title' => t('Settings') ,
+		'page callback' => 'ncn_pvc_settings',
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 0,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/group_item'] = array(
+		'title' => t('Group & Item') ,
+		'page callback' => 'ncn_pvc_group_item',
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/add_group'] = array(
+		'title' => t('Add Group') ,
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array(
+			'ncn_pvc_add_group_form',
+			'add'
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 2,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/edit_group'] = array(
+		'title' => t('Edit Group') ,
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array(
+			'ncn_pvc_add_group_form',
+			'edit'
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/add_item'] = array(
+		'title' => t('Add Item') ,
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array(
+			'ncn_pvc_add_item_form',
+			'add'
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 3,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/edit_item'] = array(
+		'title' => t('Edit Item') ,
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array(
+			'ncn_pvc_add_item_form',
+			'edit'
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/delete_item/%'] = array(
+		'title' => t('Delete Item') ,
+		'page callback' => 'ncn_pvc_delete_item',
+		'page arguments' => array(
+			5
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['admin/config/ncn_admin/ncn_pvc/delete_group/%'] = array(
+		'title' => t('Delete Item') ,
+		'page callback' => 'ncn_pvc_delete_group',
+		'page arguments' => array(
+			5
+		) ,
+		'access arguments' => array(
+			'ncn permission of view claim'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+
+function ncn_pvc_add_group_form($form, &$form_state)
+{
+	/*echo "<pre>";
+	print_r($args);
+	echo "</pre>";*/
+	
+	$p_tfunction = array_shift($form_state['build_info']['args']);	
+	if ($p_tfunction == 'edit')
+	{
+		$description = t('Edit a permission group of view claim');
+	}
+	else
+	{
+		$description = t('Add a permission group of view claim');
+	}
+	
+	$form['description'] = array(
+		'#type' => 'item',
+		'#title' => $description,
+	);
+	$form['tfunction'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $p_tfunction,
+	);
+	
+	$group = array();
+	
+	$gid = 0;
+	$group['group_name'] = '';
+	
+	if ($p_tfunction == 'edit')
+	{
+		$gid = $_REQUEST['gid'];
+		$result = db_query('SELECT * FROM pvc_group WHERE group_id=:d', array(':d' => $gid));
+		foreach($result as $group)
+		{
+			$group = (array)$group;
+			if (!$group)
+			{
+				$group = array();
+			}
+		}
+
+		//
+		//    $group = db_fetch_array($result);
+		//	if (!$group) {
+		//		$group = array();
+		//	}
+
+	}
+
+	$form['group_id'] = array(
+		'#type' => 'hidden',
+		'#default_value' => intval($gid) ,
+	);
+	$form['name'] = array(
+		'#type' => 'textfield',
+		'#required' => true,
+		'#title' => t('Name') ,
+		'#default_value' => $group['group_name'],
+	);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => 'Save',
+	);
+	return $form;
+}
+
+function ncn_pvc_add_group_form_validate($form, &$form_state)
+{
+	$tfunction = $form_state['values']['tfunction'];
+	$group_id = $form_state['values']['group_id'];
+	$g_name = $form_state['values']['name'];
+	$result = db_query('SELECT * FROM {pvc_group} WHERE group_name=:s', array(':s' => $g_name));
+	foreach($result as $group)
+	{
+		$group = (array)$group;
+		if ($group)
+		{
+			if ($tfunction == 'add' || ($tfunction == 'edit' && $group_id != $group['group_id']))
+			{
+				form_set_error('name', t('Group name(!g_name) is duplicated.', array('!g_name' => $g_name)));
+			}
+		}
+	}
+}
+
+function ncn_pvc_add_group_form_submit($form, &$form_state)
+{
+	$tfunction = $form_state['values']['tfunction'];
+	$group_id = $form_state['values']['group_id'];
+	$g_name = $form_state['values']['name'];
+	
+	if ($tfunction == 'add')
+	{
+		$max = db_query('SELECT MAX(g_weight) FROM {pvc_group}')->fetchField();
+		$g_weight = intval($max) + 1;
+		
+		$result = db_query('INSERT INTO {pvc_group} (group_name, g_weight) VALUES(:a,:b)',array(':a'=>$g_name,':b'=>$g_weight));
+		if ($result)
+		{
+			drupal_set_message(t('Group(!g_name) added, successfully.', array('!g_name' => $g_name)));
+			drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+		}
+		else
+		{
+			drupal_set_message(t('Failed to add a group.') , 'error');
+		}
+	}
+	else if ($tfunction == 'edit')
+	{
+		$result = db_query('UPDATE {pvc_group} SET group_name=:a WHERE group_id=:b',array(':a'=>$g_name,':b'=>$group_id));
+		if ($result)
+		{
+			drupal_set_message(t('Group(!g_name) updated, successfully.', array('!g_name' => $g_name)));
+			drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+		}
+		else
+		{
+			drupal_set_message(t('Failed to update a group.') , 'error');
+		}
+	}
+}
+
+function ncn_pvc_add_item_form($form, &$form_state)
+{
+	$p_tfunction = array_shift($form_state['build_info']['args']);
+	if ($p_tfunction == 'edit')
+	{
+		$description = t('Edit a permission item of view claim');
+	}
+	else
+	{
+		$description = t('Add a permission item of view claim');
+	}
+
+	$form['description'] = array(
+		'#type' => 'item',
+		'#title' => $description,
+	);
+	$form['tfunction'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $p_tfunction,
+	);
+	$item = array();
+	
+	$pvc_id = 0;
+	$item['pvc_name'] = '';
+	$item['pvc_id'] = 0;
+	$item['group_id'] = 0;
+	
+	if ($p_tfunction == 'edit')
+	{
+		$pvc_id = $_REQUEST['pvc_id'];
+		$result = db_query('SELECT * FROM {pvc_item} WHERE pvc_id=:d', array(':d'=>$pvc_id));
+		foreach($result as $item)
+		{
+			$item = (array)$item;
+			if (!$item)
+			{
+				$item = array();
+			}
+		}
+
+		//
+		//    $item = db_fetch_array($result);
+		//	if (!$item) {
+		//		$item = array();
+		//	}
+
+	}
+
+	$form['pvc_id'] = array(
+		'#type' => 'hidden',
+		'#default_value' => intval($item['pvc_id']) ,
+	);
+	$form['name'] = array(
+		'#type' => 'textfield',
+		'#required' => true,
+		'#title' => t('Name') ,
+		'#default_value' => $item['pvc_name'],
+	);
+	$groups = ncn_pvc_get_group_options();
+	$form['group'] = array(
+		'#type' => 'select',
+		'#title' => t('Group') ,
+		'#required' => false,
+		'#options' => $groups,
+		'#default_value' => $item['group_id'],
+	);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => 'Save',
+	);
+	return $form;
+}
+
+function ncn_pvc_get_group_options()
+{
+	$g_list = array();
+	$g_list[] = '<Please Select>';
+	$result = db_query('SELECT * FROM pvc_group ORDER BY g_weight ASC');
+
+	//	while ($group = db_fetch_array($result))
+
+	foreach($result as $group)
+	{
+		$group = (array)$group;
+		$g_list[$group['group_id']] = $group['group_name'];
+	}
+
+	return $g_list;
+}
+
+function ncn_pvc_add_item_form_validate($form, &$form_state)
+{
+	$tfunction = $form_state['values']['tfunction'];
+	$pvc_id = $form_state['values']['pvc_id'];
+	$pvc_name = $form_state['values']['name'];
+	$group_id = $form_state['values']['group'];
+	$result = db_query('SELECT * FROM {pvc_item} WHERE pvc_name=:s', array(':s' => $pvc_name));
+	foreach($result as $group)
+	{
+		$group = (array)$group;
+		if ($group)
+		{
+			if ($tfunction == 'add' || ($tfunction == 'edit' && $pvc_id != $group['pvc_id']))
+			{
+				form_set_error('name', t('Name(!pvc_name) is duplicated.', array(
+					'!pvc_name' => $pvc_name
+				)));
+			}
+		}
+	}
+
+	//	if ($group = db_fetch_array($result)) {
+	//		if ( $tfunction=='add' || ($tfunction=='edit' && $pvc_id != $group['pvc_id']) ) {
+	//			form_set_error('name', t('Name(!pvc_name) is duplicated.', array('!pvc_name'=>$pvc_name)));
+	//		}
+	//	}
+
+	/*if ($group_id ==0 ) {
+	form_set_error('group', t('Please select group.'));
+	}*/
+}
+
+function ncn_pvc_add_item_form_submit($form, &$form_state)
+{
+	$tfunction = $form_state['values']['tfunction'];
+	$pvc_id = $form_state['values']['pvc_id'];
+	$pvc_name = $form_state['values']['name'];
+	$group_id = $form_state['values']['group'];
+	if ($tfunction == 'add')
+	{
+		$max = db_query('SELECT MAX(pvc_weight) FROM {pvc_item}')->fetchField();
+		$pvc_weight = intval($max) + 1;
+		$result = db_query('INSERT INTO {pvc_item}(group_id, pvc_name, pvc_weight) VALUES(:a,:b,:c)',
+            array(':a'=>$group_id,':b'=>$pvc_name,':c'=>$pvc_weight));
+		if ($result)
+		{
+			drupal_set_message(t('Item(!pvc_name) added, successfully.', array('!pvc_name' => $pvc_name)));
+			drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+		}
+		else
+		{
+			drupal_set_message(t('Failed to add an item.') , 'error');
+		}
+	}
+	else if ($tfunction == 'edit')
+	{
+		$result = db_query('UPDATE {pvc_item} SET group_id=:a, pvc_name=:b WHERE pvc_id=:c',
+            array(':a'=>$group_id,':b'=>$pvc_name,':c'=>$pvc_id));
+		if ($result)
+		{
+			drupal_set_message(t('Item(!pvc_name) updated, successfully.', array('!pvc_name' => $pvc_name)));
+			drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+		}
+		else
+		{
+			drupal_set_message(t('Failed to update an item.') , 'error');
+		}
+	}
+}
+
+function ncn_pvc_group_item()
+{
+	GLOBAL $base_url;
+	ob_start();
+?>
+<div id="ncn_pvc_group_item">
+<table class="sticky-enabled tableSelect-processed sticky-table ncn_pvc_table">
+	<tbody>
+<?php
+	$result1 = db_query('SELECT * FROM {pvc_group} ORDER BY g_weight');
+	$r_index = 0;
+
+	//	while ($group = db_fetch_array($result1))
+
+	foreach($result1 as $group)
+	{
+		$group = (array)$group;
+		$r_index++;
+		$class = ($r_index % 2) ? 'odd' : 'even';
+		$result2 = db_query('SELECT * FROM {pvc_item} WHERE group_id=:a ORDER BY pvc_weight',
+            array(':a' => $group['group_id']));
+		echo "<tr class='$class pvc_group'><td >" . $group['group_name'] . "</td>";
+		echo "<td style='text-align:right;' ><a href='$base_url/admin/config/ncn_admin/ncn_pvc/edit_group?gid=" . $group['group_id'] . "'>Edit</a>&nbsp;&nbsp;&nbsp;
+											 <a href='#' onclick='on_click_delete_group(\"admin/config/ncn_admin/ncn_pvc/delete_group/" . $group['group_id'] . "\");'>Delete</a></td>";
+		echo "</tr>";
+
+		//		while ($item = db_fetch_array($result2))
+
+		foreach($result2 as $item)
+		{
+			$item = (array)$item;
+			$r_index++;
+			$class = ($r_index % 2) ? 'odd' : 'even';
+			echo "<tr class='$class'><td class='pvc_item'>" . $item['pvc_name'] . "</td>";
+			echo "<td style='text-align:right;'><a href='$base_url/admin/config/ncn_admin/ncn_pvc/edit_item?pvc_id=" . $item['pvc_id'] . "'>Edit</a>&nbsp;&nbsp;&nbsp;
+												<a href='#' onclick='on_click_delete_item(\"admin/config/ncn_admin/ncn_pvc/delete_item/" . $item['pvc_id'] . "\");'>Delete</a></td>";
+			echo "</tr>";
+		}
+	}
+
+	$result2 = db_query('SELECT COUNT(*) FROM {pvc_item} WHERE group_id=0 ORDER BY pvc_weight')->fetchField();
+	if ($result2 > 0)
+	{
+		$r_index++;
+		$class = ($r_index % 2) ? 'odd' : 'even';
+		echo "<tr class='$class pvc_group'><td >" . "&nbsp;" . "</td><td></td></tr>";
+	}
+
+	$result2 = db_query('SELECT * FROM {pvc_item} WHERE group_id=0 ORDER BY pvc_weight');
+
+	//	while ($item = db_fetch_array($result2))
+
+	foreach($result2 as $item)
+	{
+		$item = array();
+		$r_index++;
+		$class = ($r_index % 2) ? 'odd' : 'even';
+		echo "<tr class='$class'><td class='pvc_item'>" . $item['pvc_name'] . "</td>";
+		echo "<td style='text-align:right;'><a href='$base_url/admin/config/ncn_admin/ncn_pvc/edit_item?pvc_id=" . $item['pvc_id'] . "'>Edit</a>&nbsp;&nbsp;&nbsp;
+											<a href='#' onclick='on_click_delete_item(\"admin/config/ncn_admin/ncn_pvc/delete_item/" . $item['pvc_id'] . "\");'>Delete</a></td>";
+		echo "</tr>";
+	}
+
+?>
+	</tbody>
+</table>
+</div>
+<?php
+	$content = ob_get_contents();
+	ob_end_clean();
+	return $content;
+}
+
+function ncn_pvc_delete_item($pvc_id)
+{
+	$pvc_name = db_query('SELECT pvc_name FROM {pvc_item} WHERE pvc_id=:d',array(':d'=>$pvc_id))->fetchField();
+	$result = db_query('DELETE FROM {pvc_item} WHERE pvc_id=:d',array(':d'=>$pvc_id));
+	if ($result)
+	{
+		drupal_set_message(t('Item(!pvc_item) deleted.', array(
+			'!pvc_item' => $pvc_name
+		)));
+		drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+	}
+	else
+	{
+		drupal_set_message(t('Failed to delete item(!pvc_item).', array(
+			'!pvc_item' => $pvc_name
+		)) , 'error');
+	}
+}
+
+function ncn_pvc_delete_group($group_id)
+{
+	$group_name = db_query('SELECT group_name FROM {pvc_group} WHERE group_id=:d',array(':d'=>$group_id))->fetchField();
+	$result = db_query('DELETE FROM {pvc_group} WHERE group_id=:d',array(':d'=>$group_id));
+	if ($result)
+	{
+		drupal_set_message(t('Group(!group_name) deleted.', array(
+			'!group_name' => $group_name
+		)));
+		$result = db_query('UPDATE {pvc_item} SET group_id=0 WHERE group_id=:d',array(':d'=>$group_id));
+		drupal_goto('admin/config/ncn_admin/ncn_pvc/group_item');
+	}
+	else
+	{
+		drupal_set_message(t('Failed to delete item(!group_name).', array(
+			'!group_name' => $group_name
+		)) , 'error');
+	}
+}
+
+function ncn_pvc_settings()
+{
+	ncn_pvc_settings_action();
+	ob_start();
+	$role_list = array();
+//	$query = "SELECT * FROM {role}";
+	$result = db_query('SELECT * FROM {role} ORDER BY weight');
+
+	//	while ($a_role = db_fetch_array($result))
+
+	foreach($result as $a_role)
+	{
+		$a_role = (array)$a_role;
+		$role_list[$a_role['rid']] = $a_role['name'];
+	}
+
+	$role_count = count($role_list);
+	$col_count = $role_count + 1;
+?>
+<div id="ncn_pvc_settings">
+<form id="ncn_pvc_settings_form" method="POST">
+<input type="hidden" name="tfunction" value="pvc_setting" />
+<table class="sticky-enabled tableSelect-processed sticky-table ncn_pvc_table">
+	<thead class="tableHeader-processed">
+		<th></th>
+		<?php
+	foreach($role_list as $rid => $rname)
+	{
+		echo "<th>$rname</th>";
+	}
+
+?>
+	</thead>
+	<tbody>
+<?php
+	$result1 = db_query('SELECT * FROM {pvc_group} ORDER BY g_weight');
+	$r_index = 0;
+
+	//	while ($group = db_fetch_array($result1))
+
+	foreach($result1 as $group)
+	{
+		$group = (array)$group;
+		$r_index++;
+		$class = ($r_index % 2) ? 'odd' : 'even';
+		$result2 = db_query('SELECT * FROM {pvc_item} WHERE group_id=:d ORDER BY pvc_weight',array(':d'=>$group['group_id']));
+		echo "<tr class='$class'><td class='pvc_group' colspan='$col_count'>" . $group['group_name'] . "</td></tr>";
+
+		//	while ($item = db_fetch_array($result2))
+
+		foreach($result2 as $item)
+		{
+			$item = (array)$item;
+			$r_index++;
+			$class = ($r_index % 2) ? 'odd' : 'even';
+			echo "<tr class='$class'><td class='pvc_item'>" . $item['pvc_name'] . "</td>";
+			foreach($role_list as $rid => $rname)
+			{
+				$p = ncn_pvc_get_permission($item['pvc_id'], $rid);
+				$pr_checked = ($p & 1) ? 'checked' : '';
+				$pw_checked = ($p & 2) ? 'checked' : '';
+				echo "<td><input type='checkbox' name='pvc_r[" . $item['pvc_id'] . "][$rid]' $pr_checked />";
+				echo "<input type='checkbox' name='pvc_w[" . $item['pvc_id'] . "][$rid]' $pw_checked /></td>";
+			}
+
+			echo "</tr>";
+		}
+	}
+
+?>
+	</tbody>
+</table>
+<div class="form_submit_panel"> 
+	<input type="submit" value=" Save Permission" />
+</div>
+</form>
+</div>
+<?php
+	$content = ob_get_contents();
+	ob_end_clean();
+	return $content;
+}
+
+function ncn_pvc_settings_action()
+{
+	$tfunction = (isset($_POST['tfunction']) && trim($_POST['tfunction'])!='' ? $_POST['tfunction']:'');
+	
+	if ($tfunction == 'pvc_setting')
+	{
+		$pvc_r = (isset($_POST['pvc_r'])) ? $_POST['pvc_r'] : array();
+		$pvc_w = (isset($_POST['pvc_w'])) ? $_POST['pvc_w'] : array();
+		$pvc = array();
+		foreach($pvc_r as $pvc_id => $pvc_roles)
+		{
+			foreach($pvc_roles as $pvc_role => $pr)
+			{
+				if ($pr == 'on')
+				{
+					$pvc[$pvc_id][$pvc_role] = 1;
+				}
+			}
+		}
+
+		foreach($pvc_w as $pvc_id => $pvc_roles)
+		{
+			foreach($pvc_roles as $pvc_role => $pw)
+			{
+				if ($pw == 'on')
+				{
+					$pvc[$pvc_id][$pvc_role]+= 2;
+				}
+			}
+		}
+
+		foreach($pvc as $pvc_id => $pvc_roles)
+		{
+			foreach($pvc_roles as $pvc_role => $p)
+			{
+				$count = db_query('SELECT COUNT(*) FROM pvc_setting WHERE pvc_id=:a AND role=:b', array(
+					":a" => $pvc_id,
+					":b" => $pvc_role
+				))->fetchField();
+				if ($count > 0)
+				{
+					$result = db_query('UPDATE pvc_setting SET permission=:a WHERE pvc_id=:b AND role=:c', array(
+						":a" => $p,
+						":b" => $pvc_id,
+						":c" => $pvc_role
+					));
+				}
+				else
+				{
+					$result = db_query('INSERT INTO pvc_setting(pvc_id, role, permission) VALUES(:a, :b, :c)', array(
+						":a" => $pvc_id,
+						":b" => $pvc_role,
+						":c" => $p
+					));
+				}
+			}
+		}
+	}
+}
+
+function ncn_pvc_get_permission($pvc_id, $pvc_role)
+{
+	$result = db_query('SELECT * FROM {pvc_setting} WHERE pvc_id=:a AND role=:b', array(
+		":a" => $pvc_id,
+		":b" => $pvc_role
+	));
+	foreach($result as $pvc)
+	{
+		$pvc = (array)$pvc;
+		if ($pvc)
+		{
+			return $pvc['permission'];
+		}
+
+		return 0;
+	}
+
+	//
+	//	if ($pvc = db_fetch_array($result)) {
+	//		return $pvc['permission'];
+	//	}
+	//	return 0;
+
+}
+
+function ncn_pvc_get_permission_from_user($user_id, $pvc_name)
+{
+	if ($user_id == 1)
+	{
+		return 3;
+	} // administrator
+
+	// $_user = user_load($user_id);
+
+	$pvc_id = intval(db_query('SELECT pvc_id FROM {pvc_item} WHERE pvc_name=:s', array(':s' => $pvc_name))->fetchField());
+	if ($pvc_id == 0)
+	{
+		return 0;
+	}
+
+	$p = 0;
+	$result = db_query('SELECT * FROM {users_roles} WHERE uid=:d', array(':d'=>$user_id));
+
+	//	while ($row = db_fetch_array($result))
+
+	foreach($result as $row)
+	{
+		$row = (array)$row;
+		$p = $p | ncn_pvc_get_permission($pvc_id, $row['rid']);
+	}
+
+	return $p;
+}

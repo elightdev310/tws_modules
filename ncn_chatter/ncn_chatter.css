@@ -1,0 +1,169 @@
+.chatter-section {
+    padding: 5px 0px;
+}
+.chatter-section .panel-box {
+    border: none;
+    background-color: #fff;
+    margin-bottom: 10px;
+
+    -webkit-box-shadow: 0px 0px 5px 2px rgba(204,204,204,1);
+    -moz-box-shadow: 0px 0px 5px 2px rgba(204,204,204,1);
+    box-shadow: 0px 0px 5px 2px rgba(204,204,204,1);
+}
+
+.chatter-section .post-field {
+    position: relative;
+    display: table;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 15px 10px;
+    table-layout: fixed;
+    border-radius: inherit;
+    background-color: #fff;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+}
+
+.chatter-section .author-photo {
+    display: table-cell;
+    width: 32px;
+    padding-right: 10px;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+.chatter-section .author-photo.text-label {
+    padding-top: 7px;
+}
+.chatter-section .mentions-container {
+    position: relative;
+    width: 100%;
+    display: table-cell;
+    vertical-align: top;
+}
+
+.chatter-section .mentions-container .mentions-input {
+    width: 100%;
+    display: inline-block;
+    word-wrap: break-word;
+}
+
+.chatter-section .mentions-container .status-input-text {
+    resize: none;
+    overflow: hidden;
+    width: 100%;
+    background: #fcfad8;
+    border: solid 1px #e8e8e8;
+    padding: 5px;
+    height: 30px;
+    box-sizing: border-box;
+}
+
+.chatter-section .mentions-container .button-container {
+    float: right;
+}
+.chatter-section .mentions-container .post-option-container {
+    float: left;
+}
+
+.chatter-section .post-panel-box .post-meta-info, 
+.chatter-section .post-panel-box .comment-meta-info {
+    margin-bottom: 10px;
+}
+.chatter-section .post-panel-box .post-content, 
+.chatter-section .post-panel-box .comment-content {
+    margin-bottom: 10px;
+}
+.chatter-section .post-meta-info .created-at, 
+.chatter-section .comment-meta-info .created-at {
+    font-size: 11px;
+}
+
+.chatter-section .comment-section {
+    margin-top: 10px;
+    background: #f5f5f5;
+}
+.chatter-section .comment-box {
+    position: relative;
+    display: table;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 10px;
+    table-layout: fixed;
+    border-radius: inherit;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+}
+.chatter-section .comment-list .comment-box {
+    border-top: solid 1px #e0e0e0;
+    transition: opacity 1s linear;
+    display: block;
+    height: auto;
+    opacity: 1;
+}
+.chatter-section .comment-list .comment-box:last-child {
+    border-bottom: solid 1px #e0e0e0;
+}
+.chatter-section .comment-list .comment-box.hidden-comment {
+    height: 0px;
+    padding: 0px;
+    opacity: 0;
+    overflow: hidden;
+}
+.chatter-section .ncn_chatter_comment_form.hidden-form {
+    display:none;
+}
+.chatter-section .ncn_chatter_comment_form .comment-box{
+    border-bottom: solid 1px #e0e0e0;
+}
+.chatter-section .post-action-link, 
+.chatter-section .comment-action-link {
+    text-transform:capitalize;
+    margin-right: 10px;
+}
+
+.chatter-section .follow-feed-section {
+    padding: 10px;
+    text-align: right;
+}
+
+.ncn-chatter-attach-file-section{
+    min-width: 100px;
+}
+.chatter-section .chatter-attached-file-preview {
+    display: none;
+    position: relative;
+}
+.chatter-section .file-attached .upload-chatter-file-link {
+    display: none;
+}
+.chatter-section .file-attached .chatter-attached-file-preview {
+    display: inline-block;
+}
+
+.chatter-file-preview-section {
+    margin: 10px 0px;
+    line-height: 16px;
+}
+
+.chatter-file-preview-section .file img.file-icon {
+    float: left;
+    margin-right: 5px;
+}
+
+@media screen and (max-width: 480px) {
+    .chatter-file-preview-section .image-file img {
+        width: 100%;
+    }
+}
+
+.tribute-container .ti-mention {
+    line-height: 24px;
+}
+.tribute-container .ti-mention img {
+    margin-right: 3px;
+    float: left;
+}
+.chatter-section .feed-tagging{
+    background: rgba(22,99,200, 0.2);
+}

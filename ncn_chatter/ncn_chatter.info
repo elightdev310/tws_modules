@@ -1,0 +1,8 @@
+name = NCN Chatter
+description = NCN Chatter like salesforce
+core = 7.x
+package = Net Claims Now
+
+stylesheets[all][] = ncn_chatter.css
+
+scripts[] = ncn_chatter.js

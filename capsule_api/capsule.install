@@ -1,0 +1,16 @@
+<?php
+// $Id: capsule.install,v 1.1 2010/12/08 14:31:47 redijedi Exp $
+
+/**
+ * @file
+ *
+ * Provide functions to install and uninstall the Capsule API module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function capsule_uninstall() {
+  variable_del('capsule_url_key');
+  variable_del('capsule_user_token');
+}

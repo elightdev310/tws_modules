@@ -1,0 +1,6 @@
+; $Id: book.info,v 1.5 2007/07/30 18:20:21 dries Exp $
+name = NCN Image Manipulation
+description = Manipulate image for account manager
+package = Net Claims Now
+core = 7.x
+dependencies[] = ncn_admin

@@ -1,0 +1,65 @@
+<?php
+
+
+function ncn_auto_payments_schema() {
+  $schema['cc_declined'] = array(
+    'description' => 'The auto payments use this table',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The primary key',
+        'type' => 'serial',
+		'size' => 'normal',
+		'length' => 11,
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'user_id' => array(
+        'description' => '',
+        'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+		'default' => 0),
+	  'member_id' => array(
+        'description' => '',
+        'type' => 'text',
+		'not null' => TRUE),
+	  'product_id' => array(
+        'description' => '',
+        'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+        'default' => 0),
+	  'amount' => array(
+        'description' => '',
+        'type' => 'float',
+		'size' => 'big',
+        'not null' => TRUE),
+	  'timestamp' => array(
+        'description' => '',
+         'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+        'default' => 0),						
+      'status' => array(
+        'description' => '',
+         'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+        'default' => 0),
+	  'charge_pid' => array(
+        'description' => '',
+         'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+        'default' => 0),	
+      'charge_timestamp' => array(
+        'description' => '',
+         'type' => 'int',
+		'length' => 11,
+        'not null' => TRUE,
+        'default' => 0),
+     ), 
+    'primary key' => array('id'),
+  );
+  
+  return $schema;
+}

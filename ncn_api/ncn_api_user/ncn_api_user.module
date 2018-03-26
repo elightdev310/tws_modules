@@ -1,0 +1,368 @@
+<?php
+// $Id: ncn_api_user.module
+
+function ncn_api_user_menu() {
+    $items = array();
+
+    $items[NCN_API_PREFIX.'/user'] = array(
+        'title' => 'Log in',
+        'page callback' => 'ncn_api_user_login_action',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    $items[NCN_API_PREFIX.'/user/login'] = array(
+        'title' => 'Log in',
+        'page callback' => 'ncn_api_user_login_action',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    /*Added By: KEYiDEAS on 02-09-2014*/
+    $items[NCN_API_PREFIX.'/user/password'] = array(
+        'title' => 'Forgot Password',
+        'page callback' => 'ncn_api_user_password',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    /*Added By: KEYiDEAS on 02-09-2014*/
+    $items[NCN_API_PREFIX.'/user/get_profile'] = array(
+        'title' => 'User Profile',
+        'page callback' => 'ncn_api_user_get_current_user_profile',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    $items[NCN_API_PREFIX.'/user/get_profile/%'] = array(
+        'title' => 'User Profile',
+        'page callback' => 'ncn_api_user_get_profile',
+        'page arguments' => array(3),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+
+/**
+ * API Hanlder ( user/login )
+ */
+function ncn_api_user_login_action() {
+	$m_data = array(
+    'request_type'=>'set', 
+    'response_status'=>0, 
+    );
+	$account = array(
+		'name' => $_REQUEST['username'],
+		'pass' => $_REQUEST['password'],
+	);
+
+	$output['login'] = array(
+		'response' => 0,
+		'id' => 0,
+	);
+
+	$result = ncn_api_user_login_name_validate($account);
+	if ( $result['code'] ) {
+		$result = ncn_api_user_authenticate($account);
+		if ( $result['code'] ) {
+			$result = ncn_api_user_login_final_validate();
+			if ( $result['code'] ) {
+				$output['login']['response'] = 1;
+
+				global $user;
+				$user = user_load($user->uid);
+				$output['login']['user'] = array(
+					'uid' => $user->uid,
+					'username' => $user->name,
+					'token' => $user->pass,
+				);
+
+        // Track APP
+        if (module_exists('ncn_mobile_detect')) {
+          $device = ncn_mobile_detect_get_device();
+          $_SESSION['ncn_app_used'] = $device;
+          if ($device != '') {
+            ncn_mobile_detect_track_user_login($user->uid, $device, date('U'));
+          }
+        }
+			}
+		}
+	}
+
+	if ($output['login']['response'] == 1) {
+		global $user;
+		$output['login']['id'] = $user->uid;
+        $m_data['response_status'] = 1;
+	} else {
+		$output['login']['error'] = $result['error'];
+	}
+	
+	ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+    //exit;
+}
+
+/**
+ * API Hanlder ( user/password )
+ * Added By: KEYiDEAS on 02-09-2014
+ */
+function ncn_api_user_password() {
+
+    $name = (isset($_REQUEST['email']) && trim($_REQUEST['email']) ? trim($_REQUEST['email']) : '');
+
+    $m_data = array('request_type'=>'set','response_status'=>0);
+    $output['password']['status'] = false;
+    
+	// Try to load by email.
+    $users = user_load_multiple(array(), array('mail' => $name, 'status' => '1'));
+  	$account = reset($users);
+
+    if (!$account) {
+        // No success, try to load by name.
+	    $users = user_load_multiple(array(), array('name' => $name, 'status' => '1'));
+    	$account = reset($users);
+    }
+    if ($account) {
+        // Blocked accounts cannot request a new password,
+        // check provided username and email against access rules.
+        if (drupal_is_denied('user', $account->name) || drupal_is_denied('mail', $account->mail)) {
+            $message = t('%name is not allowed to request a new password.', array('%name' => $name));
+        }
+    }
+    if (isset($account->uid)) {
+        // Mail one time login URL and instructions using current language.
+        //$account = $form_state['values']['account'];
+        $mail = _user_mail_notify('password_reset', $account, $language);
+        if (!empty($mail)) {
+            watchdog('user', 'Password reset instructions mailed to %name at %email.', array('%name' => $account->name, '%email' => $account->mail));
+            $message = t('Further instructions have been sent to your e-mail address.');
+            $m_data['response_status'] = 1;
+            $output['password']['status'] = true;
+        } else {
+            $message = t('An error occur while sending mail to your e-mail address. Please try after some time.');
+        }
+    }
+    else {
+        $message = t('Sorry, %name is not recognized as a user name or an e-mail address.', array('%name' => $name));
+    }
+    $output['password']['message'] = strip_tags($message);
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+/* Added By: KEYiDEAS on 02-09-2014 */
+
+/**
+ * API Hanlder ( user/get_profile )
+ */
+function ncn_api_user_get_current_user_profile() {
+	global $user;
+	
+	$m_data = array(
+		'request_type'=>'get',
+		'response_status'=>0,
+	  );
+
+	if ($user->uid) {
+		ncn_api_user_get_profile($user->uid);
+	} else {
+		$op_user_profile = array(
+			'response' => 0
+		);
+		$op_user_profile['error']['no-login']['message'] = t("You aren't logged in.");
+		$output['userProfile'] = $op_user_profile;
+		
+		ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+	}
+}
+
+/**
+ * API Hanlder ( user/get_profile/% )
+ */
+function ncn_api_user_get_profile($user_id) {
+
+	global $user;
+	$user_id = $user->uid;
+	
+	$m_data = array(
+		'request_type'=>'get', 
+		'response_status'=>0, 
+	);
+	
+  	$m_data['user_id'] = $user_id;
+  
+	$op_user_profile = array(
+		'response' => 0, 
+	);
+	
+	$user_info = ncn_api_user_get_user_info($user_id);
+	
+	
+	if (!empty($user_info)) {
+		$op_user_profile['response'] = 1;
+		$op_user_profile['user'] = $user_info;
+	} else {
+		$op_user_profile['error']['no-user']['message'] = t("User (#!user_id) doesn't exist.", array('!user_id'=>$user_id));
+	}
+	
+	$output['userProfile'] = $op_user_profile;
+  	$m_data['response_status'] = $op_user_profile['response'];
+	
+	ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+/**********************************************************************/
+
+/**
+ * refer to "user_login_name_validate" in user.module
+ */
+function ncn_api_user_login_name_validate($account) {
+	$result = array(
+		'code' => TRUE,
+		'error'=> array(), 
+	);
+	
+	if (isset($account['name'])) {
+    if (user_is_blocked($account['name'])) {
+      // blocked in user administration
+      $result['error']['name']['message'] = t('The username %name has not been activated or is blocked.', array('%name' => $account['name']));
+    }
+    else if (drupal_is_denied('user', $account['name'])) {
+      // denied by access controls
+      $result['error']['name']['message'] = t('The name %name is a reserved username.', array('%name' => $account['name']));
+    }
+  }
+	
+	if (!empty($result['error']) && $result['code']) {
+		$result['code'] = FALSE;
+	}	
+	return $result;
+}
+
+/**
+ * refer to "user_authenticate" in user.module
+ */
+function ncn_api_user_authenticate($account) {
+	$result = array(
+		'code' => TRUE,
+		'error'=> array(), 
+	);
+	
+	global $user;
+
+  // Load the account to check if the e-mail is denied by an access rule.
+  // Doing this check here saves us a user_load() in user_login_name_validate()
+  // and introduces less code change for a security fix.
+  $u_account_id = user_authenticate($account['name'],trim($account['pass']));
+  $u_account = user_load($u_account_id);
+  if ($u_account && drupal_is_denied('mail', $u_account->mail)) {
+    $result['code'] = FALSE;
+    $result['error']['name']['message'] = t('The name %name is registered using a reserved e-mail address and therefore could not be logged in.', array('%name' => $u_account->name));
+  }
+
+  // Name and pass keys are required.
+  // The user is about to be logged in, so make sure no error was previously
+  // encountered in the validation process.
+  if ($result['code'] == TRUE && !empty($account['name']) && !empty($account['pass']) && $u_account) {
+    $user = $u_account;
+    ncn_api_user_authenticate_finalize($u_account);
+  }
+  else {
+    
+    watchdog('user', 'Login attempt failed for %user.', array('%user' => $account['name']));
+		$result['error']['name']['message'] = t('Login attempt failed for %user.', array('%user' => $account['name']));
+  }
+	
+	if (!empty($result['error']) && $result['code']) {
+		$result['code'] = FALSE;
+	}
+	return $result;
+}
+
+/**
+ * refer to "user_authenticate_finalize" in user.module
+ */
+function ncn_api_user_authenticate_finalize($account) {
+	global $user;
+  watchdog('user', 'Session opened for %name.', array('%name' => $user->name));
+  // Update the user table timestamp noting user has logged in.
+  // This is also used to invalidate one-time login links.
+  $user->login = time();
+  db_query('UPDATE {users} SET login = :a WHERE uid = :b',array(':a'=>$user->login,':b'=>$user->uid));
+
+  // Regenerate the session ID to prevent against session fixation attacks.
+    drupal_session_regenerate();
+}
+
+/**
+ * refer to "user_login_final_validate" in user.module
+ */
+function ncn_api_user_login_final_validate() {
+	$result = array(
+		'code' => TRUE,
+		'error'=> array(), 
+	);
+	
+	global $user;
+  if (!$user->uid) {
+    $result['error']['name']['message'] = t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password')));
+  }
+	
+	if (!empty($result['error']) && $result['code']) {
+		$result['code'] = FALSE;
+	}
+	return $result;
+}
+
+function ncn_api_user_get_user_info($user_id) {
+	$user_info = array();
+	$user = user_load($user_id);
+	
+	if ($user) {
+		$user_info['uid'] = $user->uid;
+		$user_info['name'] = $user->name;
+		$user_info['mail'] = $user->mail;
+		$user_info['status'] = $user->status;
+		$user_info['created'] = $user->created;
+		$user_info['fullname'] = $user->profile_firstname.' '.$user->profile_lastname;
+		$user_info['company'] = $user->profile_legalname;
+	}
+	
+	return $user_info;
+}
+
+/**
+ * Grant User Acces from username and password (md5)
+ */
+function ncn_api_user_get_userid_from_token($name, $pass) {
+	//$uid = db_query("SELECT uid FROM {users} WHERE name=:a AND pass=:b",array(':a'=>$name,':b'=>$pass))->fetchField();
+	$uid = db_query("SELECT uid FROM users WHERE name='".$name."' AND pass='".$pass."'")->fetchField();
+	
+	if ($uid) 
+	{
+		global $user;
+		$user = user_load($uid);
+    
+		if (module_exists('ncn_mobile_detect')) {
+		  $device = ncn_mobile_detect_get_device();
+		  $_SESSION['ncn_app_used'] = $device;
+		  if ($device != '') {
+			ncn_mobile_detect_track_user_login($user->uid, $device, date('U'));
+		  }
+		}    	
+		return $uid;
+	}
+	return FALSE;
+}
+
+function ncn_print_r($obj, $exit=1) {
+    echo "<pre>";
+    print_r($obj);
+    echo "</pre>";
+    if ($exit) {
+        exit;
+    }
+}
+
+function ncn_print_stack_trace() {
+    try {
+        throw new \Exception('Test');
+    } catch(\Exception $e) {
+        ncn_print_r($e->getTraceAsString());
+    }
+}

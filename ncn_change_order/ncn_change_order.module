@@ -1,0 +1,1184 @@
+<?php
+
+//------------------------------------------------------------------------------
+// Implementation of hook_perm().
+function ncn_change_order_permission()
+{
+    return array('ncn change order request' => array(
+                                            'title' => t('ncn change order request'),
+                                         ), 
+                'ncn change order request review' => array(
+                                            'title' => t('ncn change order request review'),
+                                        ), 
+                'ncn change order charge' => array(
+                                        'title' => t('ncn change order charge'),
+                                        ), 
+                'ncn change order review charge' => array(
+                                        'title' => t('ncn change order review charge'),
+                                        )
+                );
+}
+
+function ncn_change_order_menu()
+{
+    $items = array();
+    
+    $items['account/ncn_change_order_request/%'] = array(
+        'title' => 'Change Order Request',
+        'page callback' => 'ncn_change_order_request',
+        'page arguments' => array(2),
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+    );
+    
+    $items['ajax/ncn_change_order/get_request_action'] = array(
+        'title' => 'Render Request Action',
+        'page callback' => 'ncn_change_order_get_request_action',
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ajax/ncn_change_order/get_request_action_edit'] = array(
+        'title' => 'Render Request Action',
+        'page callback' => 'ncn_change_order_get_request_action_edit',
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    
+    $items['ajax/ncn_change_order/request_submit'] = array(
+        'title' => 'Request Action Submit',
+        'page callback' => 'ncn_change_order_request_submit',
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ajax/ncn_change_order/get_request_list'] = array(
+        'title' => 'Render Request List',
+        'page callback' => 'ncn_change_order_get_request_list',
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ncn_change_order/pay/%/%'] = array(
+        'title' => 'Make Payment',
+        'page callback' => 'ncn_change_order_pay',
+        'page arguments'=> array(2,3), 
+        'access arguments' => array('ncn change order request review'),
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ajax/ncn_change_order/submit/%'] = array(
+        'title' => 'Submit Request',
+        'page callback' => 'ncn_change_order_submit',
+        'page arguments'=> array(3), 
+        'access arguments' => array('ncn change order request'),
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ajax/ncn_change_order/get_price'] = array(
+        'title' => 'Render Request List',
+        'page callback' => 'ncn_change_order_action_get_price',
+        'access arguments' => array('ncn change order request'),
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ajax/ncn_change_order/request_remove/%'] = array(
+        'title' => 'Request Remove',
+        'page callback' => 'ncn_change_order_request_remove',
+        'page arguments'=> array(3), 
+        'access arguments' => array('ncn change order request'),
+        'file' => 'ncn_change_order.page.inc',
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    $items['ncn/ncn_change_order/room_remove/%/%'] = array(
+        'title' => 'Request Remove',
+        'page callback' => 'ncn_change_order_room_remove',
+        'page arguments'=> array(3,4), 
+        'access arguments' => array('ncn change order request'),
+        'type' =>  MENU_CALLBACK, 
+    );
+    
+    return $items;
+}
+
+
+
+
+/**
+ * $type: change_room / add_room
+ */
+function ncn_change_order_insert_request($data, $type, $chargable) {
+    $product_id = 136;
+    $price = 0.0;
+    
+    
+    $log_message = '';
+    
+    if ($type == 'change_room') {
+        if ($data['action'] == 'add') { $data['line'] = ''; }
+        if ($data['ooss'] == '') {
+            $data['ooss'] = 0;
+        } else {
+            $data['ooss'] = 1;
+        }
+        $log_message = ncn_amin_get_user_role_and_name()." requested change order for the room(".$data['room_name'].") <br/>";
+        $log_message.= "&nbsp;&nbsp;&nbsp; Action : ".$data['action']."<br/>";
+        if ($data['line'] != '') {$log_message.= "&nbsp;&nbsp;&nbsp; Line# : ".$data['line']."<br/>"; }
+        $log_message.= "&nbsp;&nbsp;&nbsp; Detail : ".$data['detail']."<br/>";
+        $log_message.= "&nbsp;&nbsp;&nbsp; On Original Scope Sheets : ".(($data['ooss'])? "&#x2713;": '')."<br/>";
+        
+    } else if ($type == 'add_room') {
+        $data['action'] = 'add_room';
+        $data['line'] = '';
+        $data['detail'] = '';
+        $data['ooss'] = 0;
+        $log_message = ncn_amin_get_user_role_and_name()." created a new room(".$data['room_name'].") <br/>";
+    }
+    
+    $product_id = ncn_change_order_get_product_id_from_request($data);
+    $price = ncn_change_order_get_item_price($data);
+    if ($chargable) {
+        $log_message.= "&nbsp;&nbsp;&nbsp; Amount : ".render_payment_cost($price);
+    } else {
+        $log_message.= "&nbsp;&nbsp;&nbsp; It's not chargable";
+        $price = 0.0;
+    }
+    /// log file 
+    ncn_admin_insert_claim_log($data['claim_id'], date('U'), $log_message);
+     
+    $credit = 0;
+    $data['line'] = ($data['line']==null ? '' : $data['line']);
+
+    $result = db_query("INSERT INTO {ncn_change_order}(claim_id, room_name, action, line, detail, ooss, timestamp, product_id, price, credit, chargable, paid, status)
+    VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m)", array(":a"=>intval($data['claim_id']),":b"=>$data['room_name'],":c"=>$data['action'],":d"=>$data['line'],
+    ":e"=>$data['detail'],":f"=>$data['ooss'],":g"=>date('U'),":h"=>$product_id,":i"=>$price,":j"=>$credit,":k"=>$chargable,":l"=>0,":m"=>1));
+
+    return $result;
+}
+
+function ncn_change_order_update_request($data, $type, $chargable) {
+    $product_id = 136;
+    $price = 0.0;
+
+    if ($type == 'change_room') {
+        if ($data['action'] == 'add') { $data['line'] = ''; }
+        if ($data['ooss'] == '') {
+            $data['ooss'] = 0;
+        } else {
+            $data['ooss'] = 1;
+        }
+        $log_message = ncn_amin_get_user_role_and_name()." updated change order requests for the room(".$data['room_name'].") <br/>";
+        $log_message.= "&nbsp;&nbsp;&nbsp; Action : ".$data['action']."<br/>";
+        if ($data['line'] != '') {$log_message.= "&nbsp;&nbsp;&nbsp; Line# : ".$data['line']."<br/>"; }
+        $log_message.= "&nbsp;&nbsp;&nbsp; Detail : ".$data['detail']."<br/>";
+        $log_message.= "&nbsp;&nbsp;&nbsp; On Original Scope Sheets : ".(($data['ooss'])? "&#x2713;": '')."<br/>";
+        
+    } else if ($type == 'add_room') {
+        $data['action'] = 'add_room';
+        $data['line'] = '';
+        $data['detail'] = '';
+        $data['ooss'] = 0;
+        $log_message = ncn_amin_get_user_role_and_name()." updated a new room(".$data['room_name'].") <br/>";
+    }
+    
+    $product_id = ncn_change_order_get_product_id_from_request($data);
+    $price = ncn_change_order_get_item_price($data);
+    /// log file 
+    if ($chargable) {
+        $log_message.= "&nbsp;&nbsp;&nbsp; Amount : ".render_payment_cost($price);
+    } else {
+        $log_message.= "&nbsp;&nbsp;&nbsp; It's not chargable";
+        $price = 0.0;
+    }
+    ncn_admin_insert_claim_log($data['claim_id'], date('U'), $log_message);
+
+    $credit = 0;
+    $data['line'] = ($data['line']==null ? '' : $data['line']);
+
+    $result = db_query("UPDATE {ncn_change_order} SET action=:a, line=:b, detail=:c, ooss=:d, timestamp=:e, product_id=:f, price=:g, credit=:h, chargable=:i WHERE id=:j",
+            array(":a"=>$data['action'],":b"=>$data['line'],":c"=>$data['detail'],":d"=>$data['ooss'],":e"=>date('U'),":f"=>$product_id,
+            ":g"=>$price,":h"=>$credit,":i"=>$chargable,":j"=>$data['r_id']));
+
+    return $result;
+}
+
+
+function ncn_change_order_get_product_id_from_request($data) {  
+    if ($data['action'] == 'add_room') {
+        return 136;
+    }
+    
+    if ($data['ooss']) {
+        return 0;
+    }
+    if ($data['action']=='add' || $data['action']=='change') {
+        return 136;         // COF - $5.00
+    }
+    return 0;
+}
+
+function ncn_change_order_get_total_price($claim_id, $filter="all") {
+    
+    $add_where = "";
+    if ($filter == "invoice") {
+        $add_where = "AND credit=0";
+    } else if ($filter == "credit") {
+        $add_where = "AND credit=1";
+    }
+    $result = db_query("SELECT SUM(price) FROM {ncn_change_order} WHERE claim_id=:a AND status>0 ". $add_where,array(":a"=>$claim_id));
+    return $result->fetchField();
+}
+
+function ncn_change_order_get_total_unpaid_price($claim_id, $filter="all") {
+  $result = db_query("SELECT SUM(price) FROM {ncn_change_order} WHERE claim_id=:a AND status>0 AND paid=0 AND chargable=1 AND credit=0",
+      array(":a"=>$claim_id));
+  return $result->fetchField();
+}
+
+function ncn_change_order_get_total_room_price($claim_id, $roomname, $filter="all") {
+    $add_where = "";
+    if ($filter == "invoice") {
+        $add_where = "AND credit=0";
+    } else if ($filter == "credit") {
+        $add_where = "AND credit=1";
+    }
+    $result = db_query("SELECT SUM(price) FROM {ncn_change_order}  WHERE claim_id=:a AND room_name=:b AND status>0 $add_where", array(":a"=>$claim_id,":b"=>$roomname));
+    $rfield = $result->fetchField();
+    return $rfield;
+}
+
+/**
+ * Get Remained Credits
+ */
+function ncn_change_order_get_month_credit_remained($uid) {
+    $result = db_query("SELECT * FROM {ncn_change_order_credits} WHERE uid=:d",array(":d"=>$uid));
+    $amount = 0;
+    if($result)
+    {
+        foreach($result as $row)
+        {
+            $row = (array)$row;
+            if($row){
+                if ($row['expired_ts'] < date('U')) {
+                    $amount = ncn_change_order_renewal_credit($uid);
+                } else {
+                    $amount = $row['amount'];
+                }
+            } else {
+                $amount = ncn_change_order_renewal_credit($uid, false);
+            }
+
+            return $amount;
+
+        }
+        }
+
+    }
+
+//
+//
+//  if ($result && $row = db_fetch_array($result)) {
+//      if ($row['expired_ts'] < date('U')) {
+//          $amount = ncn_change_order_renewal_credit($uid);
+//      } else {
+//          $amount = $row['amount'];
+//      }
+//  } else {
+//      $amount = ncn_change_order_renewal_credit($uid, false);
+//  }
+//
+//  return $amount;
+//}
+
+/**
+ * Reduce From Remained Credits
+ */
+ 
+function ncn_change_order_reduce_credit($claim_id, $price) {
+    $claim_info = get_claim_data($claim_id);
+    $member_type = 0;
+    if ($claim_info) {
+        $user = user_load($claim_info['user_id']);
+        $member_type = get_member_type($user);
+        if (!ncn_change_order_is_available_to_use_credit($user->profile_memberid)) {
+            return FALSE;
+        }
+        
+        $remained = ncn_change_order_get_month_credit_remained($user->uid);
+        $remained -= $price;
+        if ($remained<0) {
+            $remained = 0;
+        }
+        $result = db_query("UPDATE {ncn_change_order_credits} SET amount=:f WHERE uid=:d",
+            array(":f"=>$remained,":d"=>$user->uid));
+        return $result;
+    }
+    
+    return FALSE;
+}
+
+/**
+ * Renew Credits ($100.00)
+ */
+function ncn_change_order_renewal_credit($uid, $expired=true) {
+    $user = user_load($uid);
+    if (!$user) { return 0; } 
+    
+    if ($expired) {
+        $result = true;
+    } else {
+        $result = db_query("SELECT * FROM {ncn_change_order_credits} WHERE uid=:d",array(":d"=>$uid));
+        if ($result->rowCount()==0) {
+            $result = false;
+        }
+    }
+    
+    $result_renewal = false;
+    $renewal_cost = 100.00;
+    $next_renewal = ncn_admin_get_member_next_renewal_date($user->profile_memberid);
+    
+    if ($result) {
+        $result_renewal = db_query("UPDATE {ncn_change_order_credits} SET amount=:f, expired_ts=:d WHERE uid=:a ",
+            array(":f"=>$renewal_cost,":d"=>$next_renewal,":a"=>$uid));     
+    } else {
+        $result_renewal = db_query("INSERT INTO {ncn_change_order_credits}(uid, amount, expired_ts) VALUES(:d, :f, :a)",
+            array(":d"=>$uid,":f"=>$renewal_cost,":a"=>$next_renewal));
+    }
+    if ($result_renewal) {
+        return $renewal_cost;   // $100.00 per month
+    }
+    
+    return 0;
+}
+
+/**
+ * Get Styled Request Meta Info
+ */
+function ncn_change_order_get_request_table_sorted($claim_id) {
+    $data = array();
+    $result = db_query("SELECT * FROM {ncn_change_order} WHERE claim_id=:d AND status=1 ORDER BY timestamp DESC",
+        array(":d"=>$claim_id));
+//      while ( $row = db_fetch_array($result) )
+
+       foreach($result as $row)
+       {
+        $row = (array)$row;
+        if (!array_key_exists($row['room_name'], $data)) {
+            $data[$row['room_name']] = array(
+                'room_name'=>$row['room_name'], 
+                'actions'=>array(), 
+                'requests' =>array(),
+            );
+        }
+        
+        if ($row['action'] == 'add_room')  {
+            $data[$row['room_name']]['actions'][$row['action']] = $row;
+        } else {
+            $data[$row['room_name']]['requests'][] = $row;
+        }
+    }
+    
+    return $data;
+}
+
+/**
+ * Check Renewal Date for All Members
+ */
+function ncn_change_order_check_renewal_all() {
+    $result = db_query("SELECT * FROM {ncn_change_order_credits} WHERE expired_ts<=:d",array(":d"=>date('U'))); 
+    if($result->rowCount()>0){
+        foreach($result as $row)
+        {
+            $row = (array)$row;
+            ncn_change_order_renewal_credit($row['uid']);
+        }
+    }
+}
+
+function ncn_change_order_render_request_list_table_admin($claim_id) {
+    if (isset($_POST['tfunction']) && $_POST['tfunction'] == 'ncn_cor_review') {
+        ncn_change_ordr_render_request_list_review($claim_id);
+    } else if (isset($_POST['tfunction']) && $_POST['tfunction'] == 'ncn_cor_charge') {
+        ncn_change_ordr_render_request_list_charge($claim_id);
+    }
+    
+    
+    $claim_info = get_claim_data($claim_id);
+    $_user_id = 0;
+    if ($claim_info) {
+        $_user_id = $claim_info['user_id'];
+    }
+    
+    $data = ncn_change_order_get_request_table_sorted($claim_id);
+    
+    $total_price = ncn_change_order_get_total_price($claim_id);
+    /** Request List Table **/
+    $output ="<form id='ncn_cor_review_frm' method='POST'>";
+    $output.="<input type='hidden' id='tfunction_change_order' name='tfunction' value='ncn_cor_review' />";
+    $output.="<input type='hidden' name='current_scroll_position' class='current_scroll_position' value='' />";
+    
+    $output.='<div id="claim-change-order-request-list-cor">';
+    $output.="<table id='cor_rlist_table' class='cor-table-style'>";
+    $output.="<thead>";
+    $output.="
+        <th class='action'></th>
+        <th class='line'>Line #</th>
+        <th class='detail'>Please provide detail</th>
+        <th class='ooss'>On Original Scope Sheets</th>
+        <th class='price'>Amount</th>
+        <th class='paid'>Charge</th>
+        <th class='operation'></th>
+    ";
+    $output.="</thead>";
+    $output.="<tbody>";
+    foreach ($data as $room_name=>$r_data) {
+        $output.="<tr class='tr-room'><td colspan='4'><b>$room_name</b>";
+        $price = 0;
+        $operation_links = '';
+        $paid = '';
+        $b_new_room = empty($r_data['actions'])? FALSE:TRUE;
+        foreach ($r_data['actions'] as $action=>$r_a_data) {
+            $r_id = $r_a_data['id'];
+            if ($action=='add_room') {
+                $output.=" <span>(new room)</span>";
+            }
+            $price += $r_a_data['price'];
+            
+            $paid = '';
+
+            if ($r_a_data['paid']) {
+                if ($r_a_data['credit']) {
+                    $paid = '[credit]'; //$paid = '[C-paid]';
+                } else {
+                    $paid = '[paid]';
+                }
+            } else {
+                $paid = "<input type='checkbox' name='pay[$r_id]' id='pay_$r_id'";
+                $paid.= $r_a_data['chargable']? "CHECKED":"" ;
+                $paid.= user_access('ncn change order review charge')? ' ':' DISABLED ';
+                $paid.= " />";
+            }
+            
+            if (!$r_a_data['paid']) {
+                if (user_access('ncn change order request')) {
+                    $_op_url = base_path()."ncn/ncn_change_order/room_remove/$claim_id/$r_id";
+                    $operation_links = "<a href='$_op_url#cor_rlist_table' onclick=\"return confirm('Are you sure you want to remove room?');\">Remove room</a>";
+                }
+            }
+        }
+        $output.="</td>";
+
+        $output.="<td class='price'>".(($b_new_room)? render_payment_cost($price):'')."</td>";
+        $output.="<td class='paid'>".$paid."</td>";
+        $output.="<td class='operation'>".$operation_links."</td></tr>";
+        
+        foreach ($r_data['requests'] as $r_co_data) {
+            $r_id = $r_co_data['id'];
+            $paid = '';
+            if ($r_co_data['price']) {
+                if ($r_co_data['paid']) {
+                    if ($r_co_data['credit']) {
+                        $paid = '[credit]'; //$paid = '[C-paid]';
+                    } else {
+                        $paid = '[paid]';
+                    }
+                } else {
+                    $paid = "<input type='checkbox' name='pay[$r_id]' id='pay_$r_id'";
+                    $paid.= $r_co_data['chargable']? "CHECKED":"" ;
+                    $paid.= user_access('ncn change order review charge')? ' ':' DISABLED ';
+                    $paid.= " />";
+                }
+            } else if (!$b_new_room) {
+                if ($r_co_data['action'] == 'add' || $r_co_data['action'] == 'change') {
+                    $paid = "<input type='checkbox' name='pay[$r_id]' id='pay_$r_id'";
+                    //$paid.= $r_co_data['chargable']? "CHECKED":"" ;
+                    $paid.= user_access('ncn change order review charge')? ' ':' DISABLED ';
+                    $paid.= " />";
+                }
+            }
+            
+            $ooss_checked = ($r_co_data['ooss'])? "&#x2713;": '';
+            $operation_links = '';
+            if (!$r_co_data['paid']) {
+                //$operation_links = "<a href='#' onclick='on_click_edit_cor_item(".$r_co_data['id'].")'>Edit</a>"; $operation_links.=" | ";
+                if (user_access('ncn change order request')) {
+                    $operation_links.= "<a href='#claim-change-order-request-list-cor' onclick='on_click_remove_cor_item($claim_id, ".$r_co_data['id'].")'>Remove</a>";
+                }
+            }
+            
+            $output.="<tr class='tr-cor'>";
+                $output.="<td class='action'><span>".$r_co_data['action']."<span></td>";
+                $output.="<td class='line'  >".$r_co_data['line']."</td>";
+                $output.="<td class='detail'>".$r_co_data['detail']."</td>";
+                $output.="<td class='ooss'  >".$ooss_checked."</td>";
+                $output.="<td class='price' >".render_payment_cost($r_co_data['price'])."</td>";
+                $output.="<td class='paid'>".$paid."</td>";
+                $output.="<td class='operation'>$operation_links</td>";
+            $output.="</tr>";
+        }
+    }
+    $output.="</tbody>";
+    $output.="</table>";
+    $output.="</div>";  // End of Table Wrapper
+    if (user_access('ncn change order charge')) {
+        $output.="<input id='cor_btn_charge' type='submit' value='Charge' onclick='return on_change_order_charge();'/>";
+    }
+    if (user_access('ncn change order review charge')) {
+        $output.="<input id='cor_btn_save' type='submit' value='Save' onclick='return on_change_order_review();'/>";
+    }
+    
+    $output.="<span id='cor_rh_total_price' style='margin-left: 300px;'><b>Total Price: </b>".render_payment_cost($total_price)."</span>&nbsp;&nbsp;&nbsp;
+                        <span>(".render_payment_cost(ncn_change_order_get_total_price($claim_id, 'invoice')).")</span>";
+    $output.="</form>";
+    
+    return $output;
+}
+
+function ncn_change_ordr_render_request_list_review($claim_id) {
+    $pay = $_POST['pay'];
+    
+    $result = db_query("UPDATE {ncn_change_order} SET chargable=0 WHERE claim_id=:d AND status=1 AND paid=0",array(":d"=>$claim_id));
+    if (!$result) {
+        drupal_set_message("Failed to save review of change order requests. (NCO-1001)", 'error');
+        return FALSE;
+    }
+    
+    if (is_array($pay)) {
+        foreach ($pay as $r_id=>$on) {
+            db_query("UPDATE {ncn_change_order} SET chargable=1 WHERE id=:d AND status=1 AND price!=0 AND paid=0",array(":d"=>$r_id));
+        }
+        $result = db_query("UPDATE {ncn_change_order} SET price=0 WHERE claim_id=:d AND status=1 AND paid=0 AND chargable=0",array(":d"=>$claim_id));
+        
+        /** Validate Price **/
+        foreach ($pay as $r_id=>$on) {
+            $r_info = ncn_change_order_get_request_info($r_id);
+            if ($r_info['price'] == 0) {
+                $price = 5.0;
+                if ($r_info['action'] == 'add_room') { $price = 20.0; }
+                $check = ncn_change_order_request_check_price_limit($r_info['claim_id'], $r_info['room_name'], $price);
+                if ($check === TRUE) {
+                    if ($r_info['action'] == 'add_room') {
+                        db_query("UPDATE {ncn_change_order} SET chargable=1, product_id=:a, price=:b WHERE id=:c AND status=1 AND price=0 AND paid=0",
+                            array(":a"=>136,":b"=>$price,":c"=>$r_id));
+                    } else {
+                        db_query("UPDATE {ncn_change_order} SET chargable=1, ooss=0, product_id=:a, price=:b WHERE id=:c AND status=1 AND price=0 AND paid=0",
+                            array(":a"=>136,":b"=>$price,":c"=>$r_id));
+                    }
+                } else {
+                    db_query("UPDATE {ncn_change_order} SET chargable=0 WHERE id=:d AND status=1 AND price=0 AND paid=0",array(":d"=>$r_id));
+                }
+            }
+        }
+    }
+    $result = db_query("UPDATE {ncn_change_order} SET price=0 WHERE claim_id=:d AND status=1 AND paid=0 AND chargable=0",array(":d"=>$claim_id));
+    
+    drupal_set_message("Success to review the change order requests.");
+    
+    return TRUE;
+}
+
+function ncn_change_ordr_render_request_list_charge($claim_id) {
+global $auto_payment_messages;
+    $pay = $_POST['pay'];
+    $total = 0;
+
+    $claim_info = get_claim_data($claim_id);
+
+    if (!$claim_info) {
+        return FALSE;
+    }
+    $_user = user_load($claim_info['user_id']);
+    $b_credit = ncn_change_order_is_available_to_use_credit($_user->profile_memberid);
+    
+    $arr_paid = array();
+    $arr_credit = array();
+    
+    foreach ($pay as $r_id=>$on) {
+        $r_info = ncn_change_order_get_request_info($r_id);
+        if ($r_info) {
+            if ($r_info['paid']) {
+                drupal_set_message("Request #r_id has been paid, already.", 'warning');
+            } else {
+                if ($r_info['price'] == 0) {
+                    db_query("UPDATE {ncn_change_order} SET chargable=1, ooss=0, product_id=:d, price=:f WHERE id=:e AND status=1 AND price=0 AND paid=0",
+                        array(":d"=>136,":f"=>5.0,":e"=>$r_id));
+                    $r_info = ncn_change_order_get_request_info($r_id);
+                }
+                
+                if ($b_credit && ncn_change_order_charge_credit($r_info)) {
+                    $arr_credit[] = $r_id;
+                } else {
+                    $total += $r_info['price'];
+                    $arr_paid[] = $r_id;
+                }
+            }
+        }
+    }
+    
+    if (!empty($arr_credit)) {
+        drupal_set_message("Charged in credit, successfully.");
+    }
+    
+    if ($total >0) {
+        $charge_pid = 0;
+        $result = make_payment($_user, $r_info['product_id'], $total, $charge_pid);
+        
+        if ($result) {
+            drupal_set_message("Charged successfully. Payment Transaction ID is $charge_pid");
+            
+            foreach ($arr_paid as $r_id) {
+                ncn_change_order_update_paid($r_id, $charge_pid);
+            }       
+            
+            $subject = t("Change Order Receipt: Claim ID# @claim_id / @customer_name", array('@claim_id'=>$claim_id, '@customer_name'=>ncn_cd($claim_id, 'customer_name')));
+            $this_user = $_user;
+            $mail_params = array(
+                'subject' => $subject, 
+                'merchant'=>'Net Claims Now', 
+                'claim_id'=>$claim_id, 
+                'customer_id'=> $this_user->profile_memberid, 
+                'timestamp' => date('d-M-Y h:i:s A T', time()),
+                
+                'member_name'=> $this_user->profile_firstname.' '.$this_user->profile_lastname, 
+                'member_address'=>$this_user->profile_address, 
+                'member_city'=>$this_user->profile_city, 
+                'member_state'=>$this_user->profile_state, 
+                'member_zip'=>$this_user->profile_zip, 
+                'member_email'=>$this_user->mail, 
+                'member_phone'=>_get_format_phone_string($this_user->profile_officephone), 
+                
+                'customer_name' => ncn_cd($claim_id, 'customer_name'), 
+                'total' => $total, 
+                'requests'=>ncn_change_order_get_request_mail_data($arr_paid), 
+            );
+            
+            // Mail Change Order Receipt
+            drupal_mail('ncn_admin', 'charge_change_order',$mail_params['member_email'], language_default(), $mail_params);
+        } else {
+            drupal_set_message("Failed to charge for change order requests.", 'error');
+        }
+    }
+}
+
+function ncn_change_order_charge_credit($r_info) {
+    $remained_credit = ncn_change_order_get_credit_remained($r_info['claim_id']);
+    if ($r_info['price'] <= $remained_credit) {
+        if (db_query("UPDATE {ncn_change_order} SET credit=1, paid=1 WHERE id=:a",array(":a"=>$r_info['id']))) {
+            ncn_change_order_reduce_credit($r_info['claim_id'], $r_info['price']);
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+function ncn_change_order_is_available_to_use_credit($member_id) {
+    $member = get_member_from_id($member_id);
+    if ($member) {
+        if ($member['member_type'] == 3 || $member['member_type'] == 4)  {      // Coach on Call & Gold Coach
+            return TRUE;
+        }
+    }
+    
+    return FALSE;
+}
+
+function ncn_change_order_get_request_info($r_id) {
+    $result = db_query("SELECT * FROM {ncn_change_order} WHERE id=:d",array(":d"=>$r_id));
+    if ($result && $row=$result->fetchAssoc()) {
+        return $row;
+    }
+    return FALSE;
+}
+
+function ncn_change_order_pay($r_id, $user_id) {
+global $auto_payment_messages;
+
+    $r_info = ncn_change_order_get_request_info($r_id);
+    if ($r_info) {
+        $claim_id = $r_info['claim_id'];
+        if ($r_info['paid']) {
+            drupal_set_message("Request #r_id has been paid, already.", 'warning');
+        } else {
+            $charge_pid = 0;
+            $_user = user_load($user_id);
+            if ($_user) {
+                //$result = make_monthly_payment($_user, $r_info['product_id'], $charge_pid);
+                $result = TRUE;
+                if ($result) {
+                    ncn_change_order_update_paid($r_id, $charge_pid);
+                    drupal_set_message("Charged successfully (#$r_id). Payment Transaction ID is $charge_pid");
+                    $auto_payment_messages = '';
+                } else {
+                    drupal_set_message("Failed to pay for change order request (#$r_id).", 'error');
+                }
+            }
+        }
+    } else {
+        drupal_set_message("Request #r_id doesn't exist.", 'warning');
+    }
+    
+    drupal_goto('admin/config/ncn_admin/viewclaim/'.$claim_id);
+}
+
+function ncn_change_order_update_paid($r_id, $charge_pid) {
+    $result = db_query("UPDATE {ncn_change_order} SET paid=1 WHERE id=:d",array(":d"=>$r_id));
+    return $result;
+}
+
+
+/**
+ * Requests Submit
+ */
+function ncn_change_order_submit($claim_id) {
+global $base_url;
+    $json = array();
+    $json['code'] = 'success';
+//  if ( ($msg=ncn_change_order_request_price_validate($claim_id)) === TRUE) {      
+        ncn_claims_manager_reject_claim_invoice_action($claim_id);
+        
+        $claim_info = get_claim_data($claim_id);
+        if ($claim_info) {
+            $_user = user_load($claim_info['user_id']);
+            if ($_user) {
+                $mail_params = array(
+                    'claim_id'=>$claim_id, 
+                    'member_id'=> $_user->profile_memberid, 
+                    'member_name'=> $_user->profile_firstname.' '.$_user->profile_lastname, 
+                    'review_url' => $base_url.base_path()."admin/config/ncn_admin/viewclaim/".$claim_id, 
+                );
+                
+                $_member = get_member_from_id($_user->profile_memberid);
+                if (!empty($_member)) {
+                    $_am = user_load($_member['am_uid']);
+                    $am_mail = $_am->mail;      //***
+                    drupal_mail('ncn_admin', 'submit_change_order_requests', $am_mail, language_default(), $mail_params);
+                }
+                
+                $ms_list = get_ms_list();
+                foreach($ms_list as $ms) {
+                    drupal_mail('ncn_admin', 'submit_change_order_requests', $ms['mail'], language_default(), $mail_params);
+                }
+            }
+        }
+/*  } else {
+        $json['code'] = 'err-price';
+        $json['msg'] = $msg;
+    }*/
+    
+    echo json_encode($json);
+    exit;
+}
+
+function ncn_change_order_new_room_price_validate($claim_id, $f_data=array()) {
+    $msg = '';
+    
+    $price = 0;
+    if (!empty($f_data)) {
+        $price = ncn_change_order_get_item_price($f_data);
+    }
+    if ($price == 0) { return TRUE; }
+    
+    $credit = ncn_change_order_get_credit_remained($claim_id);
+    
+    // Check Total Price
+    $exclude_price = 0.0;
+    if ($f_data['action_type'] == 'edit') {
+        $r_info = ncn_change_order_get_request_info($f_data['r_id']);
+        if ($r_info) {
+            $exclude_price = $r_info['price'];
+        }
+    }
+    
+    // Check Total Price
+    $total_price = ncn_change_order_get_total_price($claim_id, 'invoice') - $exclude_price;
+    $total_price+= $price;
+    
+    $claim_cost = ncn_change_order_get_claim_cost($claim_id);
+    if ($credit) {
+        $claim_cost += $credit;
+    }
+    if ($total_price > $claim_cost) {
+        $msg .= "Total Price is over of Claim Cost (".render_payment_cost($claim_cost)."). \r\n";
+    }
+    
+    if ($msg =='') {
+        return TRUE;
+    }
+    return $msg;
+    
+}
+
+function ncn_change_order_request_price_validate($claim_id, $room_name='', $f_data=array()) {
+    $msg = '';
+    
+    $price = 0;
+    if (!empty($f_data)) {
+        $price = ncn_change_order_get_item_price($f_data);
+    }
+    if ($price == 0) { return TRUE; }
+    
+    $credit = ncn_change_order_get_credit_remained($claim_id);
+    
+    // Check Total Price
+    $exclude_price = 0.0;
+    if ($f_data['action_type'] == 'edit') {
+        $r_info = ncn_change_order_get_request_info($f_data['r_id']);
+        if ($r_info) {
+            $exclude_price = $r_info['price'];
+        }
+    }
+    
+    // Check Total Price
+    $total_price = ncn_change_order_get_total_price($claim_id, 'invoice') - $exclude_price;
+    $total_price+= $price;
+    
+    $claim_cost = ncn_change_order_get_claim_cost($claim_id);
+    if ($credit) {
+        $claim_cost += $credit;
+    }
+    if ($total_price > $claim_cost) {
+        $msg .= "Total Price is over of Claim Cost (".render_payment_cost($claim_cost)."). \r\n";
+    }
+
+    // Check each room
+    if ($room_name=='') {
+        $rooms = array();
+        $result = db_query("SELECT * FROM {claims_data} WHERE claim_id=:d AND `key`='scope'", array(":d"=>$claim_id));
+        if ($result->rowCount()>0) 
+        {
+            foreach($result as $row)
+            {
+                $row = (array)$row;
+                $data = unserialize($row['val']);   
+                $default_room_name = ncn_admin_claim_get_default_room_name($claim_id);
+                foreach ($data as $roomname => $roomdata)
+                {
+                    if ($roomname != "type" && $roomname != $default_room_name)
+                    {
+                        $rooms[] = $roomname;
+                    }
+                }
+            }
+        }
+        
+        foreach ($rooms as $roomname) {
+            $r_msg = ncn_change_order_request_room_price_validate($claim_id, $roomname, $f_data); 
+            if ($r_msg !== TRUE) {
+                $msg .= $r_msg."\r\n";
+            }
+        }
+    } else {
+        $r_msg = ncn_change_order_request_room_price_validate($claim_id, $room_name, $f_data);
+        if ($r_msg !== TRUE) {
+            $msg .= ($r_msg."\r\n");
+        }
+    }
+    
+    if ($msg =='') {
+        return TRUE;
+    }
+    return $msg;
+}
+
+function ncn_change_order_request_room_price_validate($claim_id, $room_name, $f_data=array()) {
+    $msg = '';
+    
+    $price = 0;
+    if (!empty($f_data)) {
+        $price = ncn_change_order_get_item_price($f_data);
+    }
+    if ($price == 0) { return TRUE; }
+    
+    $credit = ncn_change_order_get_credit_remained($claim_id);
+    $unpaid_price = ncn_change_order_get_total_unpaid_price($claim_id);
+    
+    $exclude_price = 0.0;
+    if ($f_data['action_type'] == 'edit') {
+        $r_info = ncn_change_order_get_request_info($f_data['r_id']);
+        if ($r_info) {
+            $exclude_price = $r_info['price'];
+        }
+    }
+    
+    if ($credit < ($unpaid_price+$price-$exclude_price)) {
+        $total_room = ncn_change_order_get_total_room_price($claim_id, $room_name, 'invoice') - $exclude_price;
+        $total_room += $price;
+        
+        if ($total_room > 20) {
+            $msg = "Room Total Price is over of $20 for Room( $room_name ).";
+            return $msg;
+        }
+    }
+    
+    if ($msg =='') {
+        return TRUE;
+    }
+    
+    return TRUE;
+}
+
+function ncn_change_order_request_check_price_limit($claim_id, $room_name, $price) {
+    $msg = '';
+    $ret = TRUE;
+    if ($price == 0) { return $ret; }
+    $credit = ncn_change_order_get_credit_remained($claim_id);
+    // Check Total Price
+    $total_price = ncn_change_order_get_total_price($claim_id, 'invoice');
+    $total_price+= $price;
+    
+    $claim_cost = ncn_change_order_get_claim_cost($claim_id);
+    if ($credit) {
+        $claim_cost += $credit;
+    }
+    if ($total_price > $claim_cost) {
+        $msg .= "Total Price is over of Claim Cost (".render_payment_cost($claim_cost)."). \r\n";
+        $ret = 1;
+        return $ret;
+    }
+    
+    // Check each room
+    $ret = ncn_change_order_request_room_check_price_limit($claim_id, $room_name, $f_data);
+    return $ret;
+}
+
+function ncn_change_order_request_room_check_price_limit($claim_id, $room_name, $price) {
+  if ($price == 0) { return $ret; }
+    $credit = ncn_change_order_get_credit_remained($claim_id);
+    $unpaid_price = ncn_change_order_get_total_unpaid_price($claim_id);
+    if ($credit < ($unpaid_price+$price)) {
+        $total_room = ncn_change_order_get_total_room_price($claim_id, $room_name, 'invoice');
+        $total_room += $price;
+        
+        if ($total_room > 20) {
+            //$msg = "Room Total Price is over of $20 for Room( $room_name ).";
+            return 2;
+        }
+    }
+    return TRUE;
+}
+
+function ncn_change_order_action_get_price() {
+    $f_data = array();
+    $f_data['claim_id']     = isset($_REQUEST['cor_rf_claim_id'])?$_REQUEST['cor_rf_claim_id']:'';
+    $f_data['room_name']    = isset($_REQUEST['cor_rf_roomname'])?$_REQUEST['cor_rf_roomname']:'';
+    $f_data['action']       = isset($_REQUEST['cor_rf_action'])?$_REQUEST['cor_rf_action']:'';
+    $f_data['line']         = isset($_REQUEST['cor_rf_line'])?$_REQUEST['cor_rf_line']:'';
+    $f_data['detail']       = isset($_REQUEST['cor_rf_detail'])?$_REQUEST['cor_rf_detail']:'';
+    $f_data['ooss']         = isset($_REQUEST['cor_rf_ooss'])?$_REQUEST['cor_rf_ooss']:'';
+    
+    $f_data['action_type'] = $_REQUEST['action_type'];
+    $f_data['r_id'] = $_REQUEST['r_id'];
+    
+    if ($f_data['ooss'] == null) {
+        $f_data['ooss'] = 0;
+    }
+    
+    $json = array();
+    $json['code'] = 'success';
+    $json['msg'] = '';
+    $json['f_data'] = $f_data;
+    
+    $price = ncn_change_order_get_item_price($f_data);
+    $msg=ncn_change_order_request_price_validate($f_data['claim_id'], $f_data['room_name'], $f_data);
+    if ($msg !== TRUE ) {
+        $json['msg'] = $msg;
+        $price = 0;
+    }
+    
+    $json['action_price'] = render_payment_cost($price);
+    
+    echo json_encode($json);
+    exit;
+}
+
+function ncn_change_order_is_request_for_new_room($claim_id, $room_name) {
+    $result = db_query("SELECT count(*) as tot FROM {ncn_change_order} WHERE claim_id=:a AND room_name=:b AND action='add_room' AND status=1",array(":a"=>$claim_id,":b"=>$room_name))->fetchAssoc();
+    if ($result['tot']>0) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+function ncn_change_order_get_item_price($f_data) {
+    if ($f_data['action'] == 'add_room') {
+        return 20.00;   // $20;
+    }
+    
+    if (ncn_change_order_is_request_for_new_room($f_data['claim_id'], $f_data['room_name'])) {
+        return 0;
+    }
+    
+    $product_id = ncn_change_order_get_product_id_from_request($f_data);
+    $price = 0;
+    if ($product_id) {
+        $node = node_load($product_id);
+        if(!empty($node->data)){
+            if (isset($node->data) && !is_array($node->data)) {
+                $node->data = unserialize($node->data);
+            }
+            $price = $node->sell_price;
+        }
+    }
+    return $price;
+}
+
+function ncn_change_order_get_prodcut_id_from_claim($claim_id) {
+    $product_id = 0;
+    
+     $claim_info = ncn_admin_get_claim_info($claim_id);
+     $claim_type = 'residential';
+     $claim_product = 'Water';
+     if (!empty($claim_info)) {
+        if ($claim_info['claim_type'] != '')        { $claim_type = $claim_info['claim_type']; }
+        if ($claim_info['claim_product'] != '') { $claim_product = $claim_info['claim_product']; }
+     }
+      
+    $member_type = get_member_type_num($claim_info['user_id']);
+    $product_id = ncn_create_claim_get_product_id($member_type, $claim_type, $claim_product);
+    
+     return $product_id;
+}
+
+function ncn_change_order_get_claim_cost($claim_id) {
+    $product_id = ncn_change_order_get_prodcut_id_from_claim($claim_id);
+    if ($product_id) {
+        $node = node_load($product_id);
+        if (isset($node->data) && !is_array($node->data)) {
+          $node->data = unserialize($node->data);
+        }
+        $price = $node->sell_price;
+        
+        return $price;
+    }
+    
+    return 0;
+}
+
+function ncn_change_order_render_credit_remained($claim_id) {
+    $claim_info = get_claim_data($claim_id);
+    $member_type = 0;
+    if ($claim_info) {
+        $user = user_load($claim_info['user_id']);
+        $member_type = get_member_type($user);
+        if (!ncn_change_order_is_available_to_use_credit($user->profile_memberid)) {
+            return '';
+        }
+        
+        $month_credit = 100.00;
+        $remained = ncn_change_order_get_month_credit_remained($user->uid);
+        $spent = $month_credit - $remained;
+        
+        $output = "Credit: ";
+        $output.= render_payment_cost($month_credit)." - ".render_payment_cost($spent)." = ".render_payment_cost($remained);
+        return $output;
+    } 
+    
+    return '';
+}
+
+function ncn_change_order_get_credit_remained($claim_id) {
+    $claim_info = get_claim_data($claim_id);
+    $member_type = 0;
+    if ($claim_info) {
+        $user = user_load($claim_info['user_id']);
+        $member_type = get_member_type($user);
+        if (!ncn_change_order_is_available_to_use_credit($user->profile_memberid)) {
+            return FALSE;
+        }
+        
+        $remained = ncn_change_order_get_month_credit_remained($user->uid);
+        
+        return $remained;
+    }
+    
+    return FALSE;
+}
+
+/*function ncn_change_order_available_credit($claim_id, $price) {
+    $claim_info = get_claim_data($claim_id);
+    $member_type = 0;
+    if ($claim_info) {
+        $user = user_load($claim_info['user_id']);
+        $member_type = get_member_type($user);
+        if (!ncn_change_order_is_available_to_use_credit($user->profile_memberid)) {
+            return FALSE;
+        }
+    }
+    
+
+    $credit = FALSE;
+    if ($price) {
+        $credit_remained = ncn_change_order_get_credit_remained($claim_id);
+        if ($price <= $credit_remained) {
+            $credit = TRUE;
+        }
+    }
+    
+    return $credit;
+}*/
+
+function ncn_change_order_remove_request($rid) {
+    $result = db_query("DELETE FROM {ncn_change_order} WHERE id=:d",array(":d"=>$rid));
+    return $result;
+}
+
+function ncn_change_order_request_handler_remove_room($claim_id, $r_id) {
+    $r_info = ncn_change_order_get_request_info($r_id);
+    if (!$r_info) {
+        drupal_set_message("Failed to remove room", 'error');
+        return FALSE;
+    }
+    $room_name = $r_info['room_name'];
+    $result = db_query("DELETE FROM {ncn_change_order} WHERE claim_id=:d AND room_name=:s",array(':d'=>$claim_id,':s'=>$room_name));
+    $log_message = ncn_amin_get_user_role_and_name()." removed the new room(".$room_name.")";
+    /// log file 
+    ncn_admin_insert_claim_log($claim_id, date('U'), $log_message);
+    if ($result) {
+        return ncn_admin_photo_delete_room($claim_id, $room_name);
+    } else {
+        drupal_set_message("Failed to remove requests of room($room_name)", 'error');
+    }
+    return FALSE;
+}
+
+/**
+ * Menu Handler (ncn/ncn_change_order/room_remove/%)
+ */
+function ncn_change_order_room_remove($claim_id, $r_id) 
+{
+    ncn_change_order_request_handler_remove_room($claim_id, $r_id);
+    drupal_goto("admin/config/ncn_admin/viewclaim/$claim_id", NULL, 'claim-change-order-request-list-cor');
+}
+
+/**
+ * Get Styled Request Meta Info
+ */
+function ncn_change_order_get_request_mail_data($arr_paid) {
+    $data = array();
+    foreach($arr_paid as $r_id) {
+        $result = db_query("SELECT * FROM {ncn_change_order} WHERE id=:d",array(":d"=>$r_id));
+        if ($row = $result->fetchAssoc()){
+            if (!array_key_exists($row['room_name'], $data)) {
+                $data[$row['room_name']] = array(
+                    'room_name'=>$row['room_name'], 
+                    'actions'=>array(), 
+                    'requests' =>array(),
+                );
+            }
+            
+            if ($row['action'] == 'add_room')  {
+                $data[$row['room_name']]['actions'][$row['action']] = $row;
+            } else {
+                $data[$row['room_name']]['requests'][] = $row;
+            }
+        }
+    }
+    
+    return $data;
+}

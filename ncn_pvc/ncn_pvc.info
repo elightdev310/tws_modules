@@ -1,0 +1,4 @@
+name = NCN Permission of View Claim
+description = Manage Permission of Fieldset in View Claim Page
+package = Net Claims Now
+core = 7.x

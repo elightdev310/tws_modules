@@ -1,0 +1,9 @@
+; $Id$
+name = NCN APIs for Create Claim
+description = NCN Public API for Create Claims.
+package = NCN API
+
+dependencies[] = ncn_api
+
+version = "7.x-1.0"
+core = 7.x

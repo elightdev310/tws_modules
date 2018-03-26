@@ -1,0 +1,454 @@
+<?php
+/**
+ * NCN Marketing
+ */
+/**
+ * hook_init function
+ */
+
+// require_once("db/common.inc");
+
+function ncn_morejobs_init()
+{
+
+	// module_load_include('inc', 'ncn_morejobs', 'db/common');
+
+	drupal_add_css(drupal_get_path('module', 'ncn_morejobs') . '/ncn_morejobs.css', 'module', 'all', FALSE);
+}
+
+/**
+ * hook_menu function
+ */
+
+function ncn_morejobs_menu()
+{
+	$items = array();
+	$items['morejobs'] = array(
+		'title' => 'More Jobs',
+		'page callback' => 'ncn_morejobs_front_page',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['morejobs/thank-you'] = array(
+		'title' => 'Thank You',
+		'page callback' => 'ncn_morejobs_thankyou_page',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['morejobs/login'] = array(
+		'title' => 'Login',
+		'page callback' => 'ncn_morejobs_login_page',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['morejobs/logout'] = array(
+		'title' => 'Logout',
+		'page callback' => 'ncn_morejobs_logout_page',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['morejobs/admin/list-info'] = array(
+		'title' => 'Informations',
+		'page callback' => 'ncn_morejobs_admin_list_info',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	$items['morejobs/admin/csv-info'] = array(
+		'title' => 'Download List as csv',
+		'page callback' => 'ncn_morejobs_csv_info',
+		'access arguments' => array(
+			'access content'
+		) ,
+		'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+function ncn_morejobs_theme()
+{
+	return array(
+		'ncn_morejobs_collectform' => array(
+			'arguments' => array(
+				'r_data' => NULL
+			) ,
+			'template' => 'ncn_morejobs_collectform',
+		) ,
+		'ncn_morejobs_thankyou' => array(
+			'arguments' => array() ,
+			'template' => 'ncn_morejobs_thankyou',
+		) ,
+		'ncn_morejobs_login' => array(
+			'arguments' => array() ,
+			'template' => 'ncn_morejobs_login',
+		) ,
+	);
+}
+
+function ncn_morejobs_front_page()
+{
+	if (isset($_REQUEST['tfunction']))
+	{
+		ncn_morejobs_front_page_action($_REQUEST['tfunction']);
+	}
+
+	$r_data = array(
+		'business_name' => (isset($_REQUEST['business_name']) ? $_REQUEST['business_name'] : ''),
+		'business_street_address' => (isset($_REQUEST['business_street_address']) ? $_REQUEST['business_street_address'] : ''),
+		'city' => (isset($_REQUEST['city']) ? $_REQUEST['city'] : ''),
+		'state' => (isset($_REQUEST['state']) ? $_REQUEST['state'] : ''),
+		'zipcode' => (isset($_REQUEST['zipcode']) ? $_REQUEST['zipcode'] : ''),
+		'website' => (isset($_REQUEST['website']) ? $_REQUEST['website'] : ''),
+		'dm_name' => (isset($_REQUEST['dm_name']) ? $_REQUEST['dm_name'] : ''),
+		'direct_number_dm' => (isset($_REQUEST['direct_number_dm']) ? $_REQUEST['direct_number_dm'] : ''),
+		'email_address' => (isset($_REQUEST['email_address']) ? $_REQUEST['email_address'] : ''),
+		'bt_to_contract' => (isset($_REQUEST['bt_to_contract']) ? $_REQUEST['bt_to_contract'] : '')
+	);
+		
+	return theme('ncn_morejobs_collectform', array('r_data' => $r_data));
+}
+
+function ncn_morejobs_front_page_action($action)
+{
+
+	// global $mj_db;
+	// global $mj_db_info;
+
+	if ($action == "ncn-morejobs")
+	{
+		$business_name = $_REQUEST['business_name'];
+		$business_street_address = $_REQUEST['business_street_address'];
+		$city = $_REQUEST['city'];
+		$state = $_REQUEST['state'];
+		$zipcode = $_REQUEST['zipcode'];
+		$website = $_REQUEST['website'];
+		$dm_name = $_REQUEST['dm_name'];
+		$direct_number_dm = $_REQUEST['direct_number_dm'];
+		$email_address = $_REQUEST['email_address'];
+		$bt_to_contract = $_REQUEST['bt_to_contract'];
+		$timestamp = date('U');
+		$validation = TRUE;
+
+		// Validation
+
+		if (!$business_name)
+		{
+			drupal_set_message("Please input Business Name.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$business_street_address)
+		{
+			drupal_set_message("Please input Business Street Address.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$city)
+		{
+			drupal_set_message("Please input City.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$state)
+		{
+			drupal_set_message("Please input State.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$zipcode)
+		{
+			drupal_set_message("Please input Zipcode.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$dm_name)
+		{
+			drupal_set_message("Please input Decision Maker Name.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$direct_number_dm)
+		{
+			drupal_set_message("Please input Direct Number.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$email_address)
+		{
+			drupal_set_message("Please input Email Address.", "error");
+			$validation = FALSE;
+		}
+		else
+		if (!preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/i", trim($email_address)))
+		{
+			drupal_set_message("Email Address is invalid.", "error");
+			$validation = FALSE;
+		}
+
+		if (!$validation)
+		{
+			return FALSE;
+		}
+
+		//		$mj_db->connect($mj_db_info['databaseserver'], $mj_db_info['dbuser'], $mj_db_info['dbpassword'], $mj_db_info['dbname']);
+		//		$query = "
+		//			INSERT INTO morejobs(business_name, business_street_address, city, state, zipcode, website, dm_name, direct_number_dm, email_address, bt_to_contract, timestamp)
+		//			VALUES('".($business_name)."',
+		//						 '".($business_street_address)."',
+		//						 '".($city)."',
+		//						 '".($state)."',
+		//						 '".($zipcode)."',
+		//						 '".($website)."',
+		//						 '".($dm_name)."',
+		//						 '".($direct_number_dm)."',
+		//						 '".($email_address)."',
+		//						 '".($bt_to_contract)."',
+		//						 ".$timestamp.")
+		//		";
+		//
+
+		$query = db_insert('morejobs')->fields(array(
+			'business_name' => $business_name,
+			'business_street_address' => $business_street_address,
+			'city' => $city,
+			'state' => $state,
+			'zipcode' => $zipcode,
+			'website' => $website,
+			'dm_name' => $dm_name,
+			'direct_number_dm' => $direct_number_dm,
+			'email_address' => $email_address,
+			'bt_to_contract' => $bt_to_contract,
+			'timestamp' => $timestamp
+		))->execute();
+		$qresult = $query;
+
+		//	$qresult = $mj_db->exec($query);
+
+		if ($qresult)
+		{
+
+			// $to_mail = "designs@imageproz.com";
+			// $to_mail = "nikhil.parmar@keyideasglobal.com";
+			
+			$to_mail = "scott.csi@netclaimsnow.com";			
+			$mail_body = "Bussiness Name: " . $business_name . "\r\n";
+			$mail_body.= "Bussiness Street Address: " . $business_street_address . "\r\n";
+			$mail_body.= "City: " . $city . "\r\n";
+			$mail_body.= "State: " . $state . "\r\n";
+			$mail_body.= "Zipcode: " . $zipcode . "\r\n";
+			$mail_body.= "Web Site: " . $website . "\r\n";
+			$mail_body.= "Decision Maker Name: " . $dm_name . "\r\n";
+			$mail_body.= "Direct Number: " . $direct_number_dm . "\r\n";
+			$mail_body.= "Email for Decision Maker: " . $email_address . "\r\n";
+			$mail_body.= "Best Time to Contact: " . $bt_to_contract . "\r\n";
+			$params = array(
+				'subject' => "Request Phone Call",
+				'body' => $mail_body,
+				'from_mail' => $email_address,
+			);
+
+			// drupal_mail('ncn_morejobs', 'request_phonecall', $to_mail, language_default(), $params);
+
+			$additional_headers = 'From: ' . $email_address;
+			mail($to_mail, $params['subject'], $mail_body, $additional_headers);
+
+			//		$mj_db->close();
+
+			drupal_goto("morejobs/thank-you");
+			exit;
+		}
+
+		// $mj_db->close();
+
+	}
+}
+
+function ncn_morejobs_thankyou_page()
+{
+	return theme('ncn_morejobs_thankyou');
+}
+
+function ncn_morejobs_mail($key, &$message, $params)
+{
+	switch ($key)
+	{
+	case "request_phonecall":
+		$message['subject'] = $params['subject'];
+		$message['body'][] = $params['body'];
+		$message['headers']['From'] = $params['from_mail'];
+		break;
+	}
+}
+
+function ncn_morejobs_admin_list_info()
+{
+	global $base_url;
+	ncn_morejobs_access_admin();
+
+	// global $mj_db;
+	// global $mj_db_info;
+	//	$mj_db->connect($mj_db_info['databaseserver'], $mj_db_info['dbuser'], $mj_db_info['dbpassword'], $mj_db_info['dbname']);
+
+	$header = array(
+		'Date',
+		'Bussiness Name',
+		'Bussiness Street Address',
+		'City',
+		'State',
+		'Zipcode',
+		'Web Site',
+		'Decision Maker Name',
+		'Direct Number',
+		'Email for Decision Maker',
+		'Best Time to Contact'
+	);
+	$rows = array();
+//	$query = "SELECT * FROM morejobs ORDER BY timestamp DESC";
+	$qresult = db_query('SELECT * FROM {morejobs} ORDER BY timestamp DESC');
+
+	//	$qresult = $mj_db->exec($query);
+	//	while ($row = mysql_fetch_assoc($qresult))
+
+	foreach($qresult as $row)
+	{
+		$row = (array)$row;
+		$rows[] = array(
+			date('m/d/Y H:i', $row['timestamp']) ,
+			$row['business_name'],
+			$row['business_street_address'],
+			$row['city'],
+			$row['state'],
+			$row['zipcode'],
+			$row['website'],
+			$row['dm_name'],
+			$row['direct_number_dm'],
+			$row['email_address'],
+			$row['bt_to_contract'],
+		);
+	}
+
+	// $mj_db->close();
+
+	$output = "";
+	$output.= "<div><a href='".$base_url."/morejobs/admin/csv-info'>Download list as csv file</a></div>";
+	$output.= theme('table', array("header"=>$header,"rows"=>$rows));
+	return $output;
+}
+
+function ncn_morejobs_csv_info()
+{
+	ncn_morejobs_access_admin();
+
+	// global $mj_db;
+	// global $mj_db_info;
+	//	$mj_db->connect($mj_db_info['databaseserver'], $mj_db_info['dbuser'], $mj_db_info['dbpassword'], $mj_db_info['dbname']);
+	// output headers so that the file is downloaded rather than displayed
+
+	header('Content-Type: text/csv; charset=utf-8');
+	header('Content-Disposition: attachment; filename=list_info.csv');
+
+	// create a file pointer connected to the output stream
+
+	$output = fopen('php://output', 'w');
+
+	// output the column headings
+
+	fputcsv($output, array(
+		'Date',
+		'Bussiness Name',
+		'Bussiness Street Address',
+		'City',
+		'State',
+		'Zipcode',
+		'Web Site',
+		'Decision Maker Name',
+		'Direct Number',
+		'Email for Decision Maker',
+		'Best Time to Contact'
+	));
+	$rows = array();
+//	$query = "SELECT * FROM morejobs ORDER BY timestamp DESC";
+
+	//	$qresult = $mj_db->exec($query);
+
+	$qresult = db_query('SELECT * FROM {morejobs} ORDER BY timestamp DESC');
+
+	// loop over the rows, outputting them
+	//	while ($row = mysql_fetch_assoc($qresult))
+
+	foreach($qresult as $row)
+	{
+		$row = (array)$row;
+		$row_info = array(
+			date('m/d/Y H:i', $row['timestamp']) ,
+			$row['business_name'],
+			$row['business_street_address'],
+			$row['city'],
+			$row['state'],
+			$row['zipcode'],
+			$row['website'],
+			$row['dm_name'],
+			$row['direct_number_dm'],
+			$row['email_address'],
+			$row['bt_to_contract'],
+		);
+		fputcsv($output, $row_info);
+
+		// $mj_db->close();
+
+	}
+
+	exit;
+}
+
+function ncn_morejobs_login_page()
+{
+	$user_morejobs = (isset($_SESSION['user-morejobs']) ? $_SESSION['user-morejobs'] : '');
+	if ($user_morejobs == date('d'))
+	{
+		drupal_goto('morejobs/admin/list-info');
+	}
+
+	if (isset($_REQUEST['tfunction']))
+	{
+		if ($_REQUEST['username'] == 'morejobs' && $_REQUEST['password'] == 'netclaims2013')
+		{
+			$_SESSION['user-morejobs'] = date('d');
+			drupal_goto('morejobs/admin/list-info');
+		}
+		else
+		{
+			drupal_set_message("Authentication Failed.", 'error');
+		}
+	}
+
+	return theme('ncn_morejobs_login');
+}
+
+function ncn_morejobs_logout_page()
+{
+	if ($_SESSION['user-morejobs'] == date('d'))
+	{
+		$_SESSION['user-morejobs'] = 0;
+		unset($_SESSION['user-morejobs']);
+	}
+
+	drupal_goto('morejobs');
+}
+
+function ncn_morejobs_access_admin()
+{
+	if ($_SESSION['user-morejobs'] != date('d'))
+	{
+		drupal_goto('morejobs/login');
+	}
+}

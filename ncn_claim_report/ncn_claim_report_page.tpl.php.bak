@@ -1,0 +1,85 @@
+<style>
+#ncn_claim_report_page{
+	margin:1em;
+	font-family: Verdana,sans-serif;
+	font-size: 12px;
+	line-height: 20px;
+}
+#report_table th, #report_table td{
+	text-align : center;
+	color: black;
+	padding: 3px;
+}
+
+.gray-cell{
+	background-color: #ddd;
+}
+.pink-cell{
+	background-color: #ff99cc;
+}
+.green-cell{
+	background-color: #ccffcc;
+}
+.black-blue-cell{
+	background-color: #bde5e0;
+}
+.light-green-cell{
+	background-color: #00ff00;
+}
+
+</style>
+<div id="ncn_claim_report_page">
+<table border="1" id="report_table">
+<thead>
+	<th class="gray-cell"><strong>Member</strong></th>
+	<th class="gray-cell"><strong>Owner</strong></th>
+	<th class="gray-cell"><strong>Claim ID#</strong></th>
+	
+	<th class="pink-cell"><strong>PP</strong></th>
+	<th class="pink-cell"><strong>Claim Docs Recieved (Yuka)</strong></th>
+	<th class="pink-cell"><strong>Fax in Dropbox LOG (Yuka)</strong></th>
+	<th class="pink-cell"><strong>Scott Conf. Receipt (Yuka)</strong></th>
+	
+	<th class="green-cell"><strong>Rejected Claim Docs(Scott)</strong></th>
+	<th class="green-cell"><strong>All Docs Recieved & Timer Set - CE appointed (Scott)</strong></th>
+	<th class="green-cell"><strong>Fax in VOS (Scott)</strong></th>
+	<th class="green-cell"><strong>ESX PDF Uploaded / Email sento AM (Scott)</strong></th>
+	<th class="green-cell"><strong>Claim Back End</strong></th>
+	
+	<th class="black-blue-cell"><strong>Account Manager</strong></th>
+	<th class="black-blue-cell"><strong>Invoice Posted on VOS (AM)</strong></th>
+	
+	<th class="light-green-cell"><strong><?php echo $sum; ?></strong></th>
+	
+	<th class="pink-cell"><strong>Rejected Invoices-Sent to AM (Yuka)</strong></th>
+	<!-- <th><strong>Returned Invoice(Yuka)</strong></th> -->
+</thead>
+<tbody>
+<?php foreach ($t_data as $data): ?>
+<tr>
+	<td class="gray-cell"><?php echo $data['member']; ?></td>
+	<td class="gray-cell"><?php echo $data['owner']; ?></td>
+	<td class="gray-cell"><?php echo $data['claim_id']; ?></td>
+	<td><?php echo $data['pp']; ?></td>
+	<td><?php echo $data['claim_docs_recieved']; ?></td>
+	<td><?php echo $data['fax_in_dropbox']; ?></td>
+	<td><?php echo $data['scott_conf_receipt']; ?></td>
+	
+	<td><?php echo $data['rejected_claim_docs']; ?></td>
+	<td><?php echo $data['all_docs_reieved']; ?></td>
+	<td><?php echo $data['fax_in_vos']; ?></td>
+	<td><?php echo $data['esx_pdf_uploaded']; ?></td>
+	<td><?php echo $data['claim_backend']; ?></td>
+	
+	<td><?php echo $data['account_manager']; ?></td>
+	<td><?php echo $data['invoice_posted_on_vos']; ?></td>
+	
+	<td><?php echo $data['claim_amount']; ?></td>
+	
+	<td><?php echo $data['rejected_invoice']; ?></td>
+
+</tr>
+<?php endforeach; ?>
+</tbody>
+</table>
+</div>

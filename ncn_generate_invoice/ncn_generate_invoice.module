@@ -1,0 +1,257 @@
+<?php
+
+//------------------------------------------------------------------------------
+function ncn_generate_invoice_menu()
+{
+    // complete distributor control page 
+    $items['account/serve_pdf'] = array(
+      'page callback' => 'doctopdf_and_serve',
+      'template' => 'page-inline',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+/**
+ * account/serve_pdf/{file_path}/{file_name}
+ */
+//------------------------------------------------------------------------------
+function doctopdf_and_serve()
+{
+    $user = user_load($GLOBALS['user']->uid);
+    $user_id = $GLOBALS['user']->uid;
+    
+    if (is_subuser($user)) {
+        $parent_mid = ncn_subuser_get_memberid_from_subuid($user_id);
+        $user_id = get_uid_from_memberid($parent_mid);
+        $user = user_load($user_id);
+    }
+
+    $outfile = $user->profile_legalname." ".base64_decode(arg(3)).".pdf";
+    $outfile = preg_replace("/[^a-zA-Z0-9\s\.]/", "", $outfile);
+
+    if (!isset($GLOBALS['user']->uid))
+    {   echo "Access denied.";exit; }
+
+    $filename = base64_decode(arg(2));
+    
+    // check file exists
+    if (!file_exists($filename))
+    {   echo "File not found";exit; }
+    
+    // already is a pdf
+    if (stristr($filename, ".pdf"))
+    {
+        header('Content-type: application/pdf');
+        header('Content-Disposition: attachment; filename="'.$outfile.'"');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Expires: 0');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($filename));
+        
+        
+        readfile($filename);
+        exit;
+    }
+    // need converting
+    else
+    {
+        $doc_desc = base64_decode(arg(3));
+        $logo = ncn_admin_get_member_logo_info($user->profile_memberid);
+        
+        // build the filenames      
+        $tmp_doc_name = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true).".doc";
+        $tmp_pdf_name = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true).".pdf";
+
+        // variables
+        $membername = $user->profile_firstname." ".$user->profile_lastname;
+        $address = $user->profile_address;
+        $citystatezip = $user->profile_city." ".$user->profile_state." ".$user->profile_zip;
+        $website_address = $user->profile_websiteaddress;
+        
+        $query = "SELECT owner FROM member_id_pool WHERE member_id=\"".AddSlashes($user->profile_memberid)."\";";
+        $result = db_query('SELECT owner FROM {member_id_pool} WHERE member_id=:a',
+            array(':a'=>$user->profile_memberid));
+        $row_count = $result->rowCount();
+        $row = $result->fetchAssoc();
+        
+        $accountmanager = user_load($row['owner']);
+        $accountmanager = $accountmanager->profile_firstname." ".$accountmanager->profile_lastname;
+
+        // copy doc to tmp
+        $data = file_get_contents($filename);
+
+        $data = str_replace('{---------------------companyname----------------------------------------------}', str_pad($user->profile_legalname, 80), $data);
+        $data = str_replace('{=====================companyname==============================================}', str_pad($user->profile_legalname, 80, "\n", STR_PAD_BOTH), $data);
+
+        $data = str_replace('\{companyname\}', $user->profile_legalname, $data);
+        $data = str_replace('{memberid}', str_pad ($user->profile_memberid, 10), $data);
+        $data = str_replace('{state}', str_pad($user->profile_state, 7), $data);
+        
+        $data = str_replace('{--------------------membername------------------------}', str_pad($membername, 56), $data);
+        $data = str_replace('{====================membername========================}', str_pad($membername, 56, "\n", STR_PAD_BOTH), $data);
+        $data = str_replace('{---------------------address----------------------}', str_pad($address, strlen('{---------------------address----------------------}')), $data);
+        $data = str_replace('{---------------------citystatezip----------------------}', str_pad($citystatezip, strlen('{---------------------citystatezip----------------------}')), $data);
+        $data = str_replace('{--------------------accountmanager---------------------}', str_pad($accountmanager, 57), $data);
+        $data = str_replace('\{--------------------------------website------------------------------------\}', str_pad($website_address, strlen('\{--------------------------------website------------------------------------\}')), $data);
+        
+        if (empty($logo)) {
+            $data = str_replace('{---------------------companyname_logo-----------------------------------------}', str_pad($user->profile_legalname, 80, "\n", STR_PAD_BOTH), $data);
+        } else {
+            $data = str_replace('{---------------------companyname_logo-----------------------------------------}', str_pad('', 80, " ", STR_PAD_BOTH), $data);
+        }
+        
+        $fp = fopen($tmp_doc_name, "wb");
+        if (flock($fp, LOCK_EX)) { // do an exclusive lock
+            ftruncate($fp, 0); // truncate file
+            fwrite($fp, $data);
+            flock($fp, LOCK_UN); // release the lock
+        } else {
+            echo "File failed to load.";
+        }
+        fclose($fp);
+        //echo $tmp_doc_name."<br/>".$tmp_pdf_name."<br/>".$filename;
+        //exit;
+        $in_file = $_SERVER["DOCUMENT_ROOT"]."/invoice_cover_sheet.doc";
+        $out_file = $_SERVER["DOCUMENT_ROOT"]."/sites/default/files/invoice_cover_sheet.pdf";
+        
+        set_time_limit(59);
+        
+        // convert
+        //$command = "java -jar c:/jod/lib/jodconverter-core-3.0-beta-3.jar ";//.$tmp_doc_name." ".$tmp_pdf_name;
+        //$command = "java -jar c:/jod/lib/jodconverter-core-3.0-beta-4.jar $in_file $out_file";
+        
+        //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/jod/lib/jodconverter-core-3.0-beta-4.jar $in_file $out_file";
+        //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].base_path()."jod/lib/jodconverter-core-3.0-beta-4.jar $tmp_doc_name $tmp_pdf_name";
+        $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
+        watchdog('java-cmd', $command);
+        $output = shell_exec($command);
+
+        // output the pdf
+        header('Content-type: application/pdf');
+        header('Content-Disposition: attachment; filename="'.$outfile.'"');
+        ///////////////////////////////////////////////////////////////////////////
+        $b_image_placed = false;
+        $doc_desc = trim($doc_desc);
+        if (strpos($doc_desc, "Service")!==FALSE && strpos($doc_desc, "Contract") && strpos($doc_desc, "Assignment") && strpos($doc_desc, "Benefits")) {
+        //Service Contract & Assignment of Benefits
+            $b_image_placed = true;
+            $logo_params = array(
+                'x' => 1650,
+                'y' => 20,
+                'width' => 350,
+                'height' => 150,
+                'valign' => 'top',
+            );
+        } else if (strpos($doc_desc, "Certificate")!==FALSE && strpos($doc_desc, "Completion") && strpos($doc_desc, "Satisfaction")) {
+        //Certificate of Completion & Satisfaction
+            $b_image_placed = true;
+            $logo_params = array(
+                'x' => 600,
+                'y' => 500,
+                'width' => 900,
+                'height' => 280,
+                'valign' => 'bottom',
+            );
+        }
+        
+        if (empty($logo)) {
+            $b_image_placed = false;
+        }
+        /*print $output;*/
+        
+        if ($b_image_placed) {
+            $file = new stdClass();
+            $file->filepath = $tmp_pdf_name;
+            $file->filename = basename($tmp_pdf_name);
+            $file->filemime = "application/pdf";
+            $file->uri = str_replace("sites/default/files/","public://",$file->filepath);
+
+            $dir_url = "public://tmp/";
+            $result = file_copy($file, $dir_url);
+      
+            try{
+                $final_pdf = generate_pdf_with_member_logo($user->profile_memberid, $result, $logo_params);
+                
+                if ($final_pdf) {
+                readfile($final_pdf);
+                unlink($final_pdf);
+                } else {
+                    drupal_goto('account/document-center.html');
+                }
+            } catch (Exception $e) {
+                drupal_set_message('This document missed logo image.('.$e->getMessage().')', 'warning');
+                readfile($tmp_pdf_name);
+            }
+        } else {
+            readfile($tmp_pdf_name);
+        }
+        unlink($tmp_doc_name);
+        unlink($tmp_pdf_name);
+        exit;
+    }
+}
+
+function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
+    $tmp_dir_url = "sites/default/files/tmp/";
+    $pdf_jpg = convert_pdf_to_jpg($file, $tmp_dir_url);
+    if ($pdf_jpg) {
+    } else {
+        drupal_set_message(t('error: convert_pdf_to_jpg, please report to web master'), 'error');
+    }
+
+
+    $logo = ncn_admin_get_member_logo_info($member_id);
+    
+    $pdf=new NCNPDF();
+    $pdf->AddPage();
+    $pdf->Image(drupal_realpath($pdf_jpg->uri), 0, 0, 210);
+    
+    if (!empty($logo) && !empty($params)) {
+        $b_hor = true;
+        $img = image_get_info($logo['filepath']);
+        $w_image = $img['width'];
+        $h_image = $img['height'];
+        
+        if (($params['width']/$w_image) > ($params['height']/$h_image) ) { $b_hor = false;  }
+        
+        if ($b_hor) {
+            //$width = ($w_image<$params['width'])? $w_image:$params['width'];
+            $width = $params['width'];
+            $height = ($width/$w_image) * $h_image;
+        } else {
+            $height = $params['height'];
+            //$height = ($h_image>$params['height'])? $h_image:$params['height'];
+            $width = ($height/$h_image) * $w_image;
+        }
+        
+        $x = $params['x'] + ($params['width']-$width)/2;
+        if ($params['valign'] == 'top') {
+            $y = $params['y'];
+        } else {
+            $y = $params['y'] + ($params['height'] - $height);
+        }
+        
+        $rate = 10;
+        $x = $x / $rate;
+        $y = $y / $rate;
+        $width = $width / $rate;
+        $height = $height / $rate;
+
+        $result_img = $pdf->Image(drupal_realpath($logo['filepath']), $x, $y, $width, $height);
+    }
+    
+    $pdf_file_url = $tmp_dir_url.$GLOBALS['user']->uid.date('U').microtime(true).".pdf";
+    
+    $pdf->Output($pdf_file_url, 'F');
+    
+    unlink($pdf_jpg->filepath);
+
+    if(is_file($pdf_file_url)) {
+        return $pdf_file_url;
+    } 
+    return '';
+}
+//------------------------------------------------------------------------------

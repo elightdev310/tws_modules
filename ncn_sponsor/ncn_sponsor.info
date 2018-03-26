@@ -1,0 +1,4 @@
+name = NCN Sponsor
+description = Manage sponsors
+package = Net Claims Now
+core = 7.x

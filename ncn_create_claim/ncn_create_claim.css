@@ -1,0 +1,52 @@
+
+/* --- LHS LIST --- */
+
+.create_claim_lhs_list	{
+	list-style:none;
+	padding:0;
+}
+
+.create_claim_lhs_list li	{
+	margin-top:0px;
+	margin-bottom:10px;
+	padding-left:20px;
+}
+
+.create_claim_lhs_list li.active	{
+	font-weight:bold;
+	background-image:none;
+}
+
+.create_claim_lhs_list li.previous
+{ 
+	background-image:url(images/icon_checkmark.gif);
+	background-repeat:no-repeat;
+}
+
+
+/* --- FORM ELEMENTS --- */
+
+.create_claim_table td	{
+
+	padding:3px;
+}
+
+.tlabel{
+	text-align:right;
+	padding-right:10px;
+	width:35%;
+}
+
+.tlabel label{
+	width: 190px;
+}
+
+.pdf_download	{
+	background-image:url(/modules/ncn_claims_manager/images/Download-icon.png);
+	background-repeat:no-repeat;
+	padding-left:22px;
+}
+
+.remove-photo-album {
+  margin-left: 35px;
+}

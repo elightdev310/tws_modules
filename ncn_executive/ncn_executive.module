@@ -1,0 +1,66 @@
+<?php
+
+//------------------------------------------------------------------------------
+// Implementation of hook_perm().
+function ncn_executive_permission()
+{
+	return array('ncn executive section'=> array(
+											'title' => t('ncn executive section'),
+										 ));
+}
+
+function ncn_executive_menu()
+{
+	$items = array();
+	
+	$items['ncn/ncn_sales_report'] = array(
+		'title' => 'Sales Report',
+		'page callback' => 'ncn_executive_ncn_sales_report',
+		'access arguments' => array('ncn executive section'),
+		'weight' => 3,
+	);
+	$items['ncn/ncn_payment_transaction'] = array(
+		'title' => 'Payment Transaction',
+		'page callback' => 'ncn_executive_ncn_payment_transaction',
+		'access arguments' => array('ncn executive section'),
+		'weight' => 4,
+	);
+	/*$items['ncn/ncn_report/daily'] = array(
+		'title' => 'Daily Report',
+		'page callback' => 'ncn_report_daily',
+		'access arguments' => array('ncn executive section'),
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => 0,
+	);
+	$items['ncn/ncn_report/weekly'] = array(
+		'title' => 'Weekly Report',
+		'page callback' => 'ncn_report_weekly',
+		'access arguments' => array('ncn executive section'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+	);	
+	$items['ncn/ncn_report/monthly'] = array(
+		'title' => 'Monthly Report',
+		'page callback' => 'ncn_report_monthly',
+		'access arguments' => array('ncn executive section'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 2,
+	);
+	
+	$items['ncn/transaction'] = array(
+		'title' => 'Payment Transaction',
+		'page callback' => 'payment_transaction_page',
+		'access arguments' => array('ncn executive section'),
+		'weight' => 4,
+   );*/
+   
+	return $items;
+}
+
+function ncn_executive_ncn_sales_report() {
+	drupal_goto('admin/config/ncn_report');
+}
+
+function ncn_executive_ncn_payment_transaction() {
+	drupal_goto('admin/config/ncn_admin/transaction');
+}

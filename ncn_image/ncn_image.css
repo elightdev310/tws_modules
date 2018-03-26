@@ -1,0 +1,91 @@
+#ncn_image_box .header{
+	margin-bottom:5px;
+}
+
+#ncn_image_box .left{
+	float: left;
+}
+#ncn_image_box .right{
+	float: left;
+	margin-left: 20px;
+	width: 210px;
+}
+#ncn_image_box .image_info{
+	margin-bottom: 10px;
+}
+#ncn_image_box .image_screen{
+	width: 510px;
+	/*overflow: auto;
+	height: 510px;*/
+	background-color: #fff;
+	/*text-align: center;*/
+	vertical-align: center;	
+	background-color: transparent;
+}
+
+#ncn_image_box .image_screen img{
+	margin-top: 0px;
+	margin-bottom: 0px;
+	/*border: solid 1px #d0d0d0;*/
+}
+
+#ncn_image_box .img_label {
+
+	width: 70px;
+	font-weight: bold;
+}
+#ncn_image_box .img_input {
+
+}
+
+#ncn_image_box .img_input select, #ncn_image_box .img_input input{
+	width: 100%;
+}
+
+#ncn_image_box .img_operation {
+	display: none;
+}
+
+#ncn_image_box .img_operation.active{
+	display: block;
+}
+
+#ncn_image_box .operation-tab {
+	margin-bottom: 15px;
+}
+
+#ncn_image_box .img_operation{
+	border-top: solid 1px #d0d0d0;
+	padding-top: 15px;
+}
+
+#ncn_image_box .action-block{
+	margin-bottom: 25px;
+}
+
+#ncn_image_box .param-box .param{
+	margin-bottom: 5px;
+}
+
+#ncn_image_box .params .param-box {
+	display: none;
+}
+
+#ncn_image_box .params .param-box.active{
+	display: block;
+}
+
+#ncn_image_box .submit-panel{
+	margin-top: 20px;
+}
+
+#ncn_image_box .save-panel{
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: solid 1px #d0d0d0;
+}
+
+#ncn_image_box .save-panel input{
+	float: left;
+	margin-right: 10px;
+}

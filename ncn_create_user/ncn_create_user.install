@@ -1,0 +1,6 @@
+<?php
+
+function ncn_create_user_update_7011()
+{
+  //menu_rebuild();
+}

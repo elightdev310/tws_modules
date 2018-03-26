@@ -1,0 +1,114 @@
+<?php
+require_once('ncn_poll.api.inc');
+require_once('ncn_poll.admin.inc');
+require_once('ncn_poll.inc');
+
+/**
+ * hook_init function
+ */
+function ncn_poll_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_poll').'/ncn_poll.js');
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_poll_permission()
+{
+	return array(
+		'ncn poll' => array(
+		  'title' => t('ncn poll'),
+		),
+		'ncn poll admin' => array(
+		  'title' => t('ncn poll admin'),
+		),
+		'ncn poll track' => array(
+		  'title' => t('ncn poll track'),
+		),
+	);				
+}
+
+/**
+ * hook_menu function
+ */
+function ncn_poll_menu()
+{
+	$items = array();
+	
+	$items['admin/config/ncn_poll'] = array(
+		'title' => 'Net Claims Now Polls',
+		'page callback' => 'ncn_poll_admin_list',
+   		'access arguments' => array('ncn poll admin'),
+	);
+	$items['admin/config/ncn_poll/list'] = array(
+		'title' => 'List',
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => -50, 
+	);
+	$items['admin/config/ncn_poll/list'] = array(
+		'title' => 'List',
+		'type' => MENU_LOCAL_TASK,
+		'weight' => -49, 
+		'page callback' => 'ncn_poll_admin_list',
+   		'access arguments' => array('ncn poll admin'),
+	);
+	
+	$items['admin/config/ncn_poll/add'] = array(
+		'title' => 'Add New Poll',
+		'type' => MENU_LOCAL_TASK,
+		'page callback' => 'ncn_poll_admin_add', 
+		'access arguments' => array('ncn poll admin'),
+		'weight' => -48, 
+	);
+	
+	$items['admin/config/ncn_poll_item/%/edit'] = array(
+		'title' => 'Edit Poll',
+		'type' => MENU_LOCAL_TASK,
+		'page callback' => 'ncn_poll_admin_edit',
+		'page arguments' => array(3), 
+    'access arguments' => array('ncn poll admin'),
+	);
+	$items['admin/config/ncn_poll_item/%/track'] = array(
+		'title' => 'Poll Result',
+		'type' => MENU_LOCAL_TASK,
+		'page callback' => 'ncn_poll_admin_track',
+		'page arguments' => array(3), 
+    'access arguments' => array('ncn poll track'),
+	);
+	$items['admin/config/ncn_poll_item/%/delete'] = array(
+		'title' => 'Delete Poll',
+		'type' => MENU_CALLBACK,
+		'page callback' => 'ncn_poll_admin_delete',
+		'page arguments' => array(3), 
+    'access arguments' => array('ncn poll admin'),
+	);
+	
+	$items['account/ncn_poll/%'] = array(
+		'title' => 'Net Claims Now Poll',
+		'page callback' => 'ncn_poll_account_choice',
+		'page arguments' => array(2), 
+		'access arguments' => array('ncn poll'),
+	);
+	
+	return $items;
+}
+
+function ncn_poll_mail($key, &$message, $params) {
+	$language = $message['language'];
+	
+	/*$headers = array(
+		'MIME-Version' => '1.0',
+		'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+		'Content-Transfer-Encoding' => '8Bit',
+		'X-Mailer' => 'Drupal'
+		);
+		foreach ($headers as $h_key =>$value) {
+		$message['headers'][$h_key] = $value;
+	}
+			
+	switch ($key)
+	{
+		case "":
+			break;
+	}*/
+}

@@ -1,0 +1,8 @@
+; $Id: ncn_change_order.info,v 1.0 2012/3/4 Exp $
+name = NCN Change Order
+description = NCN Change Order by Member
+package = Net Claims Now
+
+dependencies[] = ncn_admin
+
+core = 7.x

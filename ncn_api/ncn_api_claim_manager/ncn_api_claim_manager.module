@@ -1,0 +1,559 @@
+<?php
+// $Id: ncn_api_claim_manager.module
+
+function ncn_api_claim_manager_init() {
+    module_load_include('inc', 'ncn_api_claim_manager', 'ncn_api_cm_room');
+    module_load_include('inc', 'ncn_api_claim_manager', 'ncn_api_cm_additional_data');
+    module_load_include('inc', 'ncn_api_claim_manager', 'ncn_api_cm_scopesheet');
+    module_load_include('module', 'ncn_claims_manager');
+}
+
+function ncn_api_claim_manager_menu() {
+	$items = array();
+
+  $items[NCN_API_PREFIX.'/list/active-claims'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_list_active_claims',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+  
+  $items[NCN_API_PREFIX.'/list/out-for-review-claims'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_list_out_for_review_claims',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+	$items[NCN_API_PREFIX.'/list/receivables-claims'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_list_receivables_claims',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+  /*Added By: KEYiDEAS on 18-12-2014 for double "//"  */
+	$items[NCN_API_PREFIX.'//list/out-for-review-claims'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_list_out_for_review_claims',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+	$items[NCN_API_PREFIX.'//list/receivables-claims'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_list_receivables_claims',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+  /*Added By: KEYiDEAS on 18-12-2014*/
+	
+	$items[NCN_API_PREFIX.'/claim/get/%'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_claim_get_info',
+		'page arguments' => array(3), 
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+	$items[NCN_API_PREFIX.'/claim/set/%'] = array(
+		'title' => 'Log in',
+		'page callback' => 'ncn_api_claim_manager_claim_set_info',
+		'page arguments' => array(3), 
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+  );
+
+    /*Added By: KEYiDEAS on 11-09-2014*/
+    $items[NCN_API_PREFIX.'/claim/payment'] = array(
+        'title' => 'Claim Payment',
+        'page callback' => 'ncn_api_claim_manager_claim_payment',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    $items[NCN_API_PREFIX.'/claim/outforreview'] = array(
+        'title' => 'Claim Out For Review',
+        'page callback' => 'ncn_api_claim_manager_claim_outforreview',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    $items[NCN_API_PREFIX.'/claim/movetoreceivables'] = array(
+        'title' => 'Claim Move To Receivables',
+        'page callback' => 'ncn_api_claim_manager_claim_movetoreceivables',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    /*Added By: KEYiDEAS on 11-09-2014*/
+
+
+    if (function_exists("ncn_api_cm_room_menu")) 				{	ncn_api_cm_room_menu($items); 			 }
+	if (function_exists("ncn_api_cm_additional_data_menu")) 	{	ncn_api_cm_additional_data_menu($items); }
+	if (function_exists("ncn_api_cm_scopesheet_menu")) 			{	ncn_api_cm_scopesheet_menu($items); 	 }
+	
+	return $items;
+}
+
+/**
+ * API Hanlder ( list/active-claims )
+ */
+function ncn_api_claim_manager_list_active_claims() {
+	$data = $_REQUEST;
+	
+	$op_active_claims = array(
+		'response' => 0, 
+	);
+  $m_data = array(
+    'request_type'=>'get', 
+    'response_status'=>0, 
+  );
+	
+	$user_id = ncn_api_user_get_userid_from_token($data['username'], $data['token']);
+	
+	if (!$user_id) {
+		$op_active_claims['error']['access_denied']['message'] = t("You're not authorized to access this function");
+	} else {
+		$offset = isset($data['offset'])? ((int)$data['offset']):0;
+		$count = isset($data['count'])? ((int)$data['count']):50;
+		$ac_list = ncn_api_claim_manager_get_active_claims($user_id, $offset, $count);		
+		$op_active_claims['response'] = 1;
+		//$op_active_claims['claims']['{claim}'] = $ac_list;  // for xml
+    	$op_active_claims['claims'] = $ac_list;
+	}
+	
+	$output['activeClaims'] = $op_active_claims;
+  
+	$m_data['response_status'] = $op_active_claims['response'];
+	ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+/*Updated By: KEYiDEAS on 26-09-2014*/
+function ncn_api_claim_manager_get_active_claims($user_id, $offset=0, $count=50) {
+  $_user = user_load($user_id);
+  if (is_subuser($_user)) {
+    $parent_mid = ncn_subuser_get_memberid_from_subuid($user_id);
+    $user_id = get_uid_from_memberid($parent_mid);
+  }
+  
+	$list = array();
+	$result = db_query("SELECT * FROM {claims} WHERE user_id=:a AND deleted=0 AND claim_status=:b ORDER BY last_modified DESC LIMIT $offset, $count", array(':a'=>$user_id,':b'=>'incomplete'));
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+		$claim_id = $row['claim_id'];
+		$claim = array(
+            'claim_id' => $claim_id,
+            'customer_name'=>ncn_cd($claim_id, 'customer_name'),
+            'rejected_status'=>(strtolower($row['workflow'])=='rejected_claim_docs' ? 1 : 0),
+		);
+		$list[] = $claim;
+	}
+	
+	return $list;
+}
+/*Updated By: KEYiDEAS on 26-09-2014*/
+/**
+ * API Hanlder ( list/out-for-review-claims )
+ */
+function ncn_api_claim_manager_list_out_for_review_claims() {
+	$data = $_REQUEST;
+	
+	$op_out_for_review = array(
+		'response' => 0, 
+	);
+	$m_data = array(
+    'request_type'=>'get', 
+    'response_status'=>0, 
+  );
+  
+	$user_id = ncn_api_user_get_userid_from_token($data['username'], $data['token']);
+	
+	if (!$user_id) {
+		$op_out_for_review['error']['access_denied']['message'] = t("You're not authorized to access this function");
+	} else {
+		$offset = isset($data['offset'])? ((int)$data['offset']):0;
+		$count = isset($data['count'])? ((int)$data['count']):50;
+		$ofr_list = ncn_api_claim_manager_get_out_for_review_claims($user_id, $offset, $count);
+		$op_out_for_review['response'] = 1;
+		//$op_out_for_review['claims']['{claim}'] = $ofr_list;  //in xml
+    	$op_out_for_review['claims'] = $ofr_list;
+	}
+	
+	$output['outForReviewClaims'] = $op_out_for_review;
+  
+  $m_data['response_status'] = $op_out_for_review['response'];
+  ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+function ncn_api_claim_manager_get_out_for_review_claims($user_id, $offset=0, $count=50) {
+	global $base_url;
+	$list = array();
+	$result = db_query("SELECT * FROM {claims} WHERE user_id=:a AND deleted=0 AND (claim_status=:b OR claim_status=:c OR claim_status=:f)  ORDER BY last_modified DESC LIMIT $offset, $count",
+    array(':a'=>$user_id,':b'=>'out for review',':c'=>'returned',':f'=>'approved'));
+//	while ($row = db_fetch_array($result))
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+		$claim_id = $row['claim_id'];
+		$live_count = db_query('SELECT COUNT(*) FROM {claims_invoices} WHERE claim_id=:a AND live=1',
+            array(':a'=>$claim_id))->fetchField();
+		$url_service_invoice = '';
+		if ($live_count>0) {
+			/* Updated By: KEYiDEAS on 01-11-2014 */
+            $file_url = '';
+            $pos = strpos($base_url."/",base_path());
+            if($pos===false){
+                $file_url = $base_url.base_path();
+            } else {
+                $file_url = $base_url."/";
+            }
+            $url_service_invoice = $file_url."account/serve_invoice_file/$claim_id/1";
+            //$url_service_invoice = $base_url.base_path()."account/serve_invoice_file/$claim_id/1";
+            //$url_service_invoice = str_replace($file_url,"http://www.netclaimsnow.com/",$url_service_invoice);
+            /* Updated By: KEYiDEAS on 01-11-2014 */
+
+		}
+		$claim = array(
+			'claim_id' => $claim_id, 
+			'customer_name'=>ncn_cd($claim_id, 'customer_name'), 
+			'service_invoice'=> $url_service_invoice,
+		);
+		
+		$list[] = $claim;
+	}
+	
+	return $list;
+}
+
+
+/**
+ * API Hanlder ( list/receivables-claims )
+ */
+function ncn_api_claim_manager_list_receivables_claims() {
+	$data = $_REQUEST;
+	// Send Test Mail	
+  	//drupal_mail('ncn_admin', 'cronmail', 'keyideas.admn@gmail.com', language_default() , array('!date' => 'ncn_api_claim_manager_list_receivables_claims','!crontype' => json_encode($data)));
+	$op_receivables_claims = array(
+		'response' => 0, 
+	);
+  $m_data = array(
+    'request_type'=>'get', 
+    'response_status'=>0, 
+  );
+	
+	$user_id = ncn_api_user_get_userid_from_token($data['username'], $data['token']);
+	
+	if (!$user_id) {
+		$op_receivables_claims['error']['access_denied']['message'] = t("You're not authorized to access this function");
+	} else {
+		$offset = isset($data['offset'])? ((int)$data['offset']):0;
+		$count = isset($data['count'])? ((int)$data['count']):50;
+		$rc_list = ncn_api_claim_manager_get_receivables_claims($user_id, $offset, $count);
+		$op_receivables_claims['response'] = 1;
+		//$op_receivables_claims['claims']['{claim}'] = $rc_list; // in xml
+    $op_receivables_claims['claims'] = $rc_list;
+	}
+	
+	$output['receivablesClaims'] = $op_receivables_claims;
+	
+  $m_data['response_status'] = $op_receivables_claims['response'];
+  ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+/* Updated By: KEYiDEAS on 26-09-2014*/
+function ncn_api_claim_manager_get_receivables_claims($user_id, $offset=0, $count=50) {
+global $base_url;
+
+	$list = array();
+	$result = db_query("SELECT * FROM {claims} WHERE user_id=:a AND deleted=0 AND claim_status=:b ORDER BY last_modified DESC LIMIT $offset, $count",array(':a'=>$user_id,':b'=>'receivables'));
+//	while ($row = db_fetch_array($result))
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+		$claim_id = $row['claim_id'];
+		$live_count = db_query('SELECT COUNT(*) FROM {claims_invoices} WHERE claim_id=:a AND live=1',
+        array(':a'=>$claim_id))->fetchField();
+		$url_service_invoice = '';
+		if ($live_count>0) {
+            /* Updated By: KEYiDEAS on 01-11-2014*/
+            $file_url = '';
+            $pos = strpos($base_url."/",base_path());
+            if($pos===false){
+                $file_url = $base_url.base_path();
+            } else {
+                $file_url = $base_url."/";
+            }
+            $url_service_invoice = $file_url."account/serve_invoice_file/$claim_id/1";
+            //$url_service_invoice = $base_url.base_path()."account/serve_invoice_file/$claim_id/1";
+            //$url_service_invoice = str_replace($file_url,"http://www.netclaimsnow.com/",$url_service_invoice);
+            /* Updated By: KEYiDEAS on 01-11-2014*/
+		}
+		$claim = array(
+			'claim_id' => $claim_id, 
+			'customer_name'=>ncn_cd($claim_id, 'customer_name'), 
+			'service_invoice'=> $url_service_invoice,
+			'claim_notes'=> ncn_api_claim_manager_get_claims_latest_note($claim_id),
+            'claim_message'=> $row['claim_status_message'],
+            'amount_due'=> (float)($row['claim_amount']-$row['payment_received'])
+		);
+		$list[] = $claim;
+	}
+	
+	return $list;
+}
+/* Updated By: KEYiDEAS on 26-09-2014*/
+/*Added By: KEYiDEAS on 26-09-2014*/
+function ncn_api_claim_manager_get_claims_latest_note($claim_id) {
+
+    $query = "SELECT * FROM {claim_note} WHERE claim_id=:d ORDER BY id DESC Limit 0,1";
+    $result = db_query($query, array(":d"=>$claim_id));
+    $note = array();
+    $note = $result->fetchAssoc();
+    $latest_note = '';
+    if($result->rowCount()>0 && !is_null($note['note'])){
+        $latest_note = $note['note'];
+    }
+    return $latest_note;
+}
+/*Added By: KEYiDEAS on 26-09-2014*/
+function ncn_api_claim_manager_claim_get_info($claim_id) {
+	$data = $_REQUEST;
+	
+	$op_claim = array(
+		'response' => 0, 
+	);
+	$m_data = array(
+    'request_type'=>'get', 
+    'response_status'=>0, 
+  );
+  
+	$claim = ncn_admin_get_claim_info($claim_id);
+	
+	if ($claim) {
+		$user_id = ncn_api_user_get_userid_from_token($data['username'], $data['token']);
+		if ($user_id && ncn_api_claim_manager_check_claim_access($claim_id, $user_id)) {
+			$op_claim['response'] = 1;
+			//$claim['file_note'] = base64_decode($claim['file_note']);
+			
+			$op_claim['claim_id'] = $claim_id;
+			$op_claim['date_of_loss'] = date('m/d/Y', strtotime(ncn_cd($claim_id, 'date_of_loss')));
+			$op_claim['insured_name'] = ncn_cd($claim_id, 'customer_name');
+			$op_claim['insured_country'] = ncn_cd($claim_id, 'insured_country');
+			$op_claim['insured_country_iso'] = ncn_cd($claim_id, 'insured_country');
+			$op_claim['insured_address'] = ncn_cd($claim_id, 'insured_address');
+			$op_claim['insured_city'] = ncn_cd($claim_id, 'insured_city');
+			$op_claim['insured_state'] = ncn_cd($claim_id, 'insured_state');
+			$op_claim['insured_state_unformatted'] = ncn_cd($claim_id, 'insured_state');
+			$op_claim['insured_zip'] = ncn_cd($claim_id, 'insured_zip');
+			$op_claim['insured_phone_number'] = _get_format_phone_string(ncn_cd($claim_id, 'insured_phone_number'));
+			$op_claim['technician_service_name'] = ncn_cd($claim_id, 'technician_service_name');
+			$op_claim['claim_type'] = ucwords($claim['claim_type']).' '.ucwords($claim['claim_product']);
+			
+			if (!$op_claim['insured_country']) {
+				$op_claim['insured_country'] = ncn_api_get_country_from_state($op_claim['insured_state']);
+			}
+			if ($op_claim['insured_country']) {
+				$country_iso = $op_claim['insured_country'];
+				$op_claim['insured_country'] = profile_location_get_country($country_iso)." ($country_iso)";
+				$states = profile_location_states($country_iso);
+				$op_claim['insured_state'] = $states[$op_claim['insured_state']];
+			}
+			$op_claim['raw_data'] = $claim;
+		} else {
+			$op_claim['error']['access_denied']['message'] = t("You're not authorized to access claim(#!claim_id)", array('!claim_id'=>$claim_id));
+		}
+	} else {
+		$op_claim['error']['no_claim']['message'] = t("Claim(#!claim_id) doesn't exist.", array('!claim_id'=>$claim_id));
+	}
+	
+	$output['claim'] = $op_claim;
+  
+	$m_data['response_status'] = $op_claim['response'];
+  ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+/**
+* API Handler ( claim/set/% )
+*/
+function ncn_api_claim_manager_claim_set_info($claim_id) {
+	$data = $_REQUEST;
+	
+	$op_set_claim = array(
+		'response' => 0,
+    'claim_id' => $claim_id,  
+	);
+	$m_data = array(
+    'request_type'=>'set', 
+    'response_status'=>0, 
+  );
+  
+	$user_id = ncn_api_user_get_userid_from_token($data['username'], $data['token']);
+	if ($user_id && ncn_api_claim_manager_check_claim_access($claim_id, $user_id)) {
+		if (isset($data['cd'])) {
+			$cd = $data['cd'];
+			foreach ($cd as $key=>$item) {
+				$result = db_query('SELECT * FROM {claims_data} WHERE claim_id=:a AND `key`=:b',array(':a'=>$claim_id,':b'=>$key));
+			    if($result)
+                {
+                    foreach($result as $row)
+                    {
+                        $row = (array)$row;
+                        if($row)
+                        {
+                            $row['val'] = unserialize($row['val']);
+
+                            $row['val']['val'] = $item;
+                            $r_data = serialize($row['val']);
+                            $result1 = db_query('UPDATE {claims_data} SET val = :a WHERE claim_id=:b AND `key`=:c',
+                                array(':a'=>$r_data,':b'=>$claim_id,':c'=>$key));
+                            if ($result1) {
+                                $op_set_claim['response'] = 1;
+                            }
+                        }
+                        else {
+                            $op_set_claim['error']['no_key']['message'] = t("We don't support claim data \"!key\".", array('!key'=>$key));
+                            }
+                    }
+                }
+			} // END foreach
+		} else {
+			$op_set_claim['error']['invalid_submit_format']['message'] = t("You submit data as follow form. cd[{key}]=value");
+		}
+	} else {
+    $op_set_claim['error']['no_claim']['message'] = t("Claim(#!claim_id) doesn't exist.", array('!claim_id'=>$claim_id));
+  }
+    $output['setClaim'] = $op_set_claim;
+    $m_data['response_status'] = $op_set_claim['response'];
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+function ncn_api_claim_manager_set_cd_map_key($key) {
+  
+}
+
+function ncn_api_claim_manager_check_claim_access($claim_id, $user_id) {
+	$_user = user_load($user_id);
+	$claim = ncn_admin_get_claim_info($claim_id);	
+	if ($claim && $_user) {
+		if ($user_id == $claim['user_id']) {
+			return TRUE;
+		} else if (is_subuser($_user)) {
+			$parent_mid = ncn_subuser_get_memberid_from_subuid($user_id);
+			$parent_uid = get_uid_from_memberid($parent_mid);
+			if ($parent_uid == $claim['user_id']) {
+				return TRUE;
+			}
+		} else if (!(isset($_user->profile_memberid) && is_member($_user->profile_memberid))) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+/*Added By: KEYiDEAS on 11-09-2014*/
+function ncn_api_claim_manager_claim_payment() {
+
+    $data = $_REQUEST;
+
+    $op_claim_payment = array(
+        'response' => 0,
+    );
+    $m_data = array(
+        'request_type'=>'set',
+        'response_status'=>0,
+    );
+
+    if((isset($data['cid']) && trim($data['cid'])!='' && is_numeric($data['cid'])) &&
+       (isset($data['uid']) && trim($data['uid'])!='' && is_numeric($data['uid'])) &&
+       (isset($data['mode']) && trim($data['mode'])!='' && (trim($data['mode'])=='p' || trim($data['mode'])=='f'))
+      ){
+		 $resp = '';
+         switch(trim($data['mode']))
+         {
+             case 'p':  // Partial Payment
+                        $resp = ncn_claims_manager_set_partial_payment($data['cid'],$data['amt'],$data['uid'],true);
+                        break;
+             case 'f':  // Full Payment
+                        $resp = ncn_claims_manager_send_to_archive($data['cid'],$data['uid'],true);
+                        break;
+         }
+
+         switch($resp){
+             case '100%':    $op_claim_payment['message'] = t("100% payment successfully done");
+                             $op_claim_payment['response'] = 1;
+                             break;
+             case 'success': $op_claim_payment['message'] = t("Payment successfully done");
+                             $op_claim_payment['response'] = 1;
+                             break;
+             case 'error':   $op_claim_payment['message'] = t("Invalid parameters");
+                             break;
+         }
+    } else {
+        $op_claim_payment['message'] = t("Invalid parameters");
+    }
+
+    $output['claimPayment'] = $op_claim_payment;
+    $m_data['response_status'] = $op_claim_payment['response'];
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+function ncn_api_claim_manager_claim_outforreview(){
+
+    $data = $_REQUEST;
+	// Send Test Mail	
+  	//drupal_mail('ncn_admin', 'cronmail', 'keyideas.admn@gmail.com', language_default() , array('!date' => 'ncn_api_claim_manager_claim_outforreview','!crontype' => json_encode($data)));
+    $op_claim_out = array(
+        'response' => 0,
+    );
+    $m_data = array(
+        'request_type'=>'set',
+        'response_status'=>0,
+    );
+
+    if((isset($data['cid']) && trim($data['cid'])!='' && is_numeric($data['cid'])) &&
+        (isset($data['uid']) && trim($data['uid'])!='' && is_numeric($data['uid']))
+      ){
+        $resp = ncn_claims_manager_submit_claim_outforreview($data['cid'],$data['uid'],true);
+        list($type,$msg) = @explode("__",$resp);
+        switch($type){
+            case 'success': $op_claim_out['message'] = $msg;
+                            $op_claim_out['response'] = 1;
+                            break;
+            case 'error':   $op_claim_out['message'] = $msg;
+                            break;
+        }
+    } else {
+        $op_claim_out['message'] = t("Invalid parameters");
+    }
+
+    $output['claimOutforreview'] = $op_claim_out;
+	
+    $m_data['response_status'] = $op_claim_out['response'];
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+function ncn_api_claim_manager_claim_movetoreceivables(){
+
+    $data = $_REQUEST;
+
+    $op_claim_to_receivables = array(
+        'response' => 0,
+    );
+    $m_data = array(
+        'request_type'=>'set',
+        'response_status'=>0,
+    );
+
+    if((isset($data['cid']) && trim($data['cid'])!='' && is_numeric($data['cid'])) &&
+        (isset($data['uid']) && trim($data['uid'])!='' && is_numeric($data['uid']))
+    ){
+        $resp = ncn_claims_manager_approve_invoice($data['cid'],$data['uid'],true);
+        list($type,$msg) = @explode("__",$resp);
+        switch($type){
+            case 'success': $op_claim_to_receivables['message'] = $msg;
+                            $op_claim_to_receivables['response'] = 1;
+                            break;
+            case 'error':   $op_claim_to_receivables['message'] = $msg;
+                            break;
+        }
+    } else {
+        $op_claim_to_receivables['message'] = t("Invalid parameters");
+    }
+
+    $output['claimmovetoreceivables'] = $op_claim_to_receivables;
+    $m_data['response_status'] = $op_claim_to_receivables['response'];
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+/*Added By: KEYiDEAS on 11-09-2014*/

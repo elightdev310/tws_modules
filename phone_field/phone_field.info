@@ -1,0 +1,5 @@
+; $Id: book.info,v 1.5 2007/07/30 18:20:21 dries Exp $
+name = Phone Field
+description = Adds a npa-npx-npn phone field for use with module generated forms
+package = Net Claims Now
+core = 7.x

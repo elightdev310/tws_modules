@@ -1,0 +1,270 @@
+<?php
+// $Id: ncn_api_user.module
+
+function ncn_api_create_claim_menu() {
+    $items = array();
+
+  $items[NCN_API_PREFIX.'/claim/create'] = array(
+    'title' => 'Crate a new claim',
+        'page callback' => 'ncn_api_create_claim_create',
+        'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+    return $items;
+}
+
+/**
+ * API Hanlder ( claim/create )
+ */
+function ncn_api_create_claim_create() {
+    $data = $_REQUEST;
+  
+    $m_data = array(
+    'request_type'=>'set', 
+    'response_status'=>0, 
+  );
+    $op_create_claim = array(
+        'response' => 0, 
+        'claim_id' => 0, 
+    );
+    
+    if (!ncn_api_user_get_userid_from_token($data['username'], $data['token'])) {
+        $op_create_claim['error']['access_denied']['message'] = t("You're not authorized to access this function");
+    } else {
+        $result = create_claim_page1_submit($data);
+        if ($result) {
+            $claim_id = ncn_create_claim_create_new_claim();
+            if ($claim_id && $claim_id !== TRUE) {
+                $purchase_result = ncn_api_create_claim_purchase_claim($claim_id);
+                if ($purchase_result['code']) {
+                    $op_create_claim['response'] = 1;
+                    $op_create_claim['claim_id'] = $claim_id;
+                } else {                
+                    $op_create_claim['error'] = $purchase_result['error'];
+                }
+            }
+        }
+        
+        if ($op_create_claim['response'] != 1) {
+            $dp_message = ncn_api_get_dp_message();     //
+            if (!empty($dp_message)) {
+                if (empty($op_create_claim['error'])) {
+                    $op_create_claim['error'] = $dp_message;
+                } else {
+                    $op_create_claim['error'] = array_merge($op_create_claim['error'], $dp_message);
+                }
+            }
+        }
+    }
+    
+    $output['createClaim'] = $op_create_claim;
+  
+    $m_data['response_status'] = $op_create_claim['response'];
+    ncn_api_response(array('data'=>$output, 'meta_data'=>$m_data));
+}
+
+/**********************************************************************/
+function ncn_api_create_claim_purchase_claim($claim_id) {
+    $ret_result = array(
+        'code' => TRUE,
+        'error'=> array(), 
+    );
+    
+    GLOBAL $user;
+    $user = user_load($user->uid);
+    $user_id = $user->uid;
+    
+    if (is_subuser($user)) {
+        $parent_mid = ncn_subuser_get_memberid_from_subuid($user_id);
+        $user_id = get_uid_from_memberid($parent_mid);
+    }
+
+    $member_type = get_member_type($user);
+    $claim_info = ncn_admin_get_claim_info($claim_id);
+    if (empty($claim_info)) {
+        $ret_result['code'] = FALSE;
+        $ret_result['error']['no_claim']['message'] = t("Claim (#!claim_id) doesn't exist.", array('!claim_id'=>$claim_id));
+        return $ret_result;
+    }
+    
+    $product_id = ncn_create_claim_get_product_id($member_type, $claim_info['claim_type'], $claim_info['claim_product']);
+    $cp_node = node_load($product_id);
+    if (!$cp_node) {
+        $ret_result['code'] = FALSE;
+        $ret_result['error']['no_claim_product']['message'] = t("Claim Product(#!product_id) doesn't exist. Please report this to webmaster.", array('!product_id'=>$product_id));
+        return $ret_result;
+    }
+    
+    //price
+    $price = $cp_node->sell_price;  //**********************
+    if (ncn_cd($claim_id, 'expedite')) {
+        $price = $price*2;
+    }
+    
+    // get cim profile id's
+    $this_user = user_load($user_id);
+    $member_id = $this_user->profile_memberid;
+    // check for free
+    if ($this_user->profile_credit_card_number == '5424000000000015')
+    {   
+        $auth_successful = true;
+        $response_code = 1;
+    }
+    // need to attempt payment for this 
+    else
+    {
+        $member_cim = ncn_get_member_cim($member_id);
+        if ($member_cim) {
+            $customerProfileId = $member_cim['customerProfileId'];
+            $customerPaymentProfileId = $member_cim['customerPaymentProfileId'];
+            if (intval($customerProfileId) == 0 || intval($customerPaymentProfileId) == 0)
+            {
+                $auth_successful = true;
+                $response_code = 1;
+            } else {
+                if ($price) {
+                    // attempt payment
+                    $response = sendNcnPaymentRequest($customerProfileId, $customerPaymentProfileId, 
+                          array(
+                            'price'         => $price, 
+                            'shipping_name' => $cp_node->title, 
+                            'shipping_desc' => $cp_node->title, 
+                            'item_id'       => $product_id, 
+                            'item_name'     => $cp_node->title, 
+                            'item_desc'     => $cp_node->title, 
+                          ));
+                    $auth_successful = true;
+                    if ("Ok" == $response->messages->resultCode)
+                    {       
+                        $auth_successful = true;
+                        $response_code = 1;     // success
+                    }
+                    else
+                    {
+                        $auth_successful = false;
+                        $response_code = 3;
+                        $response_reason_text = $response->messages->message->text;
+                        
+                        // Declined Mail
+                        $params = array(
+                            'member_name' => $user->profile_firstname." ".$user->profile_lastname,
+                            'activation' => true
+                        );
+                        if ( strcasecmp($response_reason_text, 'This transaction has been declined.') == 0 ) {
+                            $message = credit_card_declined_mail_template($params);
+                            drupal_mail('ncn_auto_payments', 'credit_card_declined', $user->mail, language_default(), array('subject'=>t('Credit Card Declined'), 'body'=>$message));
+                        } else if ( strcasecmp($response_reason_text, 'The credit card has expired.') == 0 ) {
+                            $message = credit_card_expired_mail_template($params);
+                            drupal_mail('ncn_auto_payments', 'credit_card_expired', $user->mail, language_default(), array('subject'=>t('Credit Card Expired'), 'body'=>$message));
+                        }
+                    }
+                } else {
+                    $auth_successful = true;
+                }
+                //*** payment log ***//
+                $product_id = $cp_node->nid;
+                
+                $payment_success = ($auth_successful)? 1:0;
+                $pid = ncn_report_payment_log($product_id, $payment_success, $this_user, 0, 0, $claim_id, 0, $price);
+                
+                // claim product
+                $a_product = node_load($product_id);
+                $a_product_desc = (isset($a_product->body[$a_product->language][0]['value']) ? trim($a_product->body[$a_product->language][0]['value']) : '');
+                
+                $arr_products[] = array(
+                    'item'=>$product_id, 
+                    'description'=>$a_product_desc, 
+                    'quantity'=>1, 
+                    'taxable'=>'N', 
+                    'unit_price'=>$a_product->cost, 
+                    'total_price'=>$a_product->cost*1, 
+                );
+                
+                if (ncn_cd($claim_id, 'expedite')) {
+                    // expedite
+                    $arr_products[] = array(
+                        'item'=>'', 
+                        'description'=>'EXPEDITE', 
+                        'quantity'=>'', 
+                        'taxable'=>'', 
+                        'unit_price'=>$a_product->cost, 
+                        'total_price'=>$a_product->cost, 
+                    );
+                }
+                
+                if ($pid) {
+                    $mail_params = array(
+                        'merchant'=>'Net Claims Now', 
+                        'invoice_number'=> $pid, 
+                        'claim_id'=>$claim_id, 
+                        'customer_id'=> $this_user->profile_memberid, 
+                        'timestamp' => date('d-M-Y h:i:s A T', time()),
+                        
+                        'member_name'=> $this_user->profile_firstname.' '.$this_user->profile_lastname, 
+                        'member_address'=>$this_user->profile_address, 
+                        'member_city'=>$this_user->profile_city, 
+                        'member_state'=>$this_user->profile_state, 
+                        'member_zip'=>$this_user->profile_zip, 
+                        'member_email'=>$this_user->mail, 
+                        'member_phone'=>_get_format_phone_string($this_user->profile_officephone), 
+                        'products'=>$arr_products, 
+                        'total'=>$price, 
+                    );
+                }
+            }
+        }
+        else
+        {
+            $auth_successful = false;
+            $response_code = 3;     // error
+            $response_reason_text = "Customer Payment Profile not found";
+        }
+
+    }   // END not free - tried to process it   
+/*
+    $auth_successful
+    case 1:  $status = 'APPROVED'; break;
+    case 2:  $status = 'DECLINED'; break;
+    case 3:  $status = 'ERROR';    break;
+    case 4:  $status = 'HELD for REVIEW'; break;
+*/  
+
+    // now dip back into ubercart to process it
+    if (!$auth_successful) {
+        // display message to customers that something went wrong and add a log for auth failure
+        $ret_result['error']['payment']['message'] = $response_reason_text;
+    } else {
+        switch ($response_code) {
+            case 1:  $status = 'APPROVED'; break;
+            case 2:  $status = 'DECLINED'; break;
+            case 3:  $status = 'ERROR';    break;
+            case 4:  $status = 'HELD for REVIEW'; break;
+        }
+
+        /*      
+        Visa#: 4007000000027
+        MC#: 5424000000000015
+        Discover#: 6011000000000012
+        AMEX#: 370000000000002
+        */
+
+        if ($response_code == '1')  // order APPROVED
+        {           
+            $query = "UPDATE claims SET claim_status='incomplete' WHERE claim_id=".$claim_id;
+            $result = db_query('UPDATE {claims} SET claim_status=:a WHERE claim_id=:b',array(':a'=>'incomplete',':b'=>$claim_id));
+            ncn_create_claim_send_mail($claim_id);
+            // NCN Invoice Mail
+            if (isset($mail_params)) {
+                drupal_mail('ncn_admin', 'order_claim', $mail_params['member_email'], language_default(), $mail_params);
+            }
+        }
+        else { // order DECLINED (2), order ERROR (3), order HELD for REVIEW (4)
+            $ret_result['error']['payment-1']['message'] = t('There was a problem with your order: !response_code : (subcode: !subcode, avscode: !avscode) !reason_text.', array('!response_code' => check_plain($response_code), '!subcode' => $response_subcode, '!avscode' => $avscode, '!reason_text' => $response_reason_text ));
+        }
+  }
+    
+    if (!empty($ret_result['error']) && $ret_result['code']) {
+        $ret_result['code'] = FALSE;
+    }
+    return $ret_result;
+}

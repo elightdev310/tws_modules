@@ -1,0 +1,404 @@
+<?php
+
+// LIVE
+if (isset($GLOBALS['ncn_debug'])== false)
+{
+	/*$GLOBALS['g_loginname'] = "9WB3k7y8Ej3";
+	$GLOBALS['g_transactionkey'] = "38gT3tr2dMx7bV85";
+	$GLOBALS['g_apihost'] = "api.authorize.net";
+	$GLOBALS['g_apipath'] = "/xml/v1/request.api";*/
+	
+	$GLOBALS['g_loginname'] = "2gf4J2A5";
+	$GLOBALS['g_transactionkey'] = "2x2N5H2u5Q8a6h2p";
+	$GLOBALS['g_apihost'] = "apitest.authorize.net";
+	$GLOBALS['g_apipath'] = "/xml/v1/request.api";
+}
+// TEST
+else
+{
+	$GLOBALS['g_loginname'] = "2gf4J2A5";
+	$GLOBALS['g_transactionkey'] = "2x2N5H2u5Q8a6h2p";
+	$GLOBALS['g_apihost'] = "apitest.authorize.net";
+	$GLOBALS['g_apipath'] = "/xml/v1/request.api";
+}
+
+//------------------------------------------------------------------------------
+function ncn_cim_menu()
+{
+
+	// complete distributor control page 
+	$items['account/cim_patch'] = array(
+	  'page callback' => 'cim_patch_distributor',
+	  'type' => MENU_CALLBACK,
+	  'access arguments' => array('access content'),
+	);
+
+	return $items;
+}
+
+//------------------------------------------------------------------------------
+function cim_patch()
+{
+/*
+$query = "";
+$result = db_query($query);
+$row_count = mysql_num_rows($result);
+$row = mysql_fetch_assoc($result);
+*/
+
+/*		
+$user->profile_credit_card_number
+$user->profile_credit_card_expiration
+$user->profile_credit_card_security
+$user->profile_credit_card_name
+*/
+
+
+	$query = "SELECT * FROM users;";
+	$result = db_query($query);
+	$row_count = $result->rowCount();
+	
+	for ($i=0; $i<$row_count; $i++)
+	{
+		$row = $result->fetchAssoc();
+		$user = user_load($row['uid']);
+		
+		if (($user->profile_credit_card_number != '5424000000000015') && ($user->profile_credit_card_number != ''))
+		{
+		
+
+		  $date = explode("/", $user->profile_credit_card_expiration);
+		  
+		  if (sizeof($date) == 2)
+		  {		$date = "20".trim($date[1])."-".trim($date[0]);	  }
+		  else
+		  {		$date = '';		}
+
+		
+		  // add the user to cim
+			$content =
+				"<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+				"<createCustomerProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
+				MerchantAuthenticationBlock().
+				"<profile>".
+				"<merchantCustomerId>" . get_unique_auth_profile_id() . "</merchantCustomerId>". // Your own identifier for the customer.
+				"<description>".$user->profile_firstname." ".$user->profile_lastname."</description>".
+				"<email>" . $user->mail . "</email>".
+				"</profile>".
+				"</createCustomerProfileRequest>";	// <?php
+			
+			$response = send_xml_request($content);
+			$parsedresponse = parse_api_response($response);
+				
+			$customerProfileId = $parsedresponse->customerProfileId;
+			
+		  // add a payment profile to cim
+		$content =
+			"<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+			"<createCustomerPaymentProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
+			MerchantAuthenticationBlock().
+			"<customerProfileId>" . $customerProfileId . "</customerProfileId>".
+			"<paymentProfile>".
+			"<billTo>".
+			 "<firstName>".$user->profile_firstname."</firstName>".
+			 "<lastName>".$user->profile_lastname."</lastName>".
+			 "<company></company>".
+//			 "<country>".$user->profile_country."</country>".
+			 "<address>".$user->profile_address."</address>".
+			 "<city>".$user->profile_city."</city>".
+			 "<state>".$user->profile_state."</state>".
+			 "<zip>".$user->profile_zip."</zip>".
+			 "<country>USA</country>".
+	
+			 "<phoneNumber>000-000-0000</phoneNumber>".
+			"</billTo>".
+			"<payment>".
+			 "<creditCard>".
+			  "<cardNumber>".$user->profile_credit_card_number."</cardNumber>".
+			  "<expirationDate>".$date."</expirationDate>". // required format for API is YYYY-MM
+			 "</creditCard>".
+			"</payment>".
+			"</paymentProfile>".
+			"<validationMode>liveMode</validationMode>". // or liveMode
+			"</createCustomerPaymentProfileRequest>";	// <?php
+		
+			$response = send_xml_request($content);
+			$parsedresponse = parse_api_response($response);
+			$customerPaymentProfileId = $parsedresponse->customerPaymentProfileId;
+		
+			echo $user->name."<br>";	    		
+			echo $user->profile_firstname."<br>";	    		
+			echo $user->profile_lastname."<br>";
+		
+		
+			// check for cc/details errors
+			if ($parsedresponse->messages->resultCode == 'Error')
+			{
+				echo $user->profile_credit_card_number."<br>";
+			    echo $parsedresponse->messages->message->text."<br>";
+			    echo "<br>";
+
+			}
+			else
+			{
+		
+/*		
+			    // add payment/customer profile to database
+			    $query = "DELETE FROM member_distributor_cim WHERE username=\"".AddSlashes($user->name)."\";";
+			    $result = db_query($query);
+				  
+			    $query = "INSERT INTO member_cim VALUES(NULL, \"".AddSlashes($user->profile_memberid)."\", \"".AddSlashes($customerProfileId)."\", \"".AddSlashes($customerPaymentProfileId)."\");"; 
+			    $result = db_query($query);
+*/			    
+
+				echo "success<br>";
+				echo "<br>";	    		
+	
+			}
+   		
+
+		}	// END test card number	
+	} 
+	
+	exit;
+}
+
+//------------------------------------------------------------------------------
+function cim_patch_distributor()
+{
+/*
+$query = "";
+$result = db_query($query);
+$row_count = mysql_num_rows($result);
+$row = mysql_fetch_assoc($result);
+*/
+
+/*		
+$user->profile_credit_card_number
+$user->profile_credit_card_expiration
+$user->profile_credit_card_security
+$user->profile_credit_card_name
+*/
+
+
+	$query = "SELECT * FROM member_distributor_cim,users WHERE member_distributor_cim.username=users.`name`;";
+	$result = db_query($query);
+	$row_count = $result->rowCount();
+	
+	for ($i=0; $i<$row_count; $i++)
+	{
+		$row = $result->fetchAssoc();
+		
+		// get customer details
+		$user = user_load($row['uid']);
+
+		
+		//if (1)	
+		if ($user->profile_credit_card_number != '5424000000000015' && $user->profile_credit_card_number != '')
+		{
+   		
+		  $date = explode("/", $user->profile_credit_card_expiration);
+		  
+		  if (sizeof($date) == 2)
+		  {		$date = "20".$date[1]."-".$date[0];	  }
+		  else
+		  {		$date = '';		}
+		  
+		
+		  // add the user to cim
+			$content =
+				"<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+				"<createCustomerProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
+				MerchantAuthenticationBlock().
+				"<profile>".
+				"<merchantCustomerId>" . get_unique_auth_profile_id() . "</merchantCustomerId>". // Your own identifier for the customer.
+				"<description>Distributor: ".$user->profile_firstname." ".$user->profile_lastname."</description>".
+				"<email>" . $user->mail . "</email>".
+				"</profile>".
+				"</createCustomerProfileRequest>";	// <?php
+			
+			$response = send_xml_request($content);
+			$parsedresponse = parse_api_response($response);
+				
+			$customerProfileId = $parsedresponse->customerProfileId;
+			
+		  
+		  // add a payment profile to cim
+		$content =
+			"<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
+			"<createCustomerPaymentProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
+			MerchantAuthenticationBlock().
+			"<customerProfileId>" . $customerProfileId . "</customerProfileId>".
+			"<paymentProfile>".
+			"<billTo>".
+			 "<firstName>".$user->profile_firstname."</firstName>".
+			 "<lastName>".$user->profile_lastname."</lastName>".
+			 "<phoneNumber>000-000-0000</phoneNumber>".
+			"</billTo>".
+			"<payment>".
+			 "<creditCard>".
+			  "<cardNumber>".$user->profile_credit_card_number."</cardNumber>".
+			  "<expirationDate>".$date."</expirationDate>". // required format for API is YYYY-MM
+			 "</creditCard>".
+			"</payment>".
+			"</paymentProfile>".
+			"<validationMode>liveMode</validationMode>". // or liveMode
+			"</createCustomerPaymentProfileRequest>";	// <?php
+		
+			$response = send_xml_request($content);
+			$parsedresponse = parse_api_response($response);
+			$customerPaymentProfileId = $parsedresponse->customerPaymentProfileId;
+		
+			// check for cc/details errors
+			if ($parsedresponse->messages->resultCode == 'Error')
+			{
+				echo $user->profile_credit_card_number."<br>";
+			
+			    echo "Invalid credit/debit card details";
+
+			}
+			else
+			{
+		
+		    // add payment/customer profile to database
+	//	    $query = "DELETE FROM member_distributor_cim WHERE username=\"".AddSlashes($user->name)."\";";
+	//	    $result = db_query($query);
+		  
+		    $query = "INSERT INTO member_distributor_cim VALUES(NULL, \"".AddSlashes($user->name)."\", \"".AddSlashes($customerProfileId)."\", \"".AddSlashes($customerPaymentProfileId)."\");"; 
+	//	    $result = db_query($query);
+
+				echo $query."<br>";	
+
+			}
+	    		
+	
+
+		}	// END test card number	
+	} 
+	
+	exit;
+}
+
+//------------------------------------------------------------------------------
+// search for a unique customerprofile id to use in auth.net
+function get_unique_auth_profile_id()
+{
+	while (1)	// keep looping until we find an id that is unique
+	{
+		// get a random id
+		$id = rand(1000000, 9999999);
+		
+		// see if it's already taken
+		$query = db_query("SELECT * FROM member_cim WHERE customerProfileId=:a",array(":a"=>$id));
+		$result = $query;
+		$row_count = $result->rowCount();
+		
+		if ($row_count == 0)
+		{
+			$query2 = db_query("SELECT * FROM member_distributor_cim WHERE customerProfileId=:a",array(":a"=>$id));
+			$result2 = $query2;
+			$row_count2 = $result2->rowCount();
+			
+			if ($row_count2 == 0)
+			{	return $id;		}
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+
+//function to send xml request to Api.
+//There is more than one way to send https requests in PHP.
+function send_xml_request($content)
+{
+	global $g_apihost, $g_apipath;
+	return send_request_via_fsockopen($g_apihost,$g_apipath,$content);
+}
+
+//function to send xml request via fsockopen
+//It is a good idea to check the http status code.
+function send_request_via_fsockopen($host,$path,$content)
+{
+	$posturl = "ssl://" . $host;
+	$header = "Host: $host\r\n";
+	$header .= "User-Agent: PHP Script\r\n";
+	$header .= "Content-Type: text/xml\r\n";
+	$header .= "Content-Length: ".strlen($content)."\r\n";
+	$header .= "Connection: close\r\n\r\n";
+	$fp = fsockopen($posturl, 443, $errno, $errstr, 60);
+	if (!$fp)
+	{
+		$body = false;
+	}
+	else
+	{
+		error_reporting(E_ERROR);
+		fputs($fp, "POST $path  HTTP/1.1\r\n");
+		fputs($fp, $header.$content);
+		fwrite($fp, $out);
+		$response = "";
+		while (!feof($fp))
+		{
+			$response = $response . fgets($fp, 128);
+		}
+		fclose($fp);
+		error_reporting(E_ALL ^ E_NOTICE);
+		
+		$len = strlen($response);
+		$bodypos = strpos($response, "\r\n\r\n");
+		if ($bodypos <= 0)
+		{
+			$bodypos = strpos($response, "\n\n");
+		}
+		while ($bodypos < $len && $response[$bodypos] != '<')
+		{
+			$bodypos++;
+		}
+		$body = substr($response, $bodypos);
+	}
+	return $body;
+}
+
+//function to send xml request via curl
+function send_request_via_curl($host,$path,$content)
+{
+	$posturl = "https://" . $host . $path;
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $posturl);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, Array("Content-Type: text/xml"));
+	curl_setopt($ch, CURLOPT_HEADER, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+	$response = curl_exec($ch);
+	return $response;
+}
+
+
+//function to parse the api response
+//The code uses SimpleXML. http://us.php.net/manual/en/book.simplexml.php 
+//There are also other ways to parse xml in PHP depending on the version and what is installed.
+function parse_api_response($content)
+{
+	$parsedresponse = simplexml_load_string($content, "SimpleXMLElement", LIBXML_NOWARNING);
+	if ("Ok" != $parsedresponse->messages->resultCode) {
+//		echo "The operation failed with the following errors:<br>";
+		foreach ($parsedresponse->messages->message as $msg) {
+//			echo "[" . htmlspecialchars($msg->code) . "] " . htmlspecialchars($msg->text) . "<br>";
+		}
+//		echo "<br>";
+	}
+	return $parsedresponse;
+}
+
+function MerchantAuthenticationBlock() {
+	global $g_loginname, $g_transactionkey;
+	return
+        "<merchantAuthentication>".
+        "<name>" . $g_loginname . "</name>".
+        "<transactionKey>" . $g_transactionkey . "</transactionKey>".
+        "</merchantAuthentication>";
+}
+
+?>

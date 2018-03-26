@@ -1,0 +1,143 @@
+
+/*---- TABS ---- */
+
+ul.tabs {
+	margin: 0;
+	padding: 0;
+	/*float: left;*/
+	list-style: none;
+	/*height: 32px;*/
+/*	border-bottom: 1px solid #999; */	
+	border-left: 1px solid #999;
+}
+ul.tabs li {
+	float: left;
+	margin: 0;
+	padding: 0;
+	height: 36px; /*--Subtract 1px from the height of the unordered list--*/
+	line-height: 36px; /*--Vertically aligns the text within the tab--*/
+	border-left: none;
+	margin-bottom: -1px; /*--Pull the list item down 1px--*/
+	overflow: hidden;
+	position: relative;
+}
+
+ul.tabs li a.roomname {
+	text-decoration: none;
+	color: #000;
+	font-size: 1.2em;
+	padding:0;
+	padding-left:20px;
+	outline: none;
+}
+
+ul.tabs li a.roomedit {
+	text-decoration: none;
+	color: #000;
+	font-size: 0.8em;
+	padding:0;
+	padding-right:20px;
+	outline: none;
+}
+
+ul.tabs li a:hover	{
+	text-decoration: none;
+}
+
+ul.tabs li:hover {
+	
+}
+
+#tab1 a	{
+	padding-right:20px;
+}
+
+#add_room_tab {
+	padding: 0px 20px;
+}
+#add_room_tab a	{
+	padding-left:24px;
+	background-image:url(add_room_plus.png);
+	background-repeat:no-repeat;
+	padding-left:20px;
+	padding-right:20px;
+	padding-top:6px;
+	padding-bottom:6px;
+}
+
+html ul.tabs li.active, html ul.tabs li.active a:hover  { /*--Makes sure that the active tab does not listen to the hover properties--*/
+	background: #fff;
+}
+
+.delete_room_button	{
+	border:none;
+	width:13px;
+	height:13px;
+	background-image:url(add_room_delete.gif);
+	background-repeat:no-repeat;
+	position:absolute;
+	cursor:pointer;
+	right:2px;
+}
+
+.rename_room_button	{
+	border:none;
+	width:13px;
+	height:13px;
+	background-image:url(add_room_rename.gif);
+	background-repeat:no-repeat;
+	position:absolute;
+	cursor:pointer;
+	right:2px;
+	bottom:2px;
+}
+
+
+/* ---- TAB CONTENT ---- */
+
+.tab_container {
+	border: 1px solid #999;
+	/*border-top: none;*/
+	overflow: hidden;
+	clear: both;
+	width: 100%;
+	background: #fff;
+}
+
+#tabloading  {
+	background-image:url(ajax-loader.gif);
+	background-repeat:no-repeat;
+	background-position:center;
+	min-height:200px;
+	
+}
+
+/* ---- ROOMS LIST ---- */
+.ar_upload_wrapper	{
+	height: 220px;
+	width: 236px;
+	margin: 0 auto;
+}
+
+.ar_upload_wrapper p	{
+	padding:0;
+	margin:0;
+	line-height:1.4em;
+	margin-top:2px;
+	margin-bottom:2px;
+}
+
+.ar_imgbox	{
+	width: 236px;
+	height:163px;
+	border: 1px solid #ddd;
+	background-color:#505050;
+	overflow: hidden;
+	text-align: center;
+
+	display: table-cell;
+    vertical-align: middle;
+}
+.ar_imgbox img {
+	
+}

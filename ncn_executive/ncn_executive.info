@@ -1,0 +1,9 @@
+; $Id: ncn_report.info,v 1.0 2011/4/14 Exp $
+name = NCN Executive
+description = NCN Executive Section
+package = Net Claims Now
+
+dependencies[] = ncn_admin
+dependencies[] = ncn_report
+
+core = 7.x

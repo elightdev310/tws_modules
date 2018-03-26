@@ -1,0 +1,557 @@
+<?php
+
+/**
+hook_init function
+*/
+function ncn_image_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_image').'/ncn_image.js');
+	drupal_add_css(drupal_get_path('module', 'ncn_image') .'/ncn_image.css', 'module', 'all', FALSE);
+}
+
+function ncn_image_menu()
+{
+	$items = array();
+
+	$items['admin/config/ncn_image_open'] = array(
+		'page callback' => 'ncn_image_open',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	 );
+	$items['ajax/ncn_image_action'] = array(
+		'page callback' => 'ncn_image_action',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	$items['ajax/ncn_image_action_save'] = array(
+		'page callback' => 'ncn_image_action_save',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	$items['ajax/ncn_image_clean_tmp'] = array(
+		'page callback' => 'ncn_image_clean_tmp',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	$items['ajax/ncn_image_position'] = array(
+		'page callback' => 'ncn_image_position',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	$items['ajax/ncn_image_swap_save'] = array(
+		'page callback' => 'ncn_image_swap_save',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	
+	$items['ajax/ncn_upload_changed_image'] = array(
+		'page callback' => 'ncn_upload_changed_image',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+	$items['ajax/ncn_image_change_image_save'] = array(
+		'page callback' => 'ncn_image_change_image_save',
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('access content'),
+	);
+
+  return $items;
+}
+
+function ncn_image_theme() {
+	return array(
+		'ncn_image_window' => array(
+			'arguments' => array('img_url' => NULL, 'img_param' => array('exist'=>TRUE)),
+			'template' => 'ncn_image_window',
+		),
+		'ncn_empty_image_window' => array(
+			'arguments' => array('img_param' => array()),
+			'template' => 'ncn_empty_image_window',
+		),
+	);
+}
+
+
+function template_preprocess_ncn_image_window(&$vars) {
+	
+}
+function template_preprocess_ncn_empty_image_window(&$vars) {
+	
+}
+
+function ncn_image_open() {
+	
+	$claim_id 	= $_REQUEST['claim_id'];
+	$room_name 	= $_REQUEST['room_name'];
+	$position 	= $_REQUEST['position'];
+	$img_url 	= isset($_REQUEST['img'])? $_REQUEST['img']:'';
+    $img_url = str_replace('public://', 'sites/default/files/', $img_url);
+	
+	if ($img_url != '') {
+	    $tmp_image_name = basename($img_url);
+		$image_ext = substr(strrchr($tmp_image_name, '.'), 1);
+		$tmp_image_name = substr($tmp_image_name, 0, strrpos($tmp_image_name, '.'));
+		
+		
+		list($usec, $sec) = explode(" ", microtime());
+		
+		$tmp_image_name = $tmp_image_name . "-" . ((float)$usec + (float)$sec);
+		
+		// *Session Object
+
+		if (!is_dir(dirname(urldecode($img_url))."/tmp")) {
+			mkdir(dirname(urldecode($img_url))."/tmp", 0775);
+		}
+		
+		$ncn_image = array(
+			'source'	=> urldecode($img_url),	
+			
+			'fullpath' 	=> urldecode($img_url),
+			'foldername'=> dirname(urldecode($img_url))."/tmp",
+			'filename' 	=> $tmp_image_name,
+			'ext' 		=> $image_ext,
+			
+			'changed' 	=> false,
+			'history'	=> 0,
+		);
+		
+		//scale 500x350 initially.
+		
+		$api_params = array(
+			'action'	=> 'scale',
+			'width' 	=> 500,
+			'height'	=> 350,
+			'upscale'	=> FALSE,
+			
+			'source'	=> $ncn_image['fullpath'],
+			'dest'		=> $ncn_image['foldername']."/".$ncn_image['filename'].".".$ncn_image['ext']
+		);
+		$result = _ncn_image_api('scale', $api_params);
+		
+		$_SESSION['ncn_img_tmp'] = $ncn_image;
+		$_SESSION['ncn_img_tmp']['fullpath'] = $api_params['dest'];
+		$_SESSION['ncn_img_tmp']['info'] = _get_ncn_image_info($api_params['dest']);
+		
+		$img_param = array();
+		$img_param['exist'] = $result;
+		$img_param['claim_id'] = $claim_id;
+		$img_param['room_name'] = $room_name;
+		$img_param['position'] = $position;
+		$img_param['image_path'] = $img_url;
+		
+		drupal_add_css(drupal_get_path('module', 'ncn_image').'/jquery.Jcrop.css', 'module', 'all', FALSE);
+		drupal_add_js(drupal_get_path('module', 'ncn_image').'/jquery.Jcrop.js');
+		drupal_add_js(drupal_get_path('module', 'ncn_image').'/ncn_image_panel.js');
+	
+		return theme( 'ncn_image_window', array(
+            'img_url' => urldecode($img_url),
+            'img_param' => $img_param
+        ));
+	}
+	else {
+		$img_param = array();
+		$img_param['claim_id'] = $claim_id;
+		$img_param['room_name'] = $room_name;
+		$img_param['position'] = $position;
+		return theme( 'ncn_empty_image_window', array('img_param' => $img_param) );
+	}
+	
+}
+
+function ncn_image_action() {
+	$action = arg(2);
+	$dest_path = $_SESSION['ncn_img_tmp']['foldername'].DIRECTORY_SEPARATOR.$_SESSION['ncn_img_tmp']['filename'].".".$_SESSION['ncn_img_tmp']['ext'];
+	
+	$bAction = TRUE;
+	if ($action == "img_crop") {
+		$api_params = array(
+			'action'	=> 'crop',
+			'width' 	=> $_REQUEST['crop_width'],
+			'height'	=> $_REQUEST['crop_height'],
+			'x'			=> $_REQUEST['crop_xoffset'],
+			'y'			=> $_REQUEST['crop_yoffset'],
+			
+			'source'	=> $_SESSION['ncn_img_tmp']['fullpath'],
+			'dest'		=> $dest_path
+		);
+		$bAction = _ncn_image_api('crop', $api_params);
+
+	} else if ($action == "img_rotate") {
+		$api_params = array(
+			'action'	=> 'rotate',
+			'degrees' 	=> $_REQUEST['rotate_angle'],
+			
+			'source'	=> $_SESSION['ncn_img_tmp']['fullpath'],
+			'dest'		=> $dest_path
+		);
+		$bAction = _ncn_image_api('rotate', $api_params);
+
+	}else {
+		$bAction = FALSE;
+	}
+	
+	if ($bAction == TRUE) {
+		$_SESSION['ncn_img_tmp']['fullpath'] = $dest_path;
+		$_SESSION['ncn_img_tmp']['info'] = _get_ncn_image_info($dest_path);
+	}
+	
+	$result['image_path'] = $_SESSION['ncn_img_tmp']['fullpath'];
+	$result['success'] = ($bAction==TRUE)? 'success': 'error';
+	$result['image_info'] = $_SESSION['ncn_img_tmp']['info'];
+	
+	echo json_encode($result);
+}
+
+function _ncn_keyid_resize_img($params){
+    ini_set('memory_limit', '-1');
+
+    $image = image_load($params['source']);
+
+    if ($image==null){
+        return FALSE;
+    }
+
+    image_scale($image, $params['width'], $params['height'], $params['upscale']);
+
+    image_save($image, $params['dest']);
+}
+
+function _ncn_image_api($action, $params) {
+	ini_set('memory_limit', '-1');
+	$bAction = FALSE;
+	if ($action != "") {
+		//$image = imageapi_image_open($params['source']);
+		$image = image_load($params['source']);
+
+		if ($image==null){
+		 return FALSE;
+		}
+		
+		if ($action == 'scale') {
+			//$bAction = imageapi_image_scale($image, $params['width'], $params['height'], $params['upscale']);
+			$bAction = image_scale($image, $params['width'], $params['height'], $params['upscale']);			
+		} else if ($action =='crop') {
+			//$bAction = imageapi_image_crop($image, $params['x'], $params['y'], $params['width'], $params['height']);
+			//$bAction = image_scale_and_crop($image, $params['width'], $params['height']);
+			$bAction = image_crop($image, $params['x'], $params['y'], $params['width'], $params['height']);
+			
+		} else if ($action =='rotate') {
+			//$bAction = imageapi_image_rotate($image, $params['degrees']);
+			$bAction = image_rotate($image, $params['degrees']);
+		}
+		
+		//imageapi_image_close($image, $params['dest']);
+		image_save($image, $params['dest']);
+
+		if (isset($_SESSION['ncn_img_tmp']['history'])) {
+			$_SESSION['ncn_img_tmp']['history'] = $_SESSION['ncn_img_tmp']['history']+1;
+		}
+	}
+	return $bAction;
+}
+
+function _get_ncn_image_info($image_path) {
+//	$image = imageapi_image_open($image_path);
+    $image = image_load($image_path);
+
+	$info = array();
+	$info['width'] = $image->info['width'];
+	$info['height'] = $image->info['height'];
+	return $info;
+}
+
+function ncn_image_action_save() {
+    $update_file = $_SESSION['ncn_img_tmp']['fullpath'];
+
+    /*By - keyideas*/
+    $dest_path = $_SESSION['ncn_img_tmp']['foldername'].DIRECTORY_SEPARATOR.$_SESSION['ncn_img_tmp']['filename'].".".$_SESSION['ncn_img_tmp']['ext'];
+
+    $key_source = drupal_realpath($dest_path);
+    $key_dest = DRUPAL_ROOT.DIRECTORY_SEPARATOR.str_replace('user_files', 'styles'.DIRECTORY_SEPARATOR.'image_tab_upload'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'user_files' , str_replace('tmp', '' , $_SESSION['ncn_img_tmp']['source']));
+
+    $api_params = array(
+        'action'	=> 'scale',
+        'width' 	=> 234,
+        'height'	=> 132,
+        'upscale'	=> FALSE,
+
+        'source'	=> $key_source,
+        'dest'		=> $key_dest
+    );
+
+    _ncn_keyid_resize_img($api_params);
+    /*By - keyideas*/
+
+
+    $bSave = file_unmanaged_copy($update_file, $_SESSION['ncn_img_tmp']['source'], FILE_EXISTS_REPLACE);
+
+	$_SESSION['ncn_img_tmp']['changed'] = true;
+	if(module_exists('imagecache')){
+		imagecache_image_flush($_SESSION['ncn_img_tmp']['source']);
+    }
+	
+	$result['success'] = ($bSave==TRUE)? "success":"error";
+	echo json_encode($result);
+}
+
+function ncn_image_clean_tmp() {
+	$result = "";
+	if ($_SESSION['ncn_img_sawp']['changed'] == true) {
+		unset($_SESSION['ncn_img_sawp']);
+		echo 'reload';
+		return;
+	}
+	
+	
+	if ($_SESSION['ncn_img_tmp']['changed']==true && $_SESSION['ncn_img_tmp']['history'] > 0) {
+		$result ="reload";
+	}
+	file_delete($_SESSION['ncn_img_tmp']['fullpath']);
+	unset($_SESSION['ncn_img_tmp']);
+	
+	echo $result;
+}
+
+function ncn_image_get_scope_data($claim_id) {
+//	$query = "SELECT * FROM claims_data WHERE claim_id=".$claim_id." AND `key`='scope'";
+	$result = db_query('SELECT * FROM {claims_data} WHERE claim_id=:a AND field_key=:b',array(':a'=>$claim_id,':b'=>scope));
+	$row_count = $result->rowCount();
+	
+	if ($row_count == 0) { return ''; }
+	
+	// get the data
+	$row = $result->fetchAssoc();
+	$data = unserialize($row['val']);
+	
+	return $data;
+	//$customer_name = ncn_cd($claim_id, 'customer_name');
+}
+
+function ncn_image_window_theme_roomname($claim_id) {
+	ob_start();
+	echo '<select id="img_roomname" name="img_roomname">';
+	
+	$data = ncn_image_get_scope_data($claim_id);
+	foreach ($data as $roomname => $roomdata)
+	{
+		if ($roomname != "type")
+		{
+			echo '<option value="'.$roomname.'">'.$roomname.'</option>';
+		}
+	}
+
+	echo '</select>';
+
+	$content = ob_get_contents();
+	ob_end_clean();
+	return $content;
+}
+
+function ncn_image_position() {
+	$claim_id = arg(2);
+	$room_name = arg(3);
+	
+	$result = array();
+	$result['claim_id'] = $claim_id;
+	$result['room_name'] = $room_name;
+	$content = '<select id="img_position" name="img_position">';
+	$customer_name = ncn_cd($claim_id, 'customer_name');
+	$img_count = 6;
+	
+	if ($room_name == $customer_name) {
+		$img_count = 3;
+	}
+	$img_captions = _get_image_captions($claim_id, $room_name, $img_count);
+	
+	
+	
+	$index = 0;
+	foreach ($img_captions as $key => $caption) {
+		$index++;
+		$content .= '<option value="'.$key.'">'.$index.' - '.$caption.'</option>';
+	}
+
+	$content .= '</select>';
+	$result['flag'] = 'success';
+	$result['img_position'] = $content;
+	
+	echo json_encode($result);
+}
+
+function ncn_image_swap_save() {
+	$result['flag'] = 'success';
+	$claim_id = $_REQUEST['claim_id'];
+	$room_name = $_REQUEST['room_name'];
+	$position = $_REQUEST['position'];
+	
+	$img_roomname = $_REQUEST['img_roomname'];
+	$img_position = 'image'.$_REQUEST['img_position'];
+	
+	$result['room_name'] = $img_roomname;
+	$result['position'] = $img_position;
+	
+	$data = ncn_image_get_scope_data($claim_id);
+	//echo json_encode($data);
+	//return;
+	
+	if (!isset($data[$room_name][$position])) {
+		$result['flag'] = 'error1';
+	} else {
+		$temp = $data[$room_name][$position];
+		
+		if (isset($data[$img_roomname][$img_position])) {
+			//unset($data[$room_name][$position]);
+			$data[$room_name][$position] = $data[$img_roomname][$img_position];
+		} else {
+			unset($data[$room_name][$position]);
+		}
+		
+		//unset($data[$img_roomname][$img_position]);
+		$data[$img_roomname][$img_position] = $temp;
+		$data = serialize($data);
+		
+	//	$query = "UPDATE claims_data SET val='$data' WHERE claim_id=".$claim_id." AND `key`='scope'";
+		$res = db_query('UPDATE {claims_data} SET val=:a WHERE claim_id=:b AND field_key=:c',array(':a'=>$data,':b'=>$claim_id,':c'=>'scope'));
+		if (!$res) {
+			$result['flag'] = 'error2';
+		} else {
+			$_SESSION['ncn_img_sawp']['changed'] = 'changed';
+		}
+	}
+	
+	echo json_encode($result);
+}
+
+function ncn_upload_changed_image() {
+	$result['flag'] = 'success';
+	$claim_id = $_REQUEST['claim_id'];
+	$room_name = $_REQUEST['room_name'];
+	$position = $_REQUEST['position'];
+	
+	$source = 'ncn_photo';
+	$file = file_save_upload($source);
+	
+	if ($file == 0 ) {
+		$result['flag'] = 'error1';
+		$result['msg']  = t('Missing of file for upload.');
+	} else if ($file->filemime != 'image/jpeg' && $file->filemime != 'image/jpg' && $file->filemime != 'image/gif' && $file->filemime != 'image/png' && strtolower(substr($file->filename, -4)) != ".bmp") {
+		$result['flag'] = 'error2';
+		$result['msg']  = t('You need to upload image file.');
+	} else {
+		$claim_dir = "sites/default/files/user_files/$claim_id/";
+		
+		if (!is_dir($claim_dir)) {
+			mkdir($claim_dir, 0755);
+		}
+		
+//		$filename = preg_replace("/[^a-zA-Z0-9\s\.]/", "_", basename($file->filename));
+		$res = file_copy($file, "public://user_files/$claim_id/", FILE_EXISTS_RENAME);
+		
+		if ( strtolower(substr($file->filename, -4)) == ".bmp" ) {
+			$old_filepath = drupal_realpath($file->uri);
+			$result_convert = convert_bmp_to_jpg($file);
+//			file_delete($old_filepath);
+			@unlink($old_filepath);
+			if ($result_convert === FALSE) {
+				$result['flag'] = 'error4';
+				$result['msg']  = "Failed to convert uploaded bmp file to png file. ($file->filename)";
+			} else {
+				$res = $result_convert;
+			}
+		}
+		
+		if ($result['flag'] == 'success') {
+			if ($res) {
+				//scale 500x350 initially.
+				$api_params = array(
+					'action'	=> 'scale',
+					'width' 	=> 500,
+					'height'	=> 350,
+					'upscale'	=> FALSE,
+					
+					'source'	=> drupal_realpath($res->uri),
+					'dest'		=> drupal_realpath($res->uri)
+				);
+
+				_ncn_image_api('scale', $api_params);
+
+                /*By - keyideas*/
+                $key_source = drupal_realpath($res->uri);
+                $k_temp_path = 'styles'.DIRECTORY_SEPARATOR.'image_tab_upload'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'user_files';
+                $key_dest = str_replace('user_files', $k_temp_path , $key_source);
+                $key_dest_pathinfo = pathinfo($key_dest);
+
+                if (!is_dir($key_dest_pathinfo['dirname'])) {
+                    mkdir($key_dest_pathinfo['dirname'], 0775);
+                }
+
+                $api_params = array(
+                    'action'	=> 'scale',
+                    'width' 	=> 234,
+                    'height'	=> 132,
+                    'upscale'	=> FALSE,
+
+                    'source'	=> $key_source,
+                    'dest'		=> $key_dest
+                );
+
+                _ncn_keyid_resize_img($api_params);
+                /*By - keyideas*/
+
+
+                $result['image_path'] = $claim_dir.$res->filename;
+			} else {
+				$result['flag'] = 'error3';
+				$result['msg']  = t('Failed to save uploaded image.');
+			}
+		}
+	}
+	echo json_encode($result);
+}
+
+function ncn_image_change_image_save() {
+	$result['flag'] = 'success';
+	$claim_id = $_REQUEST['claim_id'];
+	$room_name = $_REQUEST['room_name'];
+	$position = $_REQUEST['position'];
+	
+	$image_file_path = $_REQUEST['ncn_image_path'];
+//	$query = "SELECT * FROM claims_data WHERE claim_id=".$claim_id." AND `key`='scope'";
+	$result2 = db_query('SELECT * FROM {claims_data} WHERE claim_id=:a AND field_key=:b',array(':a'=>$claim_id,':b'=>'scope'));
+	if ($result2->rowCount() == 0) {
+		$result['flag'] = 'error1';
+		$result['msg']  = t('Claim(#!claim_id) hasn\'t photo album', array('!claim_id'=>$claim_id));
+	} else {
+		$row = $result2->fetchAssoc();
+		$row['val'] = unserialize($row['val']);
+		
+		$find = false;
+		foreach ($row['val'] as $roomname => $roomdata)
+		{
+			if ($roomname == $room_name) {
+				if (empty($image_file_path)) {
+					unset($row['val'][$roomname][$position]);
+				} else {
+					$row['val'][$roomname][$position]['type'] = 'image';
+					$row['val'][$roomname][$position]['path'] = $image_file_path;
+					$row['val'][$roomname][$position]['filename'] = basename($image_file_path);
+					$row['val'][$roomname][$position]['weight'] = 100;
+				}
+				break;
+			}
+		}
+		
+		$scope = serialize($row['val']);
+	//	$query1 = "UPDATE claims_data SET `val`='$scope' WHERE claim_id=".$claim_id." AND `key`='scope'";
+		$result1 = db_query('UPDATE {claims_data} SET val=:a WHERE claim_id=:b AND field_key=:c',array(':a'=>$scope,':b'=>$claim_id ,':c'=>scope));
+		if (!$result1) {
+			$result['flag'] = 'error2';
+			$result['msg']  = t('Failed to change image.');
+			$result['msg']  = $scope;
+		} else {
+			$_SESSION['ncn_img_sawp']['changed'] = true;
+		}
+	}
+	
+	echo json_encode($result);
+}
+?>

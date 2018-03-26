@@ -1,0 +1,59 @@
+
+/** Clearfix */
+.clearfix:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  line-height: 0;
+  visibility: hidden;
+}
+.clearfix {
+  display: inline-block;
+}
+html[xmlns] .clearfix {
+  display: block;
+}
+* html .clearfix {
+  height: 1%;
+}
+/** End Clearfix */
+
+.mail-wrapper1{
+	width: 600px;
+	background-color: #a3c1de;
+	font-family : Arial;
+	font-size: 12px;
+	margin: 5px auto;
+}
+
+.mail-content{
+	width: 580px;
+	margin: 0px auto;
+	padding-top: 10px;
+	padding-bottom: 20px;
+}
+.mail-header {
+	color: #1d5ca8;
+	font-style: italic;
+	
+	width: 100%;
+	margin: 5px 0px;
+}
+
+.mail-main {
+	width: 100%;
+	background-color: white;
+}
+
+.mail-main-wrapper {
+	width: 540px;
+	margin: 0px auto;
+	padding: 10px 0px;
+}
+
+.mail-footer {
+	width: 520px;
+	margin: 0px auto;
+	padding: 10px 0px;
+}

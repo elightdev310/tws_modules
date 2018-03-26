@@ -1,0 +1,176 @@
+<?php
+
+/**
+ *
+ */
+
+/**
+ * hook_init function
+ */
+function ncn_claim_report_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_claim_report') .'/ncn_claim_report.js');
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_claim_report_perm()
+{
+	return array('ncn claim report');
+}
+
+/**
+ * hook_menu function
+ */
+function ncn_claim_report_menu()
+{
+	$items = array();
+	
+	$items['ncn/ncn_claim_report'] = array(
+		'title' => t('NCN Claim Report'),
+		'page callback' => 'ncn_claim_report_render_page',
+		'access arguments' => array('ncn claim report'),
+		'options' => array('attributes'=>array('target'=>'_blank')),
+		'weight' => 2,
+	);
+	return $items;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function ncn_claim_report_theme(){
+	return array(
+		'ncn_claim_report_page' => array(
+			'arguments' => array('t_data' => array(), 'sum'=>'$0.00'),
+			'template' => 'ncn_claim_report_page',
+		),
+	);
+}
+
+function template_preprocess_ncn_claim_report_page(&$vars) {
+	
+}
+
+function ncn_claim_report_render_page() {
+	$t_data = array();
+	$query = "SELECT * FROM claims WHERE user_id!=69 AND claim_status!='unpurchased' AND deleted=0";
+	$query .= " ORDER BY last_modified DESC";
+	$result = mysql_query($query);
+	while ($claim = mysql_fetch_assoc($result)) {
+		if ($claim['workflow'] == 'completed_status') { continue; }
+		if ($claim['workflow'] == '' && $claim['claim_status'] != 'incomplete' && $claim['claim_status'] != 'out for review' && $claim['claim_status'] != 'returned' ) { continue; }
+		$r_data = array();
+		$_user = user_load($claim['user_id']);
+		$member = $_user->profile_firstname.' '.$_user->profile_lastname;
+		
+		$r_data['claim_id'] 	= $claim['claim_id'];
+		$r_data['member'] 		= $member;
+		$r_data['owner'] 		= ncn_cd($claim['claim_id'], 'customer_name');//ncn_claim_report_get_owner($_user->profile_memberid);
+		
+		$r_data['pp'] 					= (get_ncn_data_extra($claim['claim_id'], 'pp')=='on')? 'x':'';
+		$r_data['claim_docs_recieved'] 	= (get_ncn_data_extra($claim['claim_id'], 'claim_docs_recieved')=='on')? 'x':'';
+		$r_data['fax_in_dropbox'] 		= (get_ncn_data_extra($claim['claim_id'], 'fax_in_dropbox')=='on')? 'x':'';
+		$r_data['scott_conf_receipt'] 	= (get_ncn_data_extra($claim['claim_id'], 'scott_conf_receipt')=='on')? 'x':'';
+		$r_data['esx_pdf_uploaded'] 	= (get_ncn_data_extra($claim['claim_id'], 'esx_pdf_uploaded')=='on')? 'x':'';
+				
+		$r_data['claim_backend'] = (get_ncn_data_extra($claim['claim_id'], 'claim_backend')=='complete')? 'x':'';
+				
+		$r_data['rejected_claim_docs']	= '';	$r_data['all_docs_reieved']	= '';
+		ncn_claim_report_get_workflow_rcd_adr($claim['claim_id'], $r_data);
+		if ($claim['workflow']=='' || $claim['workflow']=='fax_doc_recieved') {
+			$r_data['rejected_claim_docs']	= '';
+		}
+		
+		$r_data['fax_in_vos']			= ncn_claim_report_get_fax_in_vos($claim['claim_id']);
+		$r_data['account_manager']		= ncn_claim_report_get_account_manager($_user->profile_memberid);
+		$r_data['invoice_posted_on_vos']= ncn_claim_report_get_invoice_posted_on_vos($claim['claim_id']);
+		$r_data['claim_amount']			= ($claim['claim_amount']==0)? '': render_payment_cost($claim['claim_amount']);
+		
+		$ts_rejected_invoice = intval(get_ncn_data_extra($claim['claim_id'], 'rejected_invoice_timestamp'));
+		if ($ts_rejected_invoice == 0) {
+			$r_data['rejected_invoice']		= '';
+		} else {
+			$r_data['rejected_invoice']		= date("m/d/Y H:i:s", $ts_rejected_invoice);
+		}
+		$t_data[] = $r_data;
+	}
+	
+	$sum = render_payment_cost(ncn_claim_report_get_total_amount());
+	return theme('ncn_claim_report_page', $t_data, $sum);
+}
+
+function ncn_claim_report_get_owner($member_id){
+	$query = "SELECT * FROM member_id_pool WHERE member_id='$member_id'";
+	$result = mysql_query($query);
+	if ($member = mysql_fetch_assoc($result)) {
+		$owner_id = $member['owner'];
+		$_owner = user_load($owner_id);
+		return $_owner->profile_firstname.' '.$_owner->profile_lastname;
+	}
+	return '';
+}
+
+function ncn_claim_report_get_workflow_rcd_adr($claim_id, &$r_data){
+	$query = "SELECT * FROM claims_log WHERE claim_id=$claim_id ORDER BY timestamp DESC ";
+	$result = mysql_query($query);
+	while ($msg_log = mysql_fetch_assoc($result)) {
+		$claim_workflow = get_claim_workflow_array();
+		//$claim_workflow['all_doc_recieved']
+		$workflow = 'all_doc_recieved';
+		$match_msg = "Timer(claim: #$claim_id) has been started.";
+		if ($msg_log['message'] == $match_msg || $msg_log['message'] == ($match_msg." (".$claim_workflow[$workflow].")")) {
+			$r_data['all_docs_reieved'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+			return;
+		}
+		
+		//$claim_workflow['rejected_claim_docs']
+		$workflow = 'rejected_claim_docs';
+		$match_msg = "Timer(claim: #$claim_id) has been stopped." . " (".$claim_workflow[$workflow].")";
+		if ($msg_log['message'] == $match_msg) {
+			$r_data['rejected_claim_docs'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+			return;
+		} else {
+			$match_msg = "Claim workflow updated to: Rejected Claim Documents.";
+			if (trim($msg_log['message']) == $match_msg) {
+				$r_data['rejected_claim_docs'] = date("m/d/Y H:i:s", $msg_log['timestamp']);
+				return;
+			}
+		}
+	}
+}
+
+function ncn_claim_report_get_fax_in_vos($claim_id) {
+	$type = 2;
+	$query = "SELECT * FROM claims_invoices WHERE claim_id=".$claim_id." AND `live`=".$type." ORDER BY revision DESC LIMIT 0,1";
+	$result = mysql_query($query);
+	if ($claim_doc_file = mysql_fetch_assoc($result)) {
+		return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+	}
+	return '';
+}
+
+function ncn_claim_report_get_invoice_posted_on_vos($claim_id) {
+	$type = 1;
+	$query = "SELECT * FROM claims_invoices WHERE claim_id=".$claim_id." AND `live`=".$type." ORDER BY revision DESC LIMIT 0,1";
+	$result = mysql_query($query);
+	if ($claim_doc_file = mysql_fetch_assoc($result)) {
+		return date("m/d/Y H:i:s", $claim_doc_file['timestamp']);
+	}
+	return '';
+}
+
+function ncn_claim_report_get_account_manager($member_id){
+	$query = "SELECT * FROM member_id_pool WHERE member_id='$member_id'";
+	$result = mysql_query($query);
+	if ($member = mysql_fetch_assoc($result)) {
+		$am_uid = $member['am_uid'];
+		$_am = user_load($am_uid);
+		return $_am->profile_firstname.' '.$_am->profile_lastname;
+	}
+	return '';
+}
+
+function ncn_claim_report_get_total_amount() {
+	$query = "SELECT SUM(claim_amount) FROM claims WHERE user_id!=69 AND claim_status!='unpurchased'  AND deleted=0";
+	$sum = mysql_result(mysql_query($query), 0);
+	return floatval($sum);
+}

@@ -1,0 +1,6 @@
+; $Id: book.info,v 1.5 2007/07/30 18:20:21 dries Exp $
+name = NCN Claims Manager
+description = Handles all the display functions for the claims manager pages in the users account.
+package = Net Claims Now
+core = 7.x
+dependencies[] = ncn_generate_invoice

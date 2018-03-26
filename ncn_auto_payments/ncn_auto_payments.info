@@ -1,0 +1,6 @@
+; $Id$
+name = "NCN Automated Payment Processing"
+description = Handles user signup fee (for distributor) and monthly fee for user.
+package = Net Claims Now
+
+core = 7.x

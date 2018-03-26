@@ -1,0 +1,4 @@
+name = NCN Poll
+description = Net Claims Now Poll
+package = Net Claims Now
+core = 7.x

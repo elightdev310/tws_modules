@@ -1,0 +1,1031 @@
+<?php
+
+/**
+ *
+ */
+
+/**
+ * hook_init function
+ */
+function ncn_sponsor_init() {
+    drupal_add_js(drupal_get_path('module', 'ncn_sponsor').'/ncn_sponsor.js');
+    drupal_add_js(drupal_get_path('module', 'ncn_sponsor').'/ajaxfileupload.js');
+    drupal_add_js(drupal_get_path('module', 'ncn_sponsor').'/jquery.tablednd_0_5.js');
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_sponsor_permission()
+{
+    //return array('ncn sponsor management');
+    return array(
+        'ncn sponsor management' =>  array(
+            'title' => t('ncn sponsor management'),
+        ),  
+    );  
+}
+
+/**
+ * hook_menu function
+ */
+function ncn_sponsor_menu()
+{
+    $item = array();
+    $item['admin/config/ncn_sponsor'] = array(
+        'title' => 'Net Claims Now Sponsor',
+        'page callback' => 'ncn_sponsor_list_page',
+        'access arguments' => array('ncn sponsor management'),
+    );
+    $item['admin/config/ncn_sponsor/list'] = array(
+        'title' => 'Show sponsors',
+        'page callback' => 'ncn_sponsor_list_page',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => 0,
+    );
+    $item['admin/config/ncn_sponsor/list'] = array(
+        'title' => 'Show sponsors',
+        'page callback' => 'ncn_sponsor_list_page',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+    );
+    $item['admin/config/ncn_sponsor/add_sponsor'] = array(
+        'title' => 'Add sponsor',
+        'page callback' => 'ncn_sponsor_add_sponsor_page',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 2,
+    );
+    $item['admin/config/ncn_sponsor/report'] = array(
+        'title' => 'Report',
+        'page callback' => 'ncn_sponsor_report_page',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+    );
+    
+    $item['ajax/sponsor_file_upload'] = array(
+        'page callback' => 'sponsor_file_upload',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $item['ajax/sponsor_remove_uploaded_file'] = array(
+        'page callback' => 'sponsor_remove_uploaded_file',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $item['ajax/sponsor_click_sponsor_image'] = array(
+        'page callback' => 'sponsor_click_sponsor_image',
+        'access arguments' => array('ncn sponsor management'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    return $item;
+}
+
+/**
+ * hook_block function
+ */
+function ncn_sponsor_block($op = 'list', $delta = 0, $edit = array()) {
+    
+}
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * show list of sponsors
+ */
+function ncn_sponsor_list_page() {
+    GLOBAL $base_url;
+    if (arg(4)=='edit') {
+        return ncn_sponsor_edit_sponsor_page(intval(arg(5)));
+    } else if (arg(4) == 'delete') {
+        ncn_sponsor_delete_sponsor_page(intval(arg(5)));
+    }
+    
+    ncn_sponsor_list_page_action(); 
+    ncn_sponsor_check_expiration();
+    
+//  $query = "SELECT * FROM sponsors WHERE expired=0 ORDER BY s_order ASC";
+    $result = db_query('SELECT * FROM {sponsors} WHERE expired=0 ORDER BY s_order ASC');
+    $row_count = $result->rowCount();
+    ob_start();
+?>
+<div id="ncn_sponsor_list_page">
+<form id="update_sponsors_form" method="POST" >
+<input type="hidden" name="tfunction" id="tfunction" value="update_order_weight" ></input>
+<p>
+    To rearrange sponsors, drag the sponsor to a new location in the list.
+</p>
+<table id="sponsors_drag_table">
+<thead>
+    <th>Sponsor ID</th>
+    <th></th>
+    <th>Name</th>
+    <th>From ~ To</th>
+    <th>Duration</th>
+    <th>Remained Time</th>
+    <th>Weight</th>
+    <th></th>
+</thead>
+<tbody>
+<?php 
+foreach($result as $i => $sponsor )
+{ 
+    $sponsor = (array)$sponsor;
+    $duration = $sponsor['duration'].' '.$sponsor['duration_unit'];
+
+    if ($sponsor['duration'] > 1) {
+        $duration .='s';
+    }
+    $end_time = strtotime("+$duration", $sponsor['start_time']);
+    $str_remained = ncn_sponsor_format_remained_time($end_time-date('U'));
+    $edit_url = $base_url.'/admin/config/ncn_sponsor/list/edit/'.$sponsor['sponsor_id'];
+    $delete_url = $base_url.'/admin/config/ncn_sponsor/list/delete/'.$sponsor['sponsor_id'];
+    
+    $class = ($i%2)? 'even':'odd';
+    echo '<tr class="'.$class.'" id="sponsor-'.($i+1).'">';
+?>
+    <td><?php echo $sponsor['sponsor_id']; ?></td>
+    <td><input type="hidden" id="<?php echo "sponsor-".($i+1)."-order"; ?>" name="s_order[<?php echo $sponsor['sponsor_id']; ?>]" value="<?php echo $sponsor['s_order']; ?>" ></td>
+    <td><?php echo $sponsor['sponsor_name']; ?></td>
+    <td><?php echo date('d M Y H:i:s', $sponsor['start_time']).' ~ '.date('d M Y H:i:s', $end_time); ?></td>
+    <td><?php echo $duration; ?></td>
+    <td><?php echo $str_remained; ?></td>
+    <td><?php echo draw_impression_weight('weight['.$sponsor['sponsor_id'].']', $sponsor['s_weight'], 'style="width:50px;"'); ?></td>
+    <td><span><a href="<?php echo $edit_url; ?>">Edit</a>&nbsp;&nbsp;
+        <a href="<?php echo $delete_url; ?>" onclick="return on_click_ncn_sponsor_delete();">Delete</a></span>
+    </td>
+<?php
+    echo "</tr>";
+}
+?>
+
+</tbody>
+</table>
+
+<?php   
+    if ($row_count>0) {
+        echo '<div class="submit-panel">';
+        echo '<input type="submit" value="Save"/>';
+        echo '</div>';
+    }
+?>
+</form>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#sponsors_drag_table").tableDnD({
+        onDragClass: "myDragClass",
+        onDrop: function(table, row) {
+            var rows = table.tBodies[0].rows;
+            for (var i=0; i<rows.length; i++) {
+                var order_obj = "#"+rows[i].id+"-order";
+                jQuery(order_obj).val(i+1);
+                //alert(rows[i].children.item(1).children.item(0).value);
+            }
+        },
+        onDragStart: function(table, row) {
+            
+        }
+    });
+});
+
+function on_click_btn() {
+        //alert($('#sponsor-4-order').val());
+        $('#sponsor-4-order').val(10);
+        $('#sponsor-4-order').css('border', 'solid 2px #222');
+        $('#tfunction-test-123123').val('1111111111');
+        return false;
+}
+    
+</script>
+</div>
+<?php   
+    $content = ob_get_contents();
+    ob_end_clean();
+    return $content;
+}
+
+
+function ncn_sponsor_list_page_action() {
+    if (isset($_POST['tfunction']) && $_POST['tfunction']=='update_order_weight') {
+        $weights = $_POST['weight'];
+        if (!is_array($weights)) {
+            handle_unknown_error('50401-NCN-SPONSOR');
+            return;
+        }
+        
+        foreach ($weights as $key=>$weight) {
+        //  $query = "UPDATE sponsors SET s_weight=$weight WHERE sponsor_id=$key";
+            $result = db_query('UPDATE {sponsors} SET s_weight=:a WHERE sponsor_id=:b',array(':a'=>$weight,':b'=>$key));
+        }
+        
+        $orders = $_POST['s_order'];
+        if (!is_array($orders)) {
+            handle_unknown_error('50402-NCN-SPONSOR');
+            return;
+        }
+        foreach ($orders as $key=>$order) {
+        //  $query = "UPDATE sponsors SET s_order=$order WHERE sponsor_id=$key";
+            $result = db_query('UPDATE {sponsors} SET s_order=:a WHERE sponsor_id=:b',array(':a'=>$order,':b'=>$key));
+        }
+        
+        drupal_set_message(t('Sponsors updated, successfully.'));
+    }
+}
+
+/**
+ * delete sponsor
+ */
+function ncn_sponsor_delete_sponsor_page($sponsor_id) {
+    
+    $result = db_query('DELETE FROM {sponsors} WHERE sponsor_id=:d', array(':d'=>$sponsor_id));
+    if ($result) {
+        drupal_set_message(t('Sponsor(#!sid) removed, successfully.', array('!sid'=>$sponsor_id)));
+        db_query('DELETE FROM {sponsor_report} WHERE sponsor_id=:d', array(':d'=>$sponsor_id));
+    } else {
+        drupal_set_message(t('Failed to remove sponsor.'), 'error');
+    }
+    drupal_goto('admin/config/ncn_sponsor/list');
+}
+
+/**
+ * edit sponsor
+ */
+function ncn_sponsor_edit_sponsor_page($sponsor_id) {
+    $sponsor = ncn_sponsor_get_sponsor_from_id($sponsor_id);
+    if (isset($_POST['tfunction-edit']) && $_POST['tfunction-edit'] == 'edit_sponsor') {
+        $image_path = $_POST['sponsor_image'];
+        $link_url   = $_POST['link_url'];
+        $sponsor_name=$_POST['sponsor_name'];
+        $duration   = intval($_POST['duration']);
+        $duration_unit= $_POST['duration_unit'];
+        $s_weight   = $_POST['s_weight'];
+        
+        // ncn_sponsor_edit_sponsor_page_action
+        $error = false;
+        // check validation
+        if (empty($image_path)) {
+            drupal_set_message(t('Please upload sponsor image.'), 'error');
+            $error = true;
+        }
+        if (!empty($link_url) && !validateURL($link_url)) {
+            drupal_set_message(t('Link URL invalide.'), 'error');
+            $error = true;
+        }
+        
+        if (!is_int($duration) || $duration < 1) {
+            drupal_set_message(t('Duration should be positive integer.'), 'error');
+            $error = true;
+        } else {
+            $calc_duration = $duration.' '.$duration_unit;
+            if ($duration > 1) {
+                $calc_duration .='s';
+            }
+            $calc_end_time = strtotime("+$calc_duration", $sponsor['start_time']);
+            $cur_now = date('U');
+            $remained_time = $calc_end_time - $cur_now;
+            if ($remained_time < 10) {
+                drupal_set_message(t('Sponsor would be expired. Please set duration longer.'), 'error');
+                $error = true;
+            }
+        }
+        
+        if (!$error) {
+            $query = "UPDATE sponsors SET 
+                      image_path='$image_path', 
+                      link_url='$link_url', 
+                      sponsor_name='$sponsor_name', 
+                      duration=$duration, 
+                      duration_unit='$duration_unit', 
+                      s_weight=$s_weight 
+                      WHERE sponsor_id=$sponsor_id";
+                      
+            $result=db_query($query);
+            
+            if (!$result) {
+                drupal_set_message(t('Failed to update sponsor.'), 'error');
+            } else {
+                drupal_set_message(t('Sponsor updated, successfully.'));
+                $str_remained = ncn_sponsor_format_remained_time(intval($remained_time));
+                drupal_set_message( t('!remained_time remained before expiration (!to_time).', array('!remained_time'=>$str_remained, '!to_time'=>date('d M Y, H:i:s', $calc_end_time)) ) );
+            }
+        }
+    } 
+    else {
+        if (empty($sponsor)) {
+            drupal_set_message(t('Sponsor(#!sponsor_id) doesn\'t exist.', array('!sponsor_id'=>$sponsor_id)), 'error');
+            drupal_goto('admin/config/ncn_sponsor/list');
+        }
+        $image_path = $sponsor['image_path'];
+        $image_url  = file_create_url($sponsor['image_path']);
+        $link_url   = $sponsor['link_url'];
+        $sponsor_name=$sponsor['sponsor_name'];
+        $duration   = $sponsor['duration'];
+        $duration_unit= $sponsor['duration_unit'];
+        $s_weight   = $sponsor['s_weight'];
+    }
+    
+    ob_start();
+?>
+<div id="ncn_sponsor_edit_sponsor_page">
+<form method="POST"> 
+<input type="hidden" name="tfunction-edit" value="edit_sponsor" />
+<fieldset>
+    <table>
+        <tr><td width="150">Image*: </td>
+            <td><div id="sponsor_image"><?php echo ncn_sponsor_draw_upload_image('sponsor_image', $image_path,$image_url); ?></div>
+            </td>
+        </tr>
+        <tr><td>Name: </td>
+            <td><input type="text" name="sponsor_name" id="sponsor_name" value="<?php echo $sponsor_name; ?>" size="50"/></td>
+        </tr>
+        <tr><td>Link URL: </td>
+            <td><input type="text" name="link_url" id="link_url" value="<?php echo $link_url; ?>" size="50"/></td>
+        </tr>
+        <tr><td>Duration*: </td>
+            <td><input type="text" name="duration" id="duration" value="<?php echo $duration; ?>" size="15"/>&nbsp;<?php echo draw_duration_unit('duration_unit', $duration_unit); ?></td>
+        </tr>
+        <tr><td>Impression Weight*: </td>
+            <td><?php echo draw_impression_weight('s_weight', $s_weight, 'style="width:100px;"'); ?></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Edit sponsor"/></td>
+        </tr>
+    </table>
+</fieldset>
+</form>
+</div>
+<?php 
+    $content = ob_get_contents();
+    ob_end_clean();
+    
+    return $content;
+}
+
+/**
+ * add sponsor
+ */
+function ncn_sponsor_add_sponsor_page() {
+    ncn_sponsor_add_sponsor_page_action();
+    
+    $image_path = isset($_POST['sponsor_image'])?$_POST['sponsor_image']:'';
+    //drupal_set_title('Add Sponsor');
+    ob_start();
+?>
+<div id="ncn_sponsor_add_sponsor_page">
+<form method="POST"> 
+<input type="hidden" name="tfunction" value="add_sponsor" />
+<fieldset>
+    <table>
+        <tr><td width="150">Image*: </td>
+            <td><div id="sponsor_image"><?php echo ncn_sponsor_draw_upload_image('sponsor_image', $image_path); ?></div>
+            </td>
+        </tr>
+        <tr><td>Name: </td>
+            <td><input type="text" name="sponsor_name" id="sponsor_name" value="<?php echo isset($_POST['sponsor_name'])?$_POST['sponsor_name']:'' ?>" size="50"/></td>
+        </tr>
+        <tr><td>Link URL: </td>
+            <td><input type="text" name="link_url" id="link_url" value="<?php echo isset($_POST['link_url'])?$_POST['link_url']:'' ?>" size="50"/></td>
+        </tr>
+        <tr><td>Duration*: </td>
+            <td><input type="text" name="duration" id="duration" value="<?php echo isset($_POST['duration'])?$_POST['duration']:'' ?>" size="15"/>&nbsp;
+                <?php echo draw_duration_unit('duration_unit', (isset($_POST['duration_unit'])?$_POST['duration_unit']:'')) ?></td>
+        </tr>
+        <tr><td>Impression Weight*: </td>
+            <td><?php echo draw_impression_weight('s_weight', isset($_POST['s_weight'])?$_POST['s_weight']:0, 'style="width:100px;"'); ?></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Add sponsor"/></td>
+        </tr>
+    </table>
+</fieldset>
+</form>
+</div>
+<?php 
+    $content = ob_get_contents();
+    ob_end_clean();
+    
+    return $content;
+}
+
+function draw_duration_unit($name, $value='', $attributes='')
+{
+    $units = array(
+        'day'=>' day ', 
+        'week'=>' week ');
+    
+    $content = '<select name="'.$name.'" '.$attributes.'>';
+    foreach ($units as $key=>$unit) {
+        $selected = '';
+        if ($key == $value) { $selected = 'selected'; }
+        $content .= '<option value="'.$key.'" '.$selected.'>'.$unit.'</option>';
+    }
+    $content .= '</select>';
+    
+    return $content;
+}
+function draw_impression_weight($name, $value='', $attributes='')
+{   $max_weight = 10;
+    $weight_array = array();
+    for ($i=1; $i<=$max_weight; $i++) {
+        $weight_array[$i] = $i;
+    }
+    
+    $content = '<select name="'.$name.'" '.$attributes.'>';
+    foreach ($weight_array as $key=>$weight) {
+        $selected = '';
+        if ($key == $value) { $selected = 'selected'; }
+        $content .= '<option value="'.$key.'" '.$selected.'>'.$weight.'</option>';
+    }
+    $content .= '</select>';
+    
+    return $content;
+}
+
+function ncn_sponsor_add_sponsor_page_action() {
+//add sponsor
+    if (isset($_POST['tfunction']) && $_POST['tfunction'] == 'add_sponsor') {
+        $image_url      = $_POST['sponsor_image'];
+        $link_url       = $_POST['link_url'];
+        $sponsor_name   = $_POST['sponsor_name'];
+        $duration       = intval($_POST['duration']);
+        $duration_unit  = $_POST['duration_unit'];
+        $weight         = intval($_POST['s_weight']);
+        
+        $error = false;
+        if (empty($image_url)) {
+            drupal_set_message(t('Please upload sponsor image.'), 'error');
+            $error = true;
+        }
+        
+        if (!empty($link_url) && !validateURL($link_url)) {
+            drupal_set_message(t('Link URL invalide.'), 'error');
+            $error = true;
+        }
+        
+        if (!is_int($duration) || $duration < 1) {
+            drupal_set_message(t('Duration should be positive integer.'), 'error');
+            $error = true;
+        }
+        if ($error) { return; }
+        
+
+        $order = 999;       // temporary
+        $time_now = date('U');
+
+
+        $result = db_query('INSERT INTO {sponsors} VALUES(NULL, :a, :b, :c, :d, :e, :f, :g, :h, :i)',
+            array(':a'=>$order,':b'=>$weight,':c'=>$time_now,':d'=>$duration,':e'=>$duration_unit,':f'=>0,':g'=>$image_url,':h'=>$link_url,':i'=>$sponsor_name));
+
+        if (!$result) {
+            handle_mysql_syntax_error('50601-NCN-SPONSOR', $result);
+            return FALSE;
+        }
+
+        $sponsor_id = db_query('SELECT sponsor_id FROM {sponsors} WHERE start_time=:d',array(':d'=>$time_now))->fetchField();
+
+
+        drupal_set_message(t('Sponsor(#!sponsor_id) added, successfully.', array('!sponsor_id'=> $sponsor_id)));
+
+        ncn_sponsor_rearrange_order();  // set last order
+        
+        $result = db_query('INSERT INTO {sponsor_report} VALUES(:a,:b,:c)',
+            array(':a'=>$sponsor_id,':b'=>0,':c'=>0));
+
+
+        if (!$result) {
+            handle_mysql_syntax_error('50601-NCN-SPONSOR', $query);
+            drupal_set_message(t('Sponsor(#!sponsor_id) has a problem in report. Please report this to web master.', array('!sponsor_id'=>$sponsor_id)), 'error');
+        }
+        
+        drupal_goto('admin/config/ncn_sponsor/list');
+    }
+}
+
+/**
+ * show list of sponsors
+ */
+
+function ncn_sponsor_report_page() {
+    ncn_sponsor_check_expiration();
+    
+    //drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/ncn_admin.js');
+    $header = array(
+        array('data' => t('Sponsor ID')),
+        array('data' => t('Name')),
+        array('data' => t('From ~ To')),
+        array('data' => t('Duration')),
+        array('data' => t('Impression')),
+        array('data' => t('Click')),
+    );
+
+
+
+
+//    $query = db_select('sponsor_report','sr');
+//      $query->leftJoin('sponsors','sp',array('sponsor_id','sponsor_name','start_time','duration','duration_unit','expired'));
+//        $_select = $query->fields('sr',array('sponsor_id','click','impression'))
+//                    ->where('sr.sponsor_id = sp.sponsor_id')
+//                    ->execute()
+//                    ->fetchAll();
+//    var_dump($_select);
+  //    $query->orderBy('sp.expired', 'ASC');
+    //  $query->orderBy('sp.s_order', 'ASC');
+     // $query->orderBy('sp.start_time', 'ASC');
+    //  $query->extend('PagerDefault');
+
+
+    $query = db_query("SELECT sr.sponsor_id     AS sponsor_id,
+                     sp.sponsor_name AS sponsor_name,
+                     sr.click       AS click,
+                     sr.impression  AS impression,
+                     sp.start_time  AS start_time,
+                     sp.duration    AS duration,
+                     sp.duration_unit AS duration_unit,
+                     sp.expired     AS expired
+              FROM {sponsor_report} sr LEFT JOIN {sponsors} sp ON sr.sponsor_id=sp.sponsor_id
+              ORDER BY sp.expired ASC, sp.s_order ASC, sp.start_time ASC");
+
+      $result = $query;
+   // $result = pager_query($query, 50);
+    if (!$result) {
+        handle_mysql_syntax_error('50251-NCN-SPONSOR', $query);
+        return FALSE;
+    }
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+        $sponsor_id = $row['sponsor_id'];
+        $str_expired ='';
+        if ($row['expired']!=0) {
+            $str_expired =' (*expired)';
+        }
+        
+        $duration = $row['duration'].' '.$row['duration_unit'];
+        if ($row['duration'] > 1) {
+            $duration .='s';
+        }
+        $end_time = strtotime("+$duration", $row['start_time']);
+        
+        $rows[] = array('data' => array(
+            // Cells
+            $sponsor_id.$str_expired,
+            $row['sponsor_name'],
+            date('d M Y H:i:s', $row['start_time']).' ~ '.date('d M Y H:i:s', $end_time), 
+            $duration, 
+            $row['impression'],
+            $row['click']
+            ),
+        );
+    }
+    if (!$rows) {
+        $rows[] = array(array('data' => t("There isn't sponsors."), 'colspan' => 6));
+    }
+    $output = '';
+    $output = theme('table',array('header'=>$header,'rows'=>$rows,'attributes'=>array('id' => 'ncn_sponsor_report_page')));
+    $output .= theme('pager');
+    return $output;
+}
+
+function ncn_sponsor_draw_upload_image($wrapper, $image_path='',$image_url=''){
+    GLOBAL $base_url;
+    if (empty($image_url)) {
+        return '<input type="file" id="'.$wrapper.'_file" name="files['.$wrapper.']" class="image_file" accept="image/jpg, image/jpeg, image/gif, image/png" size="25" />&nbsp;
+        <input type="button" id="btn_upload_image" value="Upload" onclick="return on_click_sponsor_image(&#039;'.$wrapper.'&#039;);" />';
+    } else {
+        return "<input type='hidden' name='$wrapper' value='$image_path'/>
+                <img src='$image_url' height='50px'/>
+                <input type='button' value='Remove' onclick='on_click_sponsor_image_remove(&#039;$wrapper&#039;)' />";
+    }
+}
+
+//function ncn_sponsor_draw_upload_image($wrapper, $image_path='', $image_url=''){
+//    GLOBAL $base_url;
+//    if (empty($image_url)) {
+//        return '<input type="file" id="'.$wrapper.'_file" name="files['.$wrapper.']" class="image_file" accept="image/jpg, image/jpeg, image/gif, image/png" size="25" />&nbsp;
+//      <input type="button" id="btn_upload_image" value="Upload" onclick="return on_click_sponsor_image(&#039;'.$wrapper.'&#039;);" />';
+//    } else {
+//        return "<input type='hidden' name='$wrapper' value='$image_path'/>
+//              <img src='$image_url' width='100px'/>
+//              <input type='button' value='Remove' onclick='on_click_sponsor_image_remove(&#039;$wrapper&#039;)' />";
+//    }
+//}
+
+function sponsor_file_upload() {
+    $error = "";
+    $msg = "";
+    $filepath = "";
+    $content = "";
+    
+    $source = 'sponsor_image';
+//  $file = file_save_upload($source);
+    $file = file_save_upload($source, array(), 'public://sponsors', FILE_EXISTS_RENAME);
+    if (!$file) {
+        $error = "Missing of file for upload.";
+    } else if ($file->filemime != 'image/jpeg' && $file->filemime != 'image/jpg' && $file->filemime != 'image/gif' && $file->filemime != 'image/png' && strtolower(substr($file->filename, -4)) != ".bmp") {
+        $error = "You need to upload image file.";
+    } else {
+
+        if ($wrapper = file_stream_wrapper_get_instance_by_uri('public://')) {
+            $path = $wrapper->realpath(); // output => C:\wamp\www\drupaldemo\sites\default\files
+        }
+        $sponsors_dir = $path."/sponsors/";
+
+
+     //   $sponsors_dir = "sites/default/files/sponsors/";
+        
+        if (is_dir($sponsors_dir)===false) {
+            @drupal_mkdir($sponsors_dir);
+        }
+
+
+        $file->status = FILE_STATUS_PERMANENT; //Set the status of the uploaded file.
+        $res = file_save($file);
+    //  $res = file_copy($file, $sponsors_dir, FILE_EXISTS_RENAME);
+        if ($res) {
+        //  $filepath = $file->filepath;
+            $content = ncn_sponsor_draw_upload_image($_REQUEST['div_id'],$file->uri, file_create_url($file->uri));
+        } else {
+            $error = "Failed to save uploaded image.";
+        }
+    }
+    
+    $json_result['error'] = $error;
+    $json_result['filepath'] = $filepath;
+    $json_result['content'] =  htmlentities($content, ENT_QUOTES);
+    
+    /*echo "{";
+    echo                "error: '" . $json_result['error'] . "',\n";
+    echo                "filepath: '" . $json_result['filepath'] . "'\n";
+    echo                "content: '" . $json_result['content'] . "'\n";
+    echo "}";*/
+    
+    echo json_encode($json_result);
+    
+}
+
+function sponsor_remove_uploaded_file() {
+    echo ncn_sponsor_draw_upload_image($_REQUEST['div_id'], '');
+}
+
+function sponsor_click_sponsor_image() {
+    $sponsor_id = intval($_REQUEST['sponsor_id']);
+    ncn_sponsor_update_report($sponsor_id, 'click');
+}
+
+function ncn_sponsor_section() {
+    GLOBAL $base_url;
+    $content = '';
+    ncn_sponsor_check_expiration();
+    $cur_sponsor_rotate = ncn_sponsor_get_sponsor_rotate();
+    
+    $cur_sponsor = ncn_sponsor_get_sponsor_from_id($cur_sponsor_rotate['sponsor_id']);
+    if (!empty($cur_sponsor)) {
+        if (!empty($cur_sponsor['image_path'])) {
+            $image_path = $cur_sponsor['image_path'];
+            $link_url = $cur_sponsor['link_url'];
+            
+            $content .= "<img class='image_sponsor_image' src='".file_create_url($image_path)."' />";
+            if (!empty($link_url)) {
+                $content = "<a id='sponsor_image_link' href='$link_url' onclick=\"on_click_sponsor_section(".$cur_sponsor['sponsor_id'].");\" target='_blank' >$content</a>";
+            }
+            
+            ncn_sponsor_after_render_sponsor_rotate($cur_sponsor_rotate['sponsor_id'], $cur_sponsor_rotate['s_count']);
+        }
+    }
+    return $content;
+}
+
+/*****************************************************************************/
+/*                      API Function                                         */
+/*****************************************************************************/
+ 
+/**
+  * rearrange order of live(not expired) sponsors 
+  */
+function ncn_sponsor_rearrange_order() {
+    $sponsor_list = ncn_sponsor_get_sponsors('expired=0');
+    usort($sponsor_list, '_ncn_sponsor_sort_callback');
+    
+    for ($i=0; $i<count($sponsor_list); $i++) {
+        $sponsor_list[$i]['s_order'] = ($i+1);
+    }
+    
+    for ($i=0; $i<count($sponsor_list); $i++) {
+    //  $query = "UPDATE sponsors SET s_order=".($i+1)." WHERE sponsor_id=".$sponsor_list[$i]['sponsor_id'];
+        $result = db_query('UPDATE {sponsors} SET s_order=:a WHERE sponsor_id=:b',
+            array(':a'=>($i+1),':b'=>$sponsor_list[$i]['sponsor_id']));
+    }
+}
+
+function _ncn_sponsor_sort_callback($a, $b) {
+    // Order
+    if      ( $a['s_order'] < $b['s_order'] ) { return -1; }
+    else if ( $a['s_order'] > $b['s_order'] ) { return 1; }
+    
+    // Weight
+    if      ( $a['s_weight'] < $b['s_weight'] ) { return -1; }
+    else if ( $a['s_weight'] > $b['s_weight'] ) { return 1; }
+    
+    // Start time
+    if      ( $a['start_time'] < $b['start_time'] ) { return -1; }
+    else if ( $a['start_time'] > $b['start_time'] ) { return 1; }
+    
+    return 0;
+}
+
+/**
+ * check expiration of sponsors
+ */
+function ncn_sponsor_check_expiration() {
+    
+//  $query = "UPDATE sponsors SET s_order=999 WHERE expired!=0 AND s_order!=999";
+    $result = db_query('UPDATE {sponsors} SET s_order=999 WHERE expired!=0 AND s_order!=999');
+    if (!$result) {
+        handle_mysql_syntax_error('50103-NCN-SPONSOR', $query);
+        return;
+    }
+        
+    $live_sponsors_list = ncn_sponsor_get_sponsors('expired=0');
+    $count = count($live_sponsors_list);
+    
+    for ($i=0; $i<$count; $i++) 
+    {
+        $sponsor = $live_sponsors_list[$i];
+        $duration = $sponsor['duration'].' '.$sponsor['duration_unit'];
+        if ($sponsor['duration'] > 1) {
+            $duration .='s';
+        }
+        $end_time = strtotime("+$duration", $sponsor['start_time']);
+        $cur_time = date('U');
+        if ($end_time<=$cur_time) {
+        //  $query1 = 'UPDATE sponsors SET expired=1 WHERE sponsor_id='.$sponsor['sponsor_id'];
+            $result1 = db_query('UPDATE {sponsors} SET expired=1 WHERE sponsor_id=:a',array(':a'=>$sponsor['sponsor_id']));
+        }
+    }
+    
+    ncn_sponsor_set_sponsor_rotate_after_checking_expiration();
+    ncn_sponsor_rearrange_order();      // only eliminate expired sponsors in order queue.
+}
+
+/**
+ * set next sponsor id after checking expiration
+ * @pre-condition: check expiration
+ */
+function ncn_sponsor_set_sponsor_rotate_after_checking_expiration() {
+    $cur_sponsor_rotate = ncn_sponsor_get_sponsor_rotate();
+    $cur_sponsor = ncn_sponsor_get_sponsor_from_id($cur_sponsor_rotate['sponsor_id']);
+    
+    if (isset($cur_sponsor['expired']) && $cur_sponsor['expired']!=0) {
+        $sponsors_list = ncn_sponsor_get_sponsors('s_order!=999', 's_order ASC');
+        for ($i=0; $i<count($sponsors_list); $i++) {
+            if ($cur_sponsor['sponsor_id'] == $sponsors_list[$i]['sponsor_id']) {
+                
+                break;
+            }
+        }
+        $find_next = false;
+        $i++;
+        
+        for (; $i<count($sponsors_list); $i++) {
+            if ($sponsors_list[$i]['expired'] == 0) {
+                ncn_sponsor_set_sponsor_rotate($sponsors_list[$i]['sponsor_id'], 1);
+                $find_next = true;
+                break;
+            }
+        }
+        
+        if (!$find_next) {
+            ncn_sponsor_set_sponsor_rotate(0, 0);   
+        }
+    }
+}
+
+/**
+ * update click/impression report
+ */
+function ncn_sponsor_update_report($sponsor_id, $which) {
+    if ($which == 'click' || $which == 'impression') {
+    //  $query = "SELECT * FROM sponsor_report WHERE sponsor_id = $sponsor_id";
+        $result = db_query('SELECT * FROM {sponsor_report} WHERE sponsor_id = :a',array(':a'=>$sponsor_id));
+        if ($result->rowCount() == 0) {
+            drupal_set_message(t('Sponsor(#!sponsor_id) hasn\'t report. Please report this to web master.', array('!sponsor_id'=>$sponsor_id)), 'error');
+            return FALSE;
+        }
+        $sponsor_report = $result->fetchAssoc();
+        $count = intval($sponsor_report[$which]);
+        $count++;
+        $query = "UPDATE sponsor_report SET $which=$count WHERE sponsor_id = $sponsor_id";
+        $result = db_query($query);
+        if (!$result) {
+            handle_mysql_syntax_error('50210-NCN-SPONSOR', $query);
+            return FALSE;
+        }
+    } else {
+        handle_unknown_error('50101-NCN-SPONSOR');
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * get array of live sponsors
+ */
+function ncn_sponsor_get_sponsors($q_where, $q_orderby='') {
+    $array_sponsors = array();
+    
+    $query = "SELECT * FROM sponsors";
+    if (!empty($q_where))   { $query .= " WHERE $q_where"; }
+    if (!empty($q_orderby)) { $query .= " ORDER BY $q_orderby"; }
+    $result = db_query($query);
+    if (!$result) {
+        handle_mysql_syntax_error('50501-NCN-SPONSOR', $query);
+        return array();
+    }
+    
+    $count = $result->rowCount();
+    for ($i=0; $i<$count; $i++) {
+        $array_sponsors[$i] = $result->fetchAssoc();
+        // mysql_fetch_assoc($result);
+    }
+    
+    return $array_sponsors;
+}
+
+/**
+ * get sponsor from sponsor id
+ */
+function ncn_sponsor_get_sponsor_from_id($sponsor_id) {
+//  $query = "SELECT * FROM sponsors WHERE sponsor_id=$sponsor_id";
+    $result = db_query('SELECT * FROM {sponsors} WHERE sponsor_id=:a',array(':a'=>$sponsor_id));
+    if ($result->rowCount() > 0) {
+        return $result->fetchAssoc();
+    }
+    return array();
+}
+
+/**
+ * get current sponsor id and time(count)
+ * only from db
+ */
+function ncn_sponsor_get_sponsor_rotate() {
+//  $query = "SELECT * FROM sponsor_rotate";
+    $result = db_query('SELECT * FROM {sponsor_rotate}');
+    if ($result->rowCount() ==  0) {
+        drupal_set_message(t('System has a problem in sponsor section, Please report to web master about this.'), 'error');
+        ncn_sponsor_set_sponsor_rotate(0, 0);
+        return array('sponsor_id'=> 0, 's_count'=>0);
+    }
+    
+    $row = $result->fetchAssoc();
+    // mysql_fetch_assoc($result);
+    $sponsor_list = ncn_sponsor_get_sponsors('expired=0', 's_order ASC');
+    if ($row['sponsor_id'] == 0) {
+        if (empty($sponsor_list)) {
+            ncn_sponsor_set_sponsor_rotate(0, 0);
+            return array('sponsor_id'=> 0, 's_count'=>0);
+        }
+        ncn_sponsor_set_sponsor_rotate($sponsor_list[0]['sponsor_id'], 1);
+        $row = array('sponsor_id'=> $sponsor_list[0]['sponsor_id'], 's_count'=>1);
+    }
+    
+    $sponsor = ncn_sponsor_get_sponsor_from_id($row['sponsor_id']);
+    if (empty($sponsor)) {
+        // the first ordered sponsor
+        if (empty($sponsor_list)) {
+            ncn_sponsor_set_sponsor_rotate(0, 0);
+            return array('sponsor_id'=> 0, 's_count'=>0);
+        }
+        ncn_sponsor_set_sponsor_rotate($sponsor_list[0]['sponsor_id'], 1);
+        return array('sponsor_id'=> $sponsor_list[0]['sponsor_id'], 's_count'=>1);
+    }
+    
+    if ($row['s_count'] > $sponsor['s_weight']) {
+        $next_sponsor_rotate = ncn_sponsor_get_next_sponsor_rotate($row['sponsor_id'], $row['s_count']);
+        ncn_sponsor_set_sponsor_rotate($next_sponsor_rotate['sponsor_id'], $next_sponsor_rotate['s_count']);
+        return $next_sponsor_rotate;
+    }
+    
+    return $row;
+}
+
+/**
+ * get the next sponsor rotate
+ * @pre-condition: check expired of sponsors
+ */
+function ncn_sponsor_get_next_sponsor_rotate($sponsor_id, $count) {
+    $sponsor_list = ncn_sponsor_get_sponsors('expired=0', 's_order ASC');
+    
+    $cur_sponsor = ncn_sponsor_get_sponsor_from_id($sponsor_id);
+    if (empty($cur_sponsor)) {
+        // the first ordered sponsor
+        if (empty($sponsor_list)) {
+            return array('sponsor_id'=> 0, 's_count'=>0);
+        }
+        return array('sponsor_id'=> $sponsor_list[0]['sponsor_id'], 's_count'=>1);
+    }
+    
+    if ($cur_sponsor['expired']!=0) {
+        // the first ordered sponsor
+        if (empty($sponsor_list)) {
+            return array('sponsor_id'=> 0, 's_count'=>0);
+        }
+        return array('sponsor_id'=> $sponsor_list[0]['sponsor_id'], 's_count'=>1);
+        
+    } else if ($cur_sponsor['s_weight'] > $count) {
+        return array('sponsor_id'=> $cur_sponsor['sponsor_id'], 's_count'=>($count+1));
+    } // else : next sponsor    
+    
+    $index = 999;
+    for ($i=0; $i<count($sponsor_list); $i++) {
+        if ($cur_sponsor['sponsor_id'] == $sponsor_list[$i]['sponsor_id']) {
+            $index = ($i+1);
+            break;
+        }
+    }
+    if ($index==999 || $index==count($sponsor_list)) {
+        if (empty($sponsor_list)) {
+            return array('sponsor_id'=> 0, 's_count'=>0);
+        }
+        return array('sponsor_id'=> $sponsor_list[0]['sponsor_id'], 's_count'=>1);
+    }
+    
+    return array('sponsor_id'=> $sponsor_list[$index]['sponsor_id'], 's_count'=>1);
+}
+
+
+/**
+ * set next sponsor rotate;
+ * update sponsor report
+ */
+function ncn_sponsor_after_render_sponsor_rotate($sponsor_id, $s_count) {
+    // Next Sponsor Rotate
+    $next_sponsor_rotate = ncn_sponsor_get_next_sponsor_rotate($sponsor_id, $s_count);
+    ncn_sponsor_set_sponsor_rotate($next_sponsor_rotate['sponsor_id'], $next_sponsor_rotate['s_count']);
+    
+    // Sponsor Report
+    ncn_sponsor_update_report($next_sponsor_rotate['sponsor_id'], 'impression');
+}
+
+
+/**
+ * set next sponsor rotate
+ * only store data in sponsor_rotate table.
+ */
+function ncn_sponsor_set_sponsor_rotate($sponsor_id, $count=1) {
+//  $query = "UPDATE sponsor_rotate SET sponsor_id=$sponsor_id, s_count=$count";
+    $result = db_query('UPDATE {sponsor_rotate} SET sponsor_id=:a, s_count=:b',array(':a'=>$sponsor_id,':b'=>$count));
+    if (!$result) {
+        handle_mysql_syntax_error('50521-NCN-SPONSOR', $query);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+//function ncn_sponsor_draw_upload_image($wrapper, $image_path=''){
+//GLOBAL $base_url;
+//  if (empty($image_path)) {
+//      return '<input type="file" id="sponsor_image_file" name="files['.$wrapper.']" class="image_file" accept="image/jpg, image/jpeg, image/gif, image/png" size="25" />&nbsp;
+//      <input type="button" id="btn_upload_image" value="Upload" onclick="return on_click_sponsor_image(&#039;'.$wrapper.'&#039;);" />';
+//  } else {
+//      return "<input type='hidden' name='$wrapper' value='$image_path'/>
+//              <img src='$base_url/$image_path' height='50px'/>
+//              <input type='button' value='Remove' onclick='on_click_sponsor_image_remove(&#039;$wrapper&#039;)' />";
+//  }
+//}
+
+function ncn_sponsor_format_remained_time($remained_time) {
+    $r_second = $remained_time % 60;    $remained_time = (int)($remained_time / 60);
+    $r_minute = $remained_time % 60;    $remained_time = (int)($remained_time / 60);
+    $r_hour   = $remained_time % 24;    $remained_time = (int)($remained_time / 24);
+    $r_day    = $remained_time % 7;     $remained_time = (int)($remained_time / 7);
+    $r_week   = $remained_time;
+    
+    $content = (($r_week)? "$r_week week ":"") . (($r_day)? "$r_day day ":"") . "$r_hour:$r_minute:$r_second";
+    
+    return $content;
+}
+
+/**
+* Validate URL
+* Allows for port, path and query string validations
+* @param    string      $url       string containing url user input
+* @return   boolean     Returns TRUE/FALSE
+*/
+function validateURL($url)
+{
+$pattern = '/^(([\w]+:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,4}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&amp;?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?$/';
+return preg_match($pattern, $url);
+}
+
+/**
+ * @} End of 'ncn_sponsor module'.
+ */

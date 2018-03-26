@@ -1,0 +1,138 @@
+<?php
+
+
+//------------------------------------------------------------------------------
+function ncn_contact_menu()
+{
+	// user account edit 
+  $items['signup-contact'] = array(
+    'title' => 'Contact for Sign up',
+    'page callback' => 'signup_contact_page', 
+    'access arguments' => array('access content'),
+  );
+  
+	$items['contact-form-submit'] = array(
+	  'page callback' => 'contact_form_submit',
+	  'type' => MENU_CALLBACK,
+	  'access arguments' => array('access content'),
+	);
+		
+	return $items;
+}
+
+//------------------------------------------------------------------------------
+// complete user account edit page
+function contact_form_submit()
+{
+	$name = strip_tags($_POST['Name']);
+	$comments = strip_tags($_POST['Comments']);
+
+	// email the user with access details
+	$params = array(
+		'!name' => $name,
+		'!email' => $_POST['Email'],
+		'!phone' => $_POST['Phone'],
+		'!comments' => $comments,
+	);
+	
+	$user = user_load(1);	// load the administrator
+	$mail_to = variable_get('site_mail', $user->mail);
+	drupal_mail('ncn_contact', 'contact_admin', $mail_to, language_default(), $params);	// send message to administrator
+
+  echo "Your message has been sent. An administrator will contact you shortly. $mail_to";	
+
+}
+
+//------------------------------------------------------------------------------
+
+function signup_contact_page() {
+  
+  $formout = drupal_get_form('ncn_contact_signup_contact_form');
+    	
+  $output = '
+    <div id="signup-contact-page" class="contact-form-content clearfix">
+      <div class="contact-form-section">
+        <div class="title" style="font-size: 18px; color: #2a3333"><span style="color: #747474">Contact us</span> to create your account</div>
+        <div class="description" style="color: #545454; font-size: 11px;  margin: 0px 0px;">Please fill in the form below and click "submit" button or call now. </div>
+        '.drupal_render($formout).'
+      </div>
+      <div class="contact-image">
+        <img src="sites/default/files/ncnfront/pages/singup-contact.png" />
+      </div>
+    </div>';
+    
+  return $output;
+}
+
+function ncn_contact_signup_contact_form() 
+{
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t('Name'),
+  );
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t('Email'),
+  );
+  $form['phone'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t('Phone'),
+  );
+  $form['comments'] = array(
+    '#type' => 'textarea',
+    '#rows' => 3, 
+    '#required' => TRUE,
+    '#title' => t('Comments'),
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );  
+  return $form;
+}
+//------------------------------------------------------------------------------
+function ncn_contact_mail($key, &$message, $params)
+{
+	$options = array('langcode' => $message['language']->language);	
+	
+	$sub = "Net Claims Now contact from: !name";
+	$body = "!name sent you a message via Net Claims Now.
+	
+			 Name: !name
+			 Phone: !phone
+			 E-mail Address: !email (click email address to reply).
+			 Message: !comments";
+	
+	if(variable_get('ncn_front_end_subject', '')!=''){
+		$message['subject'] = t(variable_get('ncn_front_end_subject', ''), $params, $options);
+	} else {
+		$message['subject'] = t($sub, $params, $options);
+	}
+	
+	if(variable_get('ncn_front_end_body', '')!=''){
+		$message['body'][] = t(variable_get('ncn_front_end_body', ''), $params, $options);
+	} else {
+		$message['body'][] = t($body, $params, $options);
+	}
+}
+//------------------------------------------------------------------------------
+function ncn_contact_signup_contact_form_submit($form, &$form_state) {
+  
+  $params = array(
+    '!name' => strip_tags($form_state['values']['name']),
+    '!email' => $form_state['values']['email'],
+    '!phone' => $form_state['values']['phone'],
+    '!comments' => strip_tags($form_state['values']['comments']),
+  );
+  
+  $user = user_load(1);  // load the administrator
+  $mail_to = variable_get('site_mail', $user->mail);
+  $message = drupal_mail('ncn_contact', 'contact_admin', $mail_to, language_default(), $params);  // send message to administrator
+  if ($message['result']) {
+    drupal_set_message("Your message has been sent. An administrator will contact you shortly. $mail_to");
+  }
+}

@@ -1,0 +1,112 @@
+<?php
+
+function phone_field_elements() {
+  $type['phone_field_phone'] = array(
+    '#input' => TRUE,
+    '#process' => array('phone_field_expand_phone'),
+  );
+  return $type;
+}
+ 
+function phone_field_expand_phone($element) {
+
+  if (empty($element['#value'])) {
+
+    $element['#value'] = array(
+      'npa' => '',
+      'npx' => '',
+      'npn' => '',
+    );
+  }
+   
+  $element['#tree'] = TRUE;
+ 
+//  foreach ($element['#value'] as $type => $maxlen) {
+     
+    $parents = $element['#parents'];
+    $parents[] = $type;
+
+    $element['npa'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 3,
+      '#default_value' => $element['#value']['npa'],
+      '#attributes' => $element['#attributes'],
+    );
+
+    $element['npx'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 3,
+      '#default_value' => $element['#value']['npx'],
+      '#attributes' => $element['#attributes'],
+    );
+
+    $element['npn'] = array(
+      '#type' => 'textfield',
+      '#size' => 4,
+      '#maxlength' => 4,
+      '#default_value' => $element['#value']['npn'],
+      '#attributes' => $element['#attributes'],
+    );
+
+//  }
+ 
+  return $element;
+}
+ 
+/**
+ * Implementation of hook_theme().
+ */
+function phone_field_theme($existing, $type, $theme, $path) {
+  return array(
+    'phone_field_phone' => array(
+      'arguments' => array('element' => NULL),
+    ),
+  );
+}
+ 
+function theme_phone_field_phone($element) {
+  return theme('form_element', $element, '<div class="container-inline">'. $element['#children'] .'</div>');
+}
+
+function phone_field_fapi_validation_rules() {
+  return array(
+    'numeric_t_rule' => array(
+      'callback' => 'phone_field_validation_rule_name',
+      'error_msg' => 'Value for %field must be numeric'
+    ),
+  );
+}
+
+/**
+* Implementation of hook_fapi_validation_filters
+*/
+function phone_field_fapi_validation_filters() {
+  return array(
+    'filter_name' => array(
+      'callback' => 'phone_field_validation_filter_name',
+    ),
+  );
+}
+
+function phone_field_validation_rule_name($value) {
+
+	$value = implode('', $value);
+	
+  if (is_numeric($value))
+  {
+    return TRUE;
+  }
+  else
+  {
+    if (trim($value) != "")
+    {   return FALSE;	}
+    else
+    {	return TRUE;	}
+  }
+}
+
+function phone_field_validation_filter_name($value) {
+  return preg_replace('/\d+/', '', $value);
+}

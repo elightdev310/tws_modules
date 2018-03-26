@@ -1,0 +1,194 @@
+<?php
+
+require_once('ncn_chatter.define.inc');
+require_once('ncn_chatter.feed.inc');
+require_once('ncn_chatter.post.inc');
+require_once('ncn_chatter.follow.inc');
+require_once('ncn_chatter.feed.ui.inc');
+require_once('ncn_chatter.sync.inc');
+
+/**
+ * Implements hook_menu()
+ */
+function ncn_chatter_menu() {
+    $items = array();
+    // ajax call back to add post
+    $items['chatter/add/post/%'] = array(
+        'page callback' => 'ncn_chatter_add_post_action',
+        'page arguments'=> array(3), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('add chatter post'),
+    );
+    // ajax call back to add comment
+    $items['chatter/post/%/add/comment'] = array(
+        'page callback' => 'ncn_chatter_add_comment_action',
+        'page arguments'=> array(2), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('add chatter comment'),
+    );
+    // ajax call back to get post listing
+    $items['chatter/feed-loading-post/%/%'] = array(
+        'page callback' => 'ncn_chatter_get_feed_next_posts',
+        'page arguments'=> array(2, 3), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('view chatter feed'),
+    );
+    // ajax call back to like
+    $items['chatter/like-post-comment/%/%'] = array(
+        'page callback' => 'ncn_chatter_like_post_comment',
+        'page arguments'=> array(2, 3), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('view chatter feed'),
+    );
+
+    $items['chatter/file/%file/download'] = array(
+        'title' => 'Download',
+        'page callback' => 'ncn_chatter_file_download_page',
+        'page arguments' => array(2),
+        'access arguments' => array('view chatter feed'),
+        'type' => MENU_CALLBACK,
+    );
+
+    // ajax call back to follow feed
+    $items['chatter/follow-feed/%'] = array(
+        'page callback' => 'ncn_chatter_follow_feed_action',
+        'page arguments'=> array(2, 3), 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('view chatter feed'),
+    );
+    // ajax call back to follow feed
+    $items['chatter/attach-file'] = array(
+        'page callback' => 'ncn_chatter_attach_file',
+        'access arguments' => array('view chatter feed'),
+        'type' => MENU_CALLBACK,
+    );
+
+    // NCN Feed Page
+    $items['ncn-chatter/ncn-feed'] = array(
+        'title' => 'NCN Feed',
+        'page callback' => 'ncn_chatter_news_feed_page',
+        'access arguments' => array('view chatter feed'),
+        'type' => MENU_CALLBACK,
+    );
+    // User Profile Feed Page
+    $items['ncn-chatter/user-profile-feed/%'] = array(
+        'title' => 'User Profile Feed',
+        'page callback' => 'ncn_chatter_user_profile_feed_page',
+        'page arguments'=> array(2), 
+        'access arguments' => array('view chatter feed'),
+        'type' => MENU_CALLBACK,
+    );
+    // Feed Page
+    $items['ncn-chatter/feed/%'] = array(
+        'title' => 'User Profile Feed',
+        'page callback' => 'ncn_chatter_feed_page',
+        'page arguments'=> array(2), 
+        'access arguments' => array('view chatter feed'),
+        'type' => MENU_CALLBACK,
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function ncn_chatter_permission() {
+    return array(
+        'add chatter post' => array(
+          'title' => t('Add Chatter Post'),
+        ), 
+        'add chatter comment' => array(
+          'title' => t('Add Chatter Comment'),
+        ), 
+        'view chatter feed' => array(
+          'title' => t('View Chatter Feed'),
+        ), 
+    );
+}
+
+
+/**
+ * Implements hook_theme()
+ */
+function ncn_chatter_theme($existing, $type, $theme, $path) {
+    $theme_hooks = array(
+        'ncn_chatter_form_post' => array(
+            'template' => 'ncn_chatter_form_post',
+            'path' => $path . '/templates',
+            'variables' => array(
+                'feed_id' => 0,
+            )
+        ), 
+        'ncn_chatter_feed_post' => array(
+            'template' => 'ncn_chatter_feed_post',
+            'path' => $path . '/templates',
+            'variables' => array(
+                'post' => array(),
+            )
+        ), 
+        'ncn_chatter_post_comment' => array(
+            'template' => 'ncn_chatter_post_comment',
+            'path' => $path . '/templates',
+            'variables' => array(
+                'comment' => array(),
+            )
+        ), 
+    );
+    return $theme_hooks;
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function ncn_chatter_user_insert(&$edit, $account, $category) {
+    ncn_chatter_create_user_feed($account->uid);
+}
+
+/**
+ * Implements hook_mail()
+ */
+function ncn_chatter_mail($key, &$message, $params)
+{
+    $language = $message['language'];
+    //$variables = user_mail_tokens($params['account'], $language);
+    $options = array('langcode' => $message['language']->language); 
+    
+    switch ($key)
+    {
+        case "mention_user":
+          $message['subject'] = "Post has been shared with you";
+          $message['body'][] = $params['author']." shared the post with you.";
+          break;
+    }
+}
+
+/**
+ * Get Mention User Data
+ */
+function ncn_chatter_get_mention_user_data() {
+    $query = "SELECT u.*, 
+                     pv_f.value AS first_name, 
+                     pv_l.value AS last_name 
+              FROM users as u 
+              LEFT JOIN profile_value AS pv_f ON (pv_f.uid=u.uid AND pv_f.fid=25) 
+              LEFT JOIN profile_value AS pv_l ON (pv_l.uid=u.uid AND pv_l.fid=26) 
+              WHERE status = 1 
+              ORDER BY first_name ASC, last_name ASC";
+    $result = db_query($query);
+    $data = array();
+    foreach ($result as $record) {
+        //$_user = user_load($record->uid);
+        $full_name = $record->name;
+        if (!empty($record->first_name)) {
+            $full_name = $record->first_name.' '.$record->last_name;
+        }
+        $u = array(
+            'key'   => $full_name, //user_fullname($_user),
+            'value' => $record->name,
+            'avatar'=> file_create_url('public://default-user.png')
+        );
+        $data[$record->uid] = $u;
+    }
+    return $data;
+}
+

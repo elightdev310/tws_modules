@@ -1,0 +1,172 @@
+<?php
+require_once('ncn_create_claim.inc');
+require_once('ncn_create_claim.page.inc');
+require_once('ncn_create_claim.product.inc');
+require_once('ncn_create_claim.room.inc');
+
+require_once('ncn_create_claim.unused.inc');
+
+/**
+ * hook_menu
+ */
+function ncn_create_claim_menu()
+{
+    $menu = array();
+    $menu['account/create-new-claim.html'] = array(
+        'title' => variable_get('site_name', 'Claim Process Form'),
+        'page callback' => 'ncn_create_claim_page',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/roomtab'] = array(
+        'page callback' => 'ncn_create_claim_roomtab',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/deleteroomtab'] = array(
+        'page callback' => 'ncn_create_claim_deleteroomtab',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/renameroomtab'] = array(
+        'page callback' => 'ncn_create_claim_renameroomtab',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/addroomtab'] = array(
+        'page callback' => 'ncn_create_claim_addroomtab',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/upload_room_image'] = array(
+        'page callback' => 'ncn_create_claim_upload_roomimage',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $menu['account/download_create_pdf'] = array(
+        'page callback' => 'ncn_download_create_pdf',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+    $menu['ajax/ncn_create_claim/get_claim_invoice'] = array(
+        'page callback' => 'ncn_create_claim_display_price',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    $menu['ajax/ncn_create_claim/remove_photo/%'] = array(
+        'page callback' => 'ncn_create_claim_remove_photo',
+        'page arguments' => array(3),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    return $menu;
+}
+
+/**
+ * hook_theme
+ */
+function ncn_create_claim_theme()
+{
+    return array(
+        'ncn_create_claim' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_create_claim',
+        ),
+        'ncn_add_room' => array(
+            'arguments' => array('claim_id' => NULL, 'room_choose_type' => NULL, 'room_choose_val' => NULL),
+            'template' => 'ncn_add_room',
+        ),
+        'ncn_download_pdfs' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_download_pdfs',
+        ),
+        'ncn_claim_confirm' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_claim_confirm',
+        ),
+        'ncn_claim_success' => array(
+            'arguments' => array('stat' => NULL),
+            'template' => 'ncn_claim_success',
+        ),
+    );
+}
+
+/**
+ * hook_mail
+ */
+function ncn_create_claim_mail($key, &$message, $params)
+{
+    //$language = $message['language'];
+    $options = array('langcode' => $message['language']->language);
+    $variables = user_mail_tokens($params['account'], $language);
+
+    switch ($key) {
+        case "new_claim":
+            $message['subject'] = t(variable_get('ncn_new_claim_subject', ''), $params, $options);
+            $message['body'][] = t(variable_get('ncn_new_claim_body', ''), $params, $options);
+            break;
+
+        case "new_claim_customer":
+            $message['subject'] = t(variable_get('ncn_new_claim_customer_subject', ''), $params, $options);
+            $message['body'][] = t(variable_get('ncn_new_claim_customer_body', ''), $params, $options);
+            break;
+    }
+}
+
+/**
+ * hook_help
+ */
+function ncn_create_claim_help($section)
+{
+    switch ($section) {
+        case 'admin/modules#description':
+            // This description is shown in the listing at admin/modules.
+            return t('The ncn_create_claim module multiplies two numbers together.');
+    }
+}
+
+//------------------------------------------------------------------------------
+function ncn_save_session_var($P_DATA, $item_name, $weight = -1)
+{
+    if (isset($P_DATA[$item_name])) {
+        if (!is_array($P_DATA[$item_name])) {
+            $val = trim((string)$P_DATA[$item_name]);
+        } else {
+            $val = $P_DATA[$item_name];
+        }
+    } else {
+        $val = '';
+    }
+
+    $_SESSION['claim'][$item_name] = array(
+        'type' => 'textfield',
+        'val' => $val,
+        'weight' => $weight,
+    );
+}
+
+/**
+ * 0: Golden Member, 1: Silver Member, 5: CSI Member
+ */
+function get_member_type($user)
+{
+    if(isset($user->profile_memberid))
+    {
+        // $query2 = "SELECT * FROM member_id_pool WHERE member_id=\"" . AddSlashes($user->profile_memberid) . "\";";
+        $result2 = db_query('SELECT member_type FROM {member_id_pool} WHERE member_id=:a',array(':a'=>$user->profile_memberid));
+
+        if ($result2->rowCount() > 0) {
+            $member = $result2->fetchAssoc();
+            return $member['member_type'];
+        }
+        return 0;
+    }
+}

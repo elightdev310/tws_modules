@@ -1,0 +1,406 @@
+<?php
+
+require_once('ncn_user.helper.inc');
+require_once('ncn_user.account.inc');
+require_once('ncn_user.ui.inc');
+
+/**
+ * hook_init function
+ */
+function ncn_user_init() {
+  
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_user_permission()
+{
+}
+
+/**
+ * hook_menu
+ */
+function ncn_user_menu()
+{
+    $items = array();
+    // user account edit
+    $items['account/my-account.html'] = array(
+        'page callback' => 'ncn_edit_my_account',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+    $items['account/my-extra-profile.html'] = array(
+        'page callback' => 'ncn_edit_extra_profile',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+    return $items;
+}
+
+/**
+ * hook_menu_alter
+ */
+function ncn_user_menu_alter(&$items) {
+  $items['user/register']['page callback'] = 'ncn_user_redirect_register';
+}
+
+/**
+ * hook_user_presave
+ */
+function ncn_user_user_presave(&$edit, $account, $category) {
+  // User block tracking
+  if ($account->status == 0 && isset($edit['status']) && $edit['status'] == 1)  {
+    ncn_user_update_user_unblock_track($account->uid, date('U'));
+
+    // Check Member's CC Expiration
+    $_user = user_load($account->uid);
+    if (is_member_user($_user)) {
+      if (isset($_user->profile_memberid) && $_user->profile_memberid) {
+        ncn_auto_payments_check_expiration_member_cc($_user->profile_memberid, 
+                    array('member_name' => $_user->profile_firstname." ".$_user->profile_lastname, 
+                          'activation'  => true, 
+                          'mail'        => $_user->mail));
+      }
+    }
+  }
+  else if ($account->status == 1 && isset($edit['status']) && $edit['status'] == 0)  {
+    ncn_user_insert_user_block_track($account->uid, date('U'));
+  }
+}
+
+function ncn_user_redirect_register() {
+  drupal_goto('signup-contact');
+}
+function ncn_user_insert_log_old_member_type($member_id, $old_type, $new_type, $ts_time) {
+  $user_id = get_uid_from_memberid($member_id);
+  $result = db_query('INSERT INTO {ncn_member_type_change_log}(uid, member_id, old_type, new_type, timestamp)
+  VALUES(:a,:b,:c,:d,:e)',array(':a'=>$user_id,':b'=>$member_id,':c'=>$old_type,':d'=>$new_type,':e'=>$ts_time));
+  if ($result) { return TRUE; }
+  return FALSE;
+}
+
+function ncn_user_insert_user_block_track($uid, $t_blocked, $t_returned=0, $t_unblocked=0) {
+  $result = db_query('INSERT INTO {ncn_user_block_track}(uid, blocked, returned, unblocked)
+  VALUES(:a,:b,:c,:d)',array(':a'=>$uid,':b'=>$t_blocked,':c'=>$t_returned,':d'=>$t_unblocked));
+  if ($result) { return TRUE; }
+  return FALSE;
+}
+
+function ncn_user_update_user_unblock_track($uid, $t_unblocked) {
+  $_user = user_load($uid);
+  if (isset($_user->profile_memberid) && is_member($_user->profile_memberid)) {
+    ncn_user_change_member_renewal_day($_user->profile_memberid, date('d'), TRUE);
+  }
+  
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE uid=:a AND unblocked=0 ORDER BY blocked DESC',
+      array(':a'=>$uid));
+  if($result)
+  {
+      foreach($result as $bt_row)
+      {
+          $bt_row = (array)$bt_row;
+          if($bt_row)
+          {
+              $res_update = db_query('UPDATE {ncn_user_block_track} SET unblocked=:a WHERE id=:b',
+                  array(':a'=>$t_unblocked,':b'=>$bt_row['id']));
+          }
+          if($res_update)
+          {
+              return TRUE;
+          }
+
+      }
+      return FALSE;
+
+  }
+
+//
+//
+//    if ($result && $bt_row=db_fetch_array($result)) {
+//    $res_update = db_query("UPDATE {ncn_user_block_track} SET unblocked=$t_unblocked WHERE id=".$bt_row['id']);
+//    if ($res_update) {
+//      return TRUE;
+//    }
+//  }
+//  return FALSE;
+}
+
+function ncn_user_get_last_block_track($uid) {
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE uid=:a ORDER BY blocked DESC',array(':a'=>$uid ));
+  if($result)
+  {
+      foreach($result as $bt_row)
+      {
+          $bt_row = (array)$bt_row;
+          if($bt_row)
+          {
+              return $bt_row;
+          }
+          return array();
+      }
+  }
+
+//
+//    if ($result && $bt_row=db_fetch_array($result)) {
+//    return $bt_row;
+//  }
+//  return array();
+}
+
+function ncn_user_show_block_track($uid) {
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE uid=:a',array(':a'=>$uid));
+  $data = array();
+//  while ($bt_row = db_fetch_array($result))
+  foreach($result as $bt_row)
+  {
+    $bt_row = (array)$bt_row;
+    $output = "";
+    $output.= date("m/d/Y H:i", $bt_row['blocked'])." - ";
+    if ($bt_row['unblocked']) {
+      $output.=date("m/d/Y H:i", $bt_row['unblocked']);
+    } else if ($bt_row['returned']) {
+      $output.=date("m/d/Y H:i", $bt_row['returned']);
+    }
+    $data[] = $output;
+  }
+  return implode("<br/>", $data);
+}
+
+function ncn_user_get_last_blocked_time($uid) {
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE uid=:a ORDER BY blocked DESC',array(':a'=>$uid));
+  foreach($result as $bt_row)
+  {
+      $bt_row = (array)$bt_row;
+      if($bt_row)
+      {
+          return $bt_row['blocked'];
+      }
+      return FALSE;
+  }
+
+//
+//
+//    if ($bt_row = db_fetch_array($result)) {
+//    return $bt_row['blocked'];
+//  }
+//  return FALSE;
+}
+
+function ncn_user_show_block_track_table($uid) {
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE uid=:a',array(':a'=>$uid));
+  $header = array(
+    "Blocked Time", 
+    "Returned Time",
+  );
+  $rows = array();
+//  while ($bt_row = db_fetch_array($result))
+
+  foreach($result as $bt_row)
+  {
+    $bt_row = (array)$bt_row;
+    if ($bt_row['unblocked']) {
+      $returned = date('m/d/Y H:i', $bt_row['unblocked']);
+    } else if ($bt_row['returned']) {
+      $returned = date('m/d/Y H:i', $bt_row['returned']);
+    } else {
+      $returned = '-';
+    }
+    $rows[] = array(
+      date('m/d/Y H:i', $bt_row['blocked']), 
+      $returned, 
+    );
+  }
+  return theme('table',array("header"=>$header,"rows"=>$rows));
+}
+
+/**
+* Unblock User Cron Everyday (removed)
+* 
+*/
+function ncn_user_unblock_users_cron() {
+  $now = date('U');
+  $result = db_query('SELECT * FROM {ncn_user_block_track} WHERE unblocked=0 AND returned!=0 AND returned<=:a',array(':a'=>$now));
+//  while ($bt_row=db_fetch_array($result))
+  foreach($result as $bt_row)
+  {
+    $bt_row = (array)$bt_row;
+    ncn_admin_unblock_member($bt_row['uid']);
+  }
+}
+
+/**
+* Get Renewal Day
+* 
+* @param mixed $member_id
+* @param mixed $t_month
+*/
+function ncn_user_get_member_renewal_day($member_id, $t_month=0) {  
+  $member = get_member_from_id($member_id);
+  
+  if ($t_month) {  	 
+    $result = db_query('SELECT * FROM {ncn_member_renewal_day} WHERE member_id=:a AND timestamp<=:b ORDER BY timestamp DESC',array(':a'=>$member_id,':b'=>$t_month));
+  } else {
+    $result = db_query('SELECT * FROM {ncn_member_renewal_day} WHERE member_id=:a ORDER BY timestamp DESC',array(':a'=>$member_id));
+  }
+ 
+  if($result->rowCount()>0)
+  {
+  	$row = $result->fetchAssoc();
+  	
+  	$day = $row['day'];
+  	if ($t_month) {
+  	  $month_days = date("t", $t_month);
+  	  if ($day > $month_days) { return $month_days; }
+  	}
+  	return $day;
+  } else {
+    $created_time = 0;
+    if ($member['create'] != 0) {
+      $created_time = $member['create'];
+    } else {
+      $uid = get_uid_from_memberid($member_id);
+      if ($uid && $_user=user_load($uid)) {
+        $created_time = $_user->created;
+      }
+    }    
+    
+    if ($created_time) {
+      $day = date("j", $created_time);
+      if ($t_month) {
+        $month_days = date("t", $t_month);
+        if ($day > $month_days) { return $month_days; }
+      }
+      return $day;
+    }
+  }
+  return 0;
+}
+
+function ncn_user_change_member_renewal_day($member_id, $day, $unblocked_action=FALSE) {
+  if (ncn_user_get_member_renewal_day($member_id) == $day) {
+    return TRUE;
+  }
+  
+  $timestamp = date('U');
+  $result = db_query('INSERT INTO {ncn_member_renewal_day}(member_id, day, timestamp) VALUES(:a,:b,:c)',
+      array(':a'=>$member_id,':b'=>$day,':c'=>$timestamp));
+  $ret = FALSE;
+  if ($result) { 
+    $ret = TRUE;
+  }
+  
+  // Change payment date on the Next Month
+  $member = get_member_from_id($member_id);
+  $new_next_payment_date = 0;
+  if ($unblocked_action==FALSE) {
+    if ($member['next_payment_date'] < date('U')) {
+      if ($member['next_payment_date']) {
+        $new_next_payment_date = calculate_next_month($member['next_payment_date'], ncn_user_get_member_renewal_day($member_id));
+      } else {
+        $new_next_payment_date = calculate_next_month(date('U'), ncn_user_get_member_renewal_day($member_id));
+      }
+    } else {
+      $ts_month = strtotime(date("m/1/Y", $member['next_payment_date']));
+      if ($ts_month > date('U')) {    // Next Month
+        $new_next_payment_date = calculate_next_month(date('U'), ncn_user_get_member_renewal_day($member_id));
+      } else {    // This Month
+        if (ncn_user_get_member_renewal_day($member_id, date('U')) <= date("d")) {
+          $new_next_payment_date = strtotime(date("m/d/Y", strtotime("+1 day", date('U'))));
+        } else {
+          $new_next_payment_date = calculate_next_month(strtotime("-1 month", date('U')), ncn_user_get_member_renewal_day($member_id));
+          // From first day of this month
+          $new_timestamp = strtotime(date("m/1/Y"), $timestamp);
+          $result_update_renewal_day = db_query("UPDATE {ncn_member_renewal_day} SET timestamp=$new_timestamp WHERE member_id=$member_id AND timestamp=$timestamp");
+        }
+      }
+    }
+  } else {
+    $new_next_payment_date = calculate_next_month(date('U'), ncn_user_get_member_renewal_day($member_id));
+  }
+  
+  if ($new_next_payment_date) {
+ //   $query2 = "UPDATE member_id_pool SET next_payment_date=".$new_next_payment_date." WHERE member_id=\"".AddSlashes($member_id)."\";";
+    $result2 = db_query('UPDATE {member_id_pool} SET next_payment_date=:a WHERE member_id=:b',
+        array(':a'=>$new_next_payment_date,':b'=>$member_id));
+    
+  }
+  
+  return $ret;
+}
+
+
+
+
+
+
+/**
+* Fill data into {ncn_member_type_change_log} table
+* Notice: In case of Silver to other, no solution
+*     Possiblility: analyize SUF & MMF
+* 
+*/
+function _ncn_user_collect_member_type_change_log() {
+  $mmf_to_type = array(
+    'MMF' => 0,   // Gold
+    'MMF-GL' => 2,   // Gold Lite
+    'MMF-COC' => 3,   // Coach on Call
+    'MMF-GC' => 4,   // Gold Coach
+  );
+  
+  $result = db_query('SELECT * FROM {member_id_pool}');
+//  while ($row = db_fetch_array($result))
+  foreach($result as $row)
+  {
+    $row = array($row);
+    $member_id = $row['member_id'];
+    $res_transactions = db_query('SELECT * FROM {payment_log} WHERE status=1 AND refund=0 AND member_id=:a AND ptype LIKE :b ORDER BY timestamp ASC',
+    array(':a'=>$member_id,':b'=>'%'.db_like('MMF').'%'));
+    $mmf_data = array();
+ //   while ($r_mmf = db_fetch_array($res_transactions))
+    foreach($res_transactions as $r_mmf)
+    {
+      $r_mmf = (array)$r_mmf;
+      $mmf_data[$r_mmf['ptype']] = $r_mmf;
+    }
+    
+    $i_mmf_data = array();
+    $index = 0;
+    foreach ($mmf_data as $ptype=>$r_mmf) {
+      $i_mmf_data[$index] = $r_mmf;
+      $index++;
+    }
+    
+    $index = 0;
+    foreach ($mmf_data as $ptype=>$r_mmf) {
+      $old_mtype = $mmf_to_type[$ptype];
+      if ($index < count($mmf_data)-1) {
+        $new_mtype = $mmf_to_type[$i_mmf_data[$index+1]['ptype']];
+        ncn_user_insert_log_old_member_type($member_id, $old_mtype, $new_mtype, strtotime("+1 day", $r_mmf['timestamp']));
+      } else {
+        if ($row['member_type'] != $old_mtype) {
+          ncn_user_insert_log_old_member_type($member_id, $old_mtype, $row['member_type'], strtotime("+1 day", $r_mmf['timestamp']));
+        }
+      }
+      $index++;
+    }
+  }
+}
+
+/**
+* Fill data to "ncn_user_block_track" table
+* 
+*/
+function _ncn_user_collect_user_block_track() {
+  $result = db_query('SELECT * FROM {users} WHERE uid!=0');
+//  while ($u_row = db_fetch_array($result))
+  foreach($result as $u_row)
+  {
+    $u_row = (array)$u_row;
+    $_user = user_load($u_row['uid']);
+    if ($_user && $_user->profile_blocked_time) {
+      ncn_user_insert_user_block_track($_user->uid, $_user->profile_blocked_time, 0);
+    }
+  }
+}
+

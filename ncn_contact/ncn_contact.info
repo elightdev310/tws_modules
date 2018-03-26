@@ -1,0 +1,6 @@
+name = NCN Contact Form
+description = Small module containing function to send contact form info to the administrator
+core = 7.x
+package = Net Claims Now
+dependencies[] = ncn_generate_invoice
+version = 7.x-1.1

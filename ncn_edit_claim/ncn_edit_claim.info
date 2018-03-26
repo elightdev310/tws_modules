@@ -1,0 +1,6 @@
+; $Id: book.info,v 1.5 2007/07/30 18:20:21 dries Exp $
+name = NCN Edit Claim
+description = AJAX/litebox type functions and controls for editing a claim inline (claims manager pages)
+package = Net Claims Now
+core = 7.x
+dependencies[] = ncn_create_claim

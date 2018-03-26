@@ -1,0 +1,551 @@
+<?php
+
+require_once('ncn_report.inc');
+require_once('ncn_report.sales.inc');
+require_once('ncn_report.month.inc');
+require_once('ncn_report.mobile.inc');
+
+/**
+hook_init function
+*/
+function ncn_report_init() {
+    drupal_add_css(drupal_get_path('module', 'ncn_report').'/jquery_redmond/jquery.ui.all.css', 'module', 'all', FALSE);
+    
+    drupal_add_css(drupal_get_path('module', 'ncn_report').'/ncn_all.css', 'module', 'all', FALSE);
+    drupal_add_js(drupal_get_path('module', 'ncn_report') . '/ncn_all.js');
+    drupal_add_js(drupal_get_path('module', 'ncn_report') . '/ncn_report.js');
+}
+
+//------------------------------------------------------------------------------
+// Implementation of hook_perm().
+function ncn_report_permission()
+{
+    return array(
+                    'ncn sales report' =>  array(
+                      'title' => t('ncn sales report'),
+                    ),  
+                );  
+}
+
+function ncn_report_menu()
+{
+    $items = array();
+    $items['admin/config/ncn_report'] = array(
+        'title' => 'Net Claims Now Sales Report',
+        'page callback' => 'ncn_report_daily',
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['admin/config/ncn_report/daily'] = array(
+        'title' => 'Daily Report',
+        'page callback' => 'ncn_report_daily',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => 0,
+    );
+    $items['admin/config/ncn_report/daily'] = array(
+        'title' => 'Daily Report',
+        'page callback' => 'ncn_report_daily',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 0,
+    );
+    $items['admin/config/ncn_report/weekly'] = array(
+        'title' => 'Weekly Report',
+        'page callback' => 'ncn_report_weekly',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+    );
+    $items['admin/config/ncn_report/monthly'] = array(
+        'title' => 'Monthly Report',
+        'page callback' => 'ncn_report_monthly',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 2,
+    );
+    $items['admin/config/ncn_report/sales_summary'] = array(
+        'title' => 'Monthly Sales Summary Report',
+        'page callback' => 'ncn_report_sales_summary',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+    );
+    $items['admin/config/ncn_report/sales_detailed'] = array(
+        'title' => 'Detailed Monthly Sales Report',
+        'page callback' => 'ncn_report_sales_detailed',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 4,
+    );
+    $items['admin/config/ncn_report/company_sales_summary'] = array(
+        'title' => 'Company Sales Summary Report',
+        'page callback' => 'ncn_report_company_sales_summary',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 5,
+    );
+
+    $items['download/ncn_report'] = array(
+        'page callback' => 'ncn_report_download',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['download/distributor/ncn_report'] = array(
+        'page callback' => 'ncn_report_download_distributor',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['download/associate/ncn_report'] = array(
+        'page callback' => 'ncn_report_download_associate',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['download/distributor/detailed/ncn_report'] = array(
+        'page callback' => 'ncn_report_download_monthly_detailed',
+        'page arguments' => array('distributor'),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['download/associate/detailed/ncn_report'] = array(
+        'page callback' => 'ncn_report_download_monthly_detailed',
+        'page arguments' => array('associate'),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['download/company_sales_summary/ncn_report'] = array(
+        'page callback' => 'ncn_report_download_company_sales_summary',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('ncn sales report'),
+    );
+
+    $items['admin/config/ncn_member_renewal_report'] = array(
+        'title' => 'Net Claims Now Member Renewal Report',
+        'page callback' => 'ncn_member_renewal_report_daily',
+        'access arguments' => array('ncn sales report'),
+    );
+    $items['admin/config/ncn_member_renewal_report/daily'] = array(
+        'title' => 'Daily Report',
+        'page callback' => 'ncn_member_renewal_report_daily',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => 0,
+    );
+    $items['admin/config/ncn_member_renewal_report/daily'] = array(
+        'title' => 'Daily Report',
+        'page callback' => 'ncn_member_renewal_report_daily',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+    );
+    $items['admin/config/ncn_member_renewal_report/weekly'] = array(
+        'title' => 'Weekly Report',
+        'page callback' => 'ncn_member_renewal_report_weekly',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 2,
+    );
+    $items['admin/config/ncn_member_renewal_report/monthly'] = array(
+        'title' => 'Monthly Report',
+        'page callback' => 'ncn_member_renewal_report_monthly',
+        'access arguments' => array('ncn sales report'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+    );
+
+    $items['admin/config/ncn_montly_overview_report'] = array(
+    'title' => 'Net Claims Now Monthly Payment Transaction Report',
+    'page callback' => 'ncn_report_montly_overview_report',
+    'access arguments' => array('ncn sales report'),
+  );
+
+  $items['admin/config/ncn_admin/monthly_claims_on_mobile_app'] = array(
+    'title' => 'Claims on Mobile',
+    'page callback' => 'ncn_report_mobile_monthly_claims_on_mobile_app',
+    'access arguments' => array('administer ncn_admin config'),
+    'weight' => 12,
+  );
+
+  $items['download/claims_on_mobile/ncn_report'] = array(
+    'page callback' => 'ncn_report_download_claims_on_mobile',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('ncn sales report'),
+  );
+
+    return $items;
+}
+
+/**
+ * Implentation of hook_cron function
+ */
+function ncn_report_cron() {
+    ncn_report_get_best_cron_daily();
+}
+
+//------------------------------------------------------------------------------
+/**
+NCN Report API
+*/
+function _ncn_report_product_type($product_id) {
+    $_node = node_load($product_id);
+
+    $type = '';
+    
+    switch ($product_id) {
+    case 34:
+        $type = 'SUF-F'; break;     //Start-Up Fees (Full)          // $329.00
+    case 40:
+        $type = 'SUF-F'; break;     //Start-Up Fees (Full)          // $429.00
+    case 41:
+        $type = 'SUF-P'; break;     //Start-Up Fees (Partial)       // $149.00
+    case 42:
+        $type = 'SUF-P'; break;     //Start-Up Fees (Partial)       // $249.00
+    default:
+        if ($_node) {
+            $type = $_node->model;
+        }
+        break;
+    /*  
+    case 33:
+        $type = 'SUF-DF'; break;    //Start-Up Fees (Dist. Full)    // $279.00
+    case 43:
+        $type = 'SUF-DP'; break;    //Start-Up Fees (Dist. Partial) // $99.00
+    case 32:
+        $type = 'MMF'; break;       //Monthly Membership Fees       // $99.00
+    case 44:
+        $type = 'MFF'; break;       //Monthly Finance Fees          // $77.00
+        
+    case 47:
+    case 57:
+    case 68:
+        $type = 'SUF-GMS'; break;       //Start-Up Fees (GOLD MEMBER SPECIAL)           // $99.00
+    case 48:
+        $type = 'SUF-GMSD'; break;      //Start-Up Fees (GOLD MEMBER SPECIAL, Dist.)    // $49.00
+    */
+    // Claim Invoice
+    /*
+    case 18: case 30: case 58: case 59: case 60: case 61: case 53: case 62:
+    case 45: case 46: case 63: case 64: case 65: case 66: case 67: case 54:
+    
+    case 69: case 70: case 71: case 72: case 73: case 74: case 75: case 76:
+    case 77: case 78: case 79: case 80: case 81: case 82: case 83: case 84:
+    */
+    }
+    
+    return $type;
+}
+
+/**
+ * Add a payment( positive ) 
+ */
+function ncn_report_payment_log($product_id, $status, $user, $member_id=0, $target_mid=0, $claim_id=0, $owner_id=0, $price=0) {
+    $ptype = _ncn_report_product_type($product_id);
+
+    $mid = "0";
+    $uid = 0;
+    if ($user == null) {
+        $mid = $member_id;
+    } else {
+        $puser = user_load($user->uid);
+        $uid = $user->uid;
+        if (isset($puser->profile_memberid)) {
+            $mid = $puser->profile_memberid;
+        }
+    }   
+    $node = node_load($product_id);
+    if (isset($node->data) && !is_array($node->data)) {
+        $node->data = unserialize($node->data);
+    }
+    if ($price == 0) {
+        $price = $node->sell_price;
+    }
+    
+    $timestamp = time();
+    $ref_pid = 0;
+    $refund  = 0;
+
+    $result = db_query('INSERT INTO {payment_log} (ptype, product_id, cost, uid, member_id, target_mid, claim_id, timestamp, status, ref_pid, refund) VALUES(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k)',array(':a'=>$ptype,':b'=>$product_id,':c'=>$price,':d'=>$uid,':e'=>$mid,':f'=>$target_mid,':g'=>$claim_id,':h'=>$timestamp,':i'=>$status,':j'=>$ref_pid,':k'=>$refund));
+
+    if (!$result) {
+        watchdog( 'payment_log', "ptype: %ptype, product_id: %product_id, cost: %cost, uid: %uid, member_id: %member_id, target_mid:%target_mid, time: %timestamp, status:%status", array('%ptype'=>$ptype, '%product_id'=>$product_id, '%cost'=>$price, '%uid'=>$uid, '%member_id'=>$mid, '%target_mid'=>$target_mid, '%timestamp'=>date("m/d/Y H:i:s",$timestamp), '%status'=>$status));
+    } else {
+        $pid = db_query('SELECT pid FROM {payment_log} WHERE timestamp=:d AND member_id=:s', array(':d'=>$timestamp,':s'=>$mid))->fetchField();
+        ncn_report_insert_payment_ncn($pid, $owner_id);     
+        return $pid;
+    }   
+    return 0;
+}
+
+/**
+ * Refund (model)
+ * @return : TRUE/FALSE
+ */
+function ncn_report_refund_payment($pid, $timestamp=0) {
+    if ($timestamp == 0) {
+        $timestamp = date('U');
+    }
+    
+//  $query = "SELECT * FROM payment_log WHERE pid=$pid AND status=1 AND refund=0";
+    $result = db_query('SELECT * FROM {payment_log} WHERE pid=:a AND status=1 AND refund=0',array(':a'=>$pid));
+    if (!$result) {
+        handle_mysql_syntax_error('60650-NCN-REPORT', $query);
+        return FALSE;
+    }
+    if ($result->rowCount()==0) {
+        drupal_set_message(t('Payment(#!pid) couldn\'t be refunded.', array('!pid'=>$pid)), 'error');
+        return FALSE;
+    }
+    $payment = $result->fetchAssoc();
+
+
+    
+    // Add refund payment
+    $status = 1;
+    $refund = -1;
+//  $query = "INSERT INTO payment_log(ptype, product_id, cost, uid, member_id, target_mid, claim_id, timestamp, status, ref_pid, refund) VALUES(
+//              '".$payment['ptype']."', ".$payment['product_id'].", ".($payment['cost']*-1).", ".$payment['uid'].",
+//              '".$payment['member_id']."', '".$payment['target_mid']."', ".$payment['claim_id'].", $timestamp, $status,
+//              "."$pid, $refund)";
+    $result = db_query('INSERT INTO payment_log(ptype, product_id, cost, uid, member_id, target_mid, claim_id, timestamp, status, ref_pid, refund)
+    VALUES(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k)',array(':a'=>$payment['ptype'],':b'=>$payment['product_id'],':c'=>($payment['cost']*-1),
+    ':d'=>$payment['uid'],':e'=>$payment['member_id'],':f'=>$payment['target_mid'],':g'=>$payment['claim_id'],
+    ':h'=>$timestamp,':i'=>$status,':j'=>$pid,':k'=>$refund));
+
+
+    if (!$result) {
+        handle_mysql_syntax_error('60651-NCN-REPORT', $query);
+        return FALSE;
+    }
+    
+    // Update payment as refunded
+//  $query = "UPDATE payment_log SET refund=1 WHERE pid=$pid";
+    $result = db_query('UPDATE {payment_log} SET refund=1 WHERE pid=:a',array(':a'=>$pid));
+    if (!$result) {
+        handle_mysql_syntax_error('60652-NCN-REPORT', $query);
+        return FALSE;
+    }
+    
+    // Refund Payment NCN
+    //ncn_report_refund_payment_ncn($pid);
+    
+    return TRUE;
+}
+
+
+function ncn_report_insert_date_script($onSelect='on_change_report_time') {
+    global $base_url;   
+    $output = "
+        <script>
+        jQuery(function() {
+        jQuery( '#datepicker' ).datepicker({
+            showOn: \"button\",
+            buttonImage: \"$base_url/".drupal_get_path('module', 'ncn_report')."/images/calendar.gif\",
+            buttonImageOnly: true,
+            dateFormat: 'yy/mm/dd',
+            onSelect: ".$onSelect."
+        });
+    });
+    </script>
+    ";
+    
+    return $output;
+}
+
+function ncn_report_get_best_while() {
+    ncn_report_get_best_total_global(strtotime("10 June 2011"));
+}
+
+function ncn_report_get_best_cron_daily() {
+    $today = date('U');
+    ncn_report_get_best_total_global(strtotime('-2 months', $today));
+}
+
+function render_payment_cost($cost) {
+    if (intval($cost)<0) {
+        $str_cost = '<span class="refunded-price">- $'.number_format(-$cost, 2).'</span>'; 
+    } else {
+        $str_cost = '$'.number_format($cost, 2, '.', ',');
+    }
+    return $str_cost;
+}
+
+function ncn_get_version_time($ts) {
+    $version = '1.0';
+    if ($ts > strtotime('Oct 01, 2017')) {
+        $version = '2.0';
+    }
+    return $version;
+}
+
+
+
+
+
+
+
+
+/*****************************************************************************/
+/*                  Report Mail                                              */
+/*****************************************************************************/
+
+function ncn_report_mail($key, &$message, $params) {
+    $headers = array(
+    'MIME-Version' => '1.0',
+    'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+    'Content-Transfer-Encoding' => '8Bit',
+    'X-Mailer' => 'Drupal'
+  );
+  foreach ($headers as $key => $value) {
+    $message['headers'][$key] = $value;
+  }
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
+}
+
+
+///////////////////////////////////////////////////
+function send_daily_mail() {
+    $report_date = time();
+    
+    $subject = 'NCN Daily Sales Report ('.date('D, d M Y', $report_date).')';
+    $msg = compose_daily_mail($report_date);
+    
+    $to = 'reports@netclaimsnow.com';
+    return drupal_mail('ncn_report', 'daily_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
+}
+
+function compose_daily_mail($report_date){
+    $data = array();
+    $total= array();
+    
+    _ncn_report_get_data($data, $total, $report_date, "daily");
+    
+    ob_start();
+    
+    mail_css();
+    build_table($report_date, $data, $total);
+    $msg = ob_get_contents();
+    ob_end_clean();
+    return $msg;
+}
+
+
+function send_weekly_mail() {
+    $report_date = time();
+    
+    
+    $to_date = strtotime("next monday", $report_date);
+    $from_date = strtotime("last monday", $to_date);
+    
+    $subject = 'NCN Weekly Sales Report ('.date("Y/m/d", $from_date).'~'.date("Y/m/d", strtotime("-1 day", $to_date)).')';
+    $msg = compose_weekly_mail($report_date);
+    
+    $to = 'reports@netclaimsnow.com';
+    drupal_mail('ncn_report', 'weekly_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
+}
+
+function compose_weekly_mail($report_date){
+    $data = array();
+    $total= array();
+    
+    _ncn_report_get_data($data, $total, $report_date, "weekly");
+    
+    ob_start();
+    
+    mail_css();
+    build_table($report_date, $data, $total);
+    $msg = ob_get_contents();
+    ob_end_clean();
+    return $msg;
+}
+
+function send_monthly_mail() {
+    $report_date = time();
+    
+    $subject = 'NCN Monthly Sales Report ('.date('F Y', $report_date).')';
+    $msg = compose_monthly_mail($report_date);
+    
+    $to = 'reports@netclaimsnow.com';
+    drupal_mail('ncn_report', 'monthly_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
+}
+
+function compose_monthly_mail($report_date){
+    $data = array();
+    $total= array();
+    
+    _ncn_report_get_data($data, $total, $report_date, "monthly");
+    
+    ob_start();
+    
+    mail_css();
+    build_table($report_date, $data, $total);
+    $msg = ob_get_contents();
+    ob_end_clean();
+    return $msg;
+}
+
+
+function mail_css() {
+?>
+<style type="text/css">
+body{
+    font: 12px Verdana,sans-serif;
+}
+.report-content {
+    margin-top: 15px; 
+}
+
+table {
+    margin: 1em 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+td, th {
+    padding: 0.3em 0.5em;
+}
+
+thead th {
+    border-bottom: 2px solid #D3E7F4;
+    color: #494949;
+    font-weight: bold;
+    padding: 0.3em 0.5em;
+    padding-right: 1em;
+    text-align: left;
+}
+
+tbody {
+    border-top: 1px solid #CCCCCC;
+}
+
+tr.odd, tr.info {
+    background-color: #EDF5FA;
+}
+tr.even {
+    background-color: #FFFFFF;
+}
+
+tr.even, tr.odd, tbody th {
+    -moz-border-bottom-colors: none;
+    -moz-border-image: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    border-color: #D3E7F4;
+    border-style: solid;
+    border-width: 1px 0;
+}
+
+tr.even, tr.odd {
+    border-bottom: 1px solid #CCCCCC;
+    padding: 0.1em 0.6em;
+}
+
+.refunded-price{
+    color: red;
+}
+</style>
+<?php 
+}
+
+
+
+

@@ -1,0 +1,611 @@
+<?php
+
+/**
+ *
+ */
+
+/**
+ * hook_init function
+ */
+function ncn_splash_init() {
+	drupal_add_js(drupal_get_path('module', 'ncn_splash').'/ajaxfileupload.js');
+	drupal_add_js(drupal_get_path('module', 'ncn_splash').'/ncn_splash.js');	
+}
+
+/**
+ * hook_perm function
+ */
+function ncn_splash_permission()
+{
+	//return array('ncn splash management');
+	return array(
+		'ncn splash management' =>  array(
+			'title' => t('ncn splash management'),
+		),	
+	);
+}
+
+/**
+ * hook_menu function
+ */
+function ncn_splash_menu()
+{
+	$item = array();
+	$item['admin/config/ncn_splash'] = array(
+		'title' => 'Net Claims Now Splash Images',
+		'page callback' => 'ncn_splash_list',
+		'access arguments' => array('ncn splash management'),
+	);
+	$item['admin/config/ncn_splash/list'] = array(
+		'title' => 'Show splash images',
+		'page callback' => 'ncn_splash_list',
+		'access arguments' => array('ncn splash management'),
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => 0,
+	);
+	$item['admin/config/ncn_splash/list'] = array(
+		'title' => 'Show splash images',
+		'page callback' => 'ncn_splash_list',
+		'access arguments' => array('ncn splash management'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+	);
+	$item['admin/config/ncn_splash/add_splash'] = array(
+		'title' => 'Add splash image',
+		'page callback' => 'ncn_splash_add_splash_image',
+		'access arguments' => array('ncn splash management'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 2,
+	);
+	
+	$item['ajax/splash_file_upload'] = array(
+		'page callback' => 'splash_file_upload',
+		'access arguments' => array('ncn splash management'),
+		'type' => MENU_CALLBACK,
+	);
+	
+	$item['ajax/splash_remove_uploaded_file'] = array(
+		'page callback' => 'splash_remove_uploaded_file',
+		'access arguments' => array('ncn splash management'),
+		'type' => MENU_CALLBACK,
+	);
+	
+	$item['ncn/ncn_splash_promptpage'] = array(
+		'page callback' => 'ncn_splash_promptpage',
+		'access arguments' => array('access content'),
+		'type' => MENU_LOCAL_TASK,
+	 );
+	 
+	$item['ncn_splash/process'] = array(
+		'page callback' => 'ncn_splash_process',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+	);
+	
+	$item['ncn_splash/process/%/%'] = array(
+		'page callback' => 'ncn_splash_process',
+		'page arguments' => array(2, 3), 
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+	);
+	
+	return $item;
+}
+
+function ncn_splash_theme() {
+	return array(
+		'ncn_splash_prompt_window' => array(
+			'arguments' => array('params' => NULL),
+			'template' => 'ncn_splash_prompt_window',
+		)
+	);
+}
+
+/**
+ * @Menu Callback (admin/config/ncn_splash/list)
+ * display a list of splash image
+ */
+function ncn_splash_list() {
+GLOBAL $base_url;
+	if (arg(5)=='edit') {
+		return ncn_splash_edit_splash_image(intval(arg(4)));
+	} else if (arg(5)=='reprompt') {
+		ncn_splash_reprompt_splash(intval(arg(4)));
+	} else if (arg(5)=='delete') {
+		ncn_splash_delete_splash(intval(arg(4)));
+	}
+	
+	$output = '';
+	
+	$header = array(
+		array('data' => t('Image')),
+		array('data' => t('Title')),
+		array('data' => t('Description')),
+		array('data' => t('From'), 'field' => 'si.from_time', 'sort' => 'desc'),
+		array('data' => t('To'), 'field' => 'si.to_time'),
+		array('data' => t('Operations')),
+	);
+
+  //  $sql = "SELECT si.sid, si.title, si.description, si.from_time, si.to_time, si.image_path FROM {splash_item} si";
+
+    $select =  db_select('splash_item', 'si')->extend('TableSort');
+    $result = $select->fields('si', array('sid', 'title', 'description', 'from_time', 'to_time', 'image_path'))->orderByHeader($header)->extend('PagerDefault')->limit(10)->execute();
+
+//    $tablesort = tablesort_init($header);
+
+//	$result = pager_query($sql . $tablesort, 10);
+ //   $result = $select;
+
+
+//	while ($row = db_fetch_object($result))
+
+
+
+    foreach($result as $row)
+    {
+       // var_dump($row);
+       	$rows[] = array('data' => array(
+			// Cells
+			"<img src='".file_create_url($row->image_path)."' width='100px' />",
+			$row->title,
+			(strlen($row->description)>50)? substr($row->description, 0, 50)."..." : $row->description, 
+			date('m/d/Y H:i', $row->from_time), 
+			date('m/d/Y H:i', $row->to_time), 
+			l('Edit', 'admin/config/ncn_splash/list/'. $row->sid . '/edit', array('html' => TRUE)).'&nbsp;&nbsp;&nbsp;'.
+			l('Reprompt', 'admin/config/ncn_splash/list/'. $row->sid . '/reprompt', array('html' => TRUE)) .'&nbsp;&nbsp;&nbsp;'. 
+			l('Delete', 'admin/config/ncn_splash/list/'. $row->sid . '/delete', array('html' => TRUE)),
+		),
+		// Attributes for tr
+		//'class' => "dblog-". preg_replace('/[^a-z]/i', '-', $dblog->type) .' '. $classes[$dblog->severity]
+		);
+    }
+
+
+    if (!$rows) {
+		$rows[] = array(array('data' => t("There isn't splash image."), 'colspan' => 6));
+	}
+	
+	$output = theme('table',array('header'=>$header,'rows'=>$rows,'attributes'=>array('id' => 'admin-splash-items')));
+	$output .= theme('pager');
+  
+	return $output;
+}
+
+/**
+ * @Menu Callback (admin/config/ncn_splash/add_splash)
+ * display a list of splash image
+ */
+function ncn_splash_add_splash_image() {
+
+	ncn_splash_add_splash_image_action();
+	
+	$image_path = isset($_POST['splash_image'])?$_POST['splash_image']:'';
+	$image_url  = isset($_POST['splash_image'])?file_create_url($_POST['splash_image']):'';
+	$splash_from_time = isset($_POST['splash_from_time'])?strtotime($_POST['splash_from_time']):0;
+	$splash_to_time   = isset($_POST['splash_to_time'])?strtotime($_POST['splash_to_time']):0;
+	if ($splash_from_time == 0) {
+		$splash_from_time = date('U');
+	}
+	if ($splash_to_time == 0) {
+		$splash_to_time = date('U');
+	}
+
+	
+	ob_start();
+?>
+<div id="ncn_splash_add_splash_image">
+<form method="POST"> 
+<input type="hidden" name="tfunction" value="add_splash_image" />
+<fieldset>
+	<table>
+		<tr><td width="150">Image*: </td>
+			<td><div id="splash_image"><?php echo ncn_splash_draw_upload_image('splash_image', $image_path, $image_url); ?></div>
+			</td>
+		</tr>
+		<tr><td>Title: </td>
+			<td><input type="text" name="splash_title" id="splash_title" value="<?php echo isset($_POST['splash_title'])?$_POST['splash_title']:''; ?>" size="50"/></td>
+		</tr>
+		<tr><td>Description: </td>
+			<td><textarea name="splash_description" id="splash_description" cols="47" rows="3"><?php echo isset($_POST['splash_description'])?$_POST['splash_description']:''; ?></textarea></td>
+		</tr>
+		<tr><td>Duration*: </td>
+			<td>
+				<input type="text" name="splash_from_time" id="splash_from_time" size="20" value="<?php echo date('m/d/Y H:i', $splash_from_time); ?>"/> ~ 
+				<input type="text" name="splash_to_time"   id="splash_to_time"   size="20" value="<?php echo date('m/d/Y H:i', $splash_to_time); ?>"/>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2"><input type="submit" value="Add"/></td>
+		</tr>
+	</table>
+</fieldset>
+</form>
+</div>
+<?php 
+	$content = ob_get_contents();
+	ob_end_clean();
+
+	return $content;
+}
+
+function ncn_splash_add_splash_image_action() {
+//add splash
+	if (isset($_POST['tfunction']) && $_POST['tfunction'] == 'add_splash_image') {
+		$image_path		= $_POST['splash_image'];
+		$title	 		= $_POST['splash_title']; 
+		$description	= $_POST['splash_description'];
+		$from_time		= strtotime($_POST['splash_from_time']);
+		$to_time		= strtotime($_POST['splash_to_time']);
+		if ($from_time == 0) {
+			$from_time = date('U');
+		}
+		if ($to_time == 0) {
+			$to_time = date('U');
+		}
+
+		$error = false;
+		if (empty($image_path)) {
+			drupal_set_message(t('Please upload splash image.'), 'error');
+			$error = true;
+		}
+		
+		$title = trim($title);
+		if ($title == '') {
+			drupal_set_message(t('Please input title'), 'error');
+			$error = true;
+		}
+		
+		if ($from_time >= $to_time ) {
+			drupal_set_message(t('Duration is invalid.'), 'error');
+			$error = true;
+		}
+		if ($error) { return FALSE; }
+		
+		$result = db_query('INSERT INTO {splash_item} VALUES(NULL, :a, :b, :c, :d, :e)',
+            array(':a'=>$title,':b'=>$description,':c'=>$from_time,':d'=>$to_time,':e'=>$image_path));
+		
+		if (!$result) {
+			handle_mysql_syntax_error('70101-NCN-SPLASH', $query);
+			return FALSE;
+		}
+	
+		drupal_set_message(t('Splash image added, successfully.'));
+				
+		drupal_goto('admin/config/ncn_splash/list');
+	}
+}
+
+/**
+ * @Sub Page Handler: (admin/config/ncn_splash/list/%splash_id/edit)
+ */
+function ncn_splash_edit_splash_image($sid) {
+
+	$splash = ncn_splash_get_splash_from_sid($sid);
+	if (isset($_POST['tfunction-edit']) && $_POST['tfunction-edit'] == 'edit_splash') {
+		$image_path 	= $_POST['splash_image'];
+		$image_url  	= file_create_url($image_path);
+		$title	 		= $_POST['splash_title']; 
+		$description	= $_POST['splash_description'];
+		$splash_from_time= strtotime($_POST['splash_from_time']);
+		$splash_to_time	= strtotime($_POST['splash_to_time']);
+		if ($splash_from_time == 0) {
+			$splash_from_time = date('U');
+		}
+		if ($splash_to_time == 0) {
+			$splash_to_time = date('U');
+		}
+		
+		$error = false;
+		if (empty($image_path)) {
+			drupal_set_message(t('Please upload splash image.'), 'error');
+			$error = true;
+		}
+		
+		$title = trim($title);
+		if ($title == '') {
+			drupal_set_message(t('Please input title'), 'error');
+			$error = true;
+		}
+		
+		if ($splash_from_time >= $splash_to_time ) {
+			drupal_set_message(t('Duration is invalid.'), 'error');
+			$error = true;
+		}
+		
+		if (!$error) {
+			$result = db_query('UPDATE {splash_item} SET title=:a, description=:b, from_time=:c, to_time=:d, image_path=:e WHERE sid=:f',
+                          array(':a'=>$title,':b'=>$description,':c'=>$splash_from_time,':d'=>$splash_to_time,':e'=>$image_path,':f'=>$sid));
+		//			  $title, $description, $splash_from_time, $splash_to_time, $image_path, $sid);
+
+			if (!$result) {
+				drupal_set_message(t('Failed to update splash item.'), 'error');
+			} else {
+				drupal_set_message(t('Splash item updated, successfully.'));
+			}
+		}
+	} else {
+		if (empty($splash)) {
+			drupal_set_message(t('Splash(#!splash_id) doesn\'t exist.', array('!splash_id'=>$sid)), 'error');
+			drupal_goto('admin/config/ncn_splash/list');
+		}
+		
+		$image_path = $splash['image_path'];
+		$image_url  = file_create_url($splash['image_path']);
+		$title		= $splash['title'];
+		$description= $splash['description'];
+		$splash_from_time= $splash['from_time'];
+		$splash_to_time	= $splash['to_time'];
+		if ($splash_from_time == 0) {
+			$splash_from_time = date('U');
+		}
+		if ($splash_to_time == 0) {
+			$splash_to_time = date('U');
+		}
+	}
+	
+	ob_start();
+?>
+<div id="ncn_sponsor_edit_sponsor_page">
+<form method="POST"> 
+<input type="hidden" name="tfunction-edit" value="edit_splash" />
+<fieldset>
+	<table>
+		<tr><td width="150">Image*: </td>
+			<td><div id="splash_image"><?php echo ncn_splash_draw_upload_image('splash_image', $image_path, $image_url); ?></div>
+			</td>
+		</tr>
+		<tr><td>Title: </td>
+			<td><input type="text" name="splash_title" id="splash_title" value="<?php echo $title; ?>" size="50"/></td>
+		</tr>
+		<tr><td>Description: </td>
+			<td><textarea name="splash_description" id="splash_description" cols="47" rows="3"><?php echo $description; ?></textarea></td>
+		</tr>
+		<tr><td>Duration*: </td>
+			<td>
+				<input type="text" name="splash_from_time" id="splash_from_time" size="20" value="<?php echo date('m/d/Y H:i', $splash_from_time); ?>"/> ~ 
+				<input type="text" name="splash_to_time"   id="splash_to_time"   size="20" value="<?php echo date('m/d/Y H:i', $splash_to_time); ?>"/>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2"><input type="submit" value="Save"/></td>
+		</tr>
+	</table>
+</fieldset>
+</form>
+</div>
+<?php 
+	$content = ob_get_contents();
+	ob_end_clean();
+	
+	return $content;
+}
+
+function ncn_splash_draw_upload_image($wrapper, $image_path='', $image_url=''){
+GLOBAL $base_url;
+	if (empty($image_url)) {
+		return '<input type="file" id="'.$wrapper.'_file" name="files['.$wrapper.']" class="image_file" accept="image/jpg, image/jpeg, image/gif, image/png" size="25" />&nbsp;
+		<input type="button" id="btn_upload_image" value="Upload" onclick="return on_click_splash_image(&#039;'.$wrapper.'&#039;);" />';
+	} else {
+		return "<input type='hidden' name='$wrapper' value='$image_path'/>
+				<img src='$image_url' width='100px'/>
+				<input type='button' value='Remove' onclick='on_click_splash_image_remove(&#039;$wrapper&#039;)' />";
+	}
+}
+
+function splash_file_upload() {
+	$error = "";
+	$msg = "";
+	$filepath = "";
+	$conten = "";
+	
+	$source = 'splash_image';
+	//$file = file_save_upload($source);
+	$file = file_save_upload($source, array(), 'public://splash', FILE_EXISTS_RENAME);
+	if (!$file) {
+		$error = "Missing of file for upload.";
+	} else if ($file->filemime != 'image/jpeg' && $file->filemime != 'image/jpg' && $file->filemime != 'image/gif' && $file->filemime != 'image/png' && strtolower(substr($file->filename, -4)) != ".bmp") {
+		$error = "You need to upload image file.";
+	} else {
+	
+		if ($wrapper = file_stream_wrapper_get_instance_by_uri('public://')) {
+  			$path = $wrapper->realpath(); // output => C:\wamp\www\drupaldemo\sites\default\files
+		}	
+		$splash_dir = $path."/splash/";	
+		
+		if (is_dir($splash_dir)===false) {
+			@drupal_mkdir($splash_dir);
+		}
+		
+		//$res = file_copy($file, $splash_dir, FILE_EXISTS_RENAME);
+		$file->status = FILE_STATUS_PERMANENT; //Set the status of the uploaded file.
+		$res = file_save($file);
+			
+		if ($res) {		
+			$content = ncn_splash_draw_upload_image($_REQUEST['div_id'], $file->uri, file_create_url($file->uri));
+		} else {
+			$error = "Failed to save uploaded image.";
+		}
+	}
+	
+	$json_result['error'] = $error;
+	$json_result['filepath'] = $filepath;
+	$json_result['content'] =  htmlentities($content, ENT_QUOTES);
+	
+	/*echo "{";
+	echo				"error: '" . $json_result['error'] . "',\n";
+	echo				"filepath: '" . $json_result['filepath'] . "'\n";
+	echo				"content: '" . $json_result['content'] . "'\n";
+	echo "}";*/
+	
+	echo json_encode($json_result);
+	
+
+}
+
+function splash_remove_uploaded_file() {
+	echo ncn_splash_draw_upload_image($_REQUEST['div_id'], '');
+}
+
+function ncn_splash_get_splash_from_sid($sid) {
+	$result = db_query('SELECT * FROM {splash_item} WHERE sid=:d',array(':d'=>$sid));
+	if (!$result) { return array(); }
+	$arr = array();
+    foreach($result as $arr)
+    {
+        $arr = (array)$arr;
+        if (empty($arr)) {
+            return array();
+        }
+    }
+//	$arr = db_fetch_array($result);
+//	if (empty($arr)) {
+//		return array();
+//	}
+	return $arr;
+}
+
+/**
+ * Menu callback (ncn/ncn_splash_promptpage)
+ */
+function ncn_splash_promptpage() {
+GLOBAL $base_url;
+GLOBAL $user;
+
+	$sid = arg(2);
+	
+	$result = db_query('SELECT * FROM {splash_item} WHERE sid=:d', array(':d'=>$sid));
+
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+        if ($row) {
+            ncn_splash_insert_view_log($user->uid, $row);
+
+            $params['image_path'] = $base_url."/".$row['image_path'];
+        }
+    }
+
+	return theme( 'ncn_splash_prompt_window', $params );
+}
+
+/**
+ * Called from external
+ */
+function ncn_splash_prompt_default() 
+{
+	GLOBAL $user;
+	$user = user_load($user->uid);
+	if (!(isset($user->profile_memberid)&&is_member($user->profile_memberid))) {
+		return FALSE;
+	}
+	
+	$now = date('U');
+	$result = db_query('SELECT * FROM {splash_item} WHERE from_time<:a AND to_time>:b ORDER BY from_time ASC',array(':a'=>$now,':b'=>$now));
+	//	while ($row = db_fetch_array($result))
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+		$sid = $row['sid'];
+		if (!ncn_splash_check_view($user->uid, $sid)) {
+			$img_info = _get_ncn_image_info($row['image_path']);
+			$eval_code = "open_prompt_window($sid, ".$img_info['width'].", ".$img_info['height'].");";
+			return $eval_code;
+		}
+	}
+	
+	return FALSE;
+}
+
+/**
+ * @Sub Page Handler: (admin/config/ncn_splash/list/%splash_id/reprompt)
+ */
+function ncn_splash_reprompt_splash($sid) {
+	db_query('DELETE FROM {splash_view_log} WHERE sid=:d',array(':d'=>$sid));
+	$title = db_query('SELECT title FROM {splash_item} WHERE sid=:d',array(':d'=>$sid))->fetchField();
+	drupal_set_message( t('Reprompted Splash (!title).', array("!title"=>$title)) );
+	
+	drupal_goto('admin/config/ncn_splash/list');
+}
+
+/**
+ * @Sub Page Handler: (admin/config/ncn_splash/list/%splash_id/delete)
+ */
+function ncn_splash_delete_splash($sid) {
+	$title = db_query('SELECT title FROM {splash_item} WHERE sid=:d',array(':d'=>$sid))->fetchField();
+	$result=db_query('DELETE FROM {splash_item} WHERE sid=:d',array(':d'=>$sid));
+	if ($result) {
+		db_query('DELETE FROM {splash_view_log} WHERE sid=:d',array(':d'=>$sid));
+		drupal_set_message( t('Delete splash (!title).', array("!title"=>$title)) );
+	} else {
+		drupal_set_message( t('Failed to delete splash (!title).', array("!title"=>$title)), 'error' );
+	}
+	drupal_goto('admin/config/ncn_splash/list');
+}
+
+function ncn_splash_insert_view_log($uid, $splash) {
+	$result = db_query('INSERT INTO {splash_view_log}(uid, sid, from_time, to_time, timestamp) VALUES(:a,:b,:c,:d,:e)',
+        array(':a'=>$uid,':b'=>$splash['sid'],':c'=>$splash['from_time'],':d'=>$splash['to_time'],':e'=> date('U')));
+//						$uid, $splash['sid'], $splash['from_time'], $splash['to_time'], date('U'));
+}
+
+function ncn_splash_check_view($uid, $sid) {
+	$result = db_query('SELECT COUNT(*) FROM {splash_view_log} WHERE uid=:a AND sid=:b',array(':a'=>$uid,':b'=>$sid))->fetchField();
+	if ($result == 0) {
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+function ncn_splash_process($module='', $type='') {
+    if(!isset($_GET['is_ajax'])){
+        return true; // added by Nikhil - Remove this line at later stage
+    }
+	
+	$result = db_query('SELECT * FROM {ncn_splash_queue} WHERE status=1 ORDER BY weight ASC');
+	$matched = false;
+	if ($module == '') {
+		$matched = true;
+	}
+	$matched = true;
+	
+	$json_result = array();
+	$json_result['flag'] = 'success';
+	$json_result['code'] = 'ok';
+//	while ($row = db_fetch_array($result))
+    foreach($result as $row)
+    {
+        $row = (array)$row;
+		if (!$matched) {
+			if ($row['module'] == $module && $row['type'] == $type) {
+				$matched = true;
+			}
+		} else {
+			
+			if (module_exists($row['module'])) {
+				$func_name = $row['module']."_prompt_".$row['type'];
+				if (function_exists($func_name)) {
+					$eval_code = call_user_func($func_name);
+					if ($eval_code != FALSE) {
+						$json_result['eval_code'] = $eval_code;
+						echo json_encode($json_result);
+						return;
+					}
+				}
+			}
+		}
+	}
+	
+	$json_result['flag'] = 'error';
+	$json_result['code'] = 'no_splash';
+	echo json_encode($json_result);
+}
+
+
+function ncn_splash_open_prompt_pages() {
+	drupal_add_js("
+		jQuery(document).ready( function() {
+			render_splash_pages('', '');
+		}	);
+	", 'inline');
+}

@@ -1,0 +1,10 @@
+name = "Capsule API - NCN"
+description = "Provides an integration API for Capsule."
+package = "Other"
+core = "7.x"
+
+; Information added by drupal.org packaging script on 2011-01-03
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "capsule_api"
+datestamp = ""

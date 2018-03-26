@@ -1,0 +1,4 @@
+name = NCN Member Sub User
+description = Manage sub user of NCN members
+package = Net Claims Now
+core = 7.x
