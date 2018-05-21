@@ -9,13 +9,13 @@
     <table class="table">
     <thead>
         <tr>
-            <th class="td-id">ID</th>
-            <th class="td-created-at">Created Date</th>                            
+            <!--<th class="td-id">ID</th>-->
+            <th class="td-created-at">Created Date</th>
             <th class="td-insured-name">Insured Name</th>
-            <th class="td-photo-album">Photo Album</th>
             <th class="td-property-loss-address">Property Loss Address</th>
-            <th class="td-rooms">Rooms</th>
             <th class="td-claim-processing">Claim Processing</th>
+            <th class="td-rooms">Rooms</th>
+            <th class="td-photo-album">Photo Album</th>
             <th class="td-create-my-invoice">Create My Invoice</th>
         </tr>
     </thead>
@@ -52,33 +52,33 @@
             }
         ?>
             <tr>
-                <td class="td-id">
-                    <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class=""><?php echo $row['claim_id'] ?></a>
-                </td>
+                <!--<td class="td-id">
+                    <a href="<?php /*print url("account/edit_claim/".$row['claim_id']) */?>" class=""><?php /*echo $row['claim_id'] */?></a>
+                </td>-->
                 <td class="td-created-at">
                     <?php echo strTime($row['created']) ?>
                 </td>
                 <td class="td-insured-name">
                     <?php echo ncn_cd($row['claim_id'], 'customer_name') ?>
                 </td>
+                <td class="td-property-loss-address">
+                    <?php echo strClaimAddress($row['claim_id']) ?>
+                </td>
+                <td class="td-claim-processing">
+                    <?php if ($send_to_admin == true && !is_leaduser($user)): ?>
+                        <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="btn btn-primary">Edit</a>
+                    <?php endif; ?>
+                </td>
+                <td class="td-rooms">
+                    <?php if ($editable == true): ?>
+                        <a class="btn btn-primary" onclick="open_scopesheet_edit_box(<?php echo $row['claim_id']; ?>)">Edit</a>
+                    <?php endif; ?>
+                </td>
                 <td class="td-photo-album">
                     <?php if ($editable == true): ?>
                     <a class="enabled btn btn-primary" onclick='open_edit_box(<?php echo $row['claim_id']; ?>)'>
                         <span class="btn-camera-icon">Edit Album</span>
                     </a>
-                    <?php endif; ?>
-                </td>
-                <td class="td-property-loss-address">
-                    <?php echo strClaimAddress($row['claim_id']) ?>
-                </td>
-                <td class="td-rooms">
-                    <?php if ($editable == true): ?>
-                    <a class="btn btn-primary" onclick="open_scopesheet_edit_box(<?php echo $row['claim_id']; ?>)">Edit</a>
-                    <?php endif; ?>
-                </td>
-                <td class="td-claim-processing">
-                    <?php if ($send_to_admin == true && !is_leaduser($user)): ?>
-                    <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="btn btn-primary">Edit</a>
                     <?php endif; ?>
                 </td>
                 <td class="td-create-my-invoice">
