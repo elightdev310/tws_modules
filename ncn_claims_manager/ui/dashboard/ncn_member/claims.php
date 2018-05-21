@@ -56,10 +56,14 @@
                     <a href="<?php /*print url("account/edit_claim/".$row['claim_id']) */?>" class=""><?php /*echo $row['claim_id'] */?></a>
                 </td>-->
                 <td class="td-created-at">
-                    <?php echo strTime($row['created']) ?>
+                    <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="">
+                        <?php echo strTime($row['created']) ?>
+                    </a>
                 </td>
                 <td class="td-insured-name">
-                    <?php echo ncn_cd($row['claim_id'], 'customer_name') ?>
+                    <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="">
+                        <?php echo ncn_cd($row['claim_id'], 'customer_name') ?>
+                    </a>
                 </td>
                 <td class="td-property-loss-address">
                     <?php echo strClaimAddress($row['claim_id']) ?>
