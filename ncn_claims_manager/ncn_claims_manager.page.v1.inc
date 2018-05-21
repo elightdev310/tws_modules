@@ -871,7 +871,7 @@ function ncn_claim_manager_page_internal($page_title, $class_name, $order_by = "
                     echo "<a href='#' class='approve-btn' onclick=\"window.location = '".$base_url."/account/approve_invoice/$claim_id';\">Approve</a>";
                 }
                 ?>
-                <?php $_change_order_request_url = $base_url . "/account/ncn_change_order_request/" . $claim_id; ?>
+                <?php $_change_order_request_url = $base_url . "/account/tws_change_order_request/" . $claim_id; ?>
                 <a href="<?php echo $_change_order_request_url; ?>" class="reject-btn">Change Order</a>
                 <!-- <a href="#" class="reject-btn" onclick="if (confirm('Please confirm you wish to change this invoice and notify the administrator.')) { window.location = '/account/reject_invoice/<?= $claim_id; ?>'; }">Reject</a> -->
             <?php

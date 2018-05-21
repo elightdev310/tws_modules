@@ -403,7 +403,7 @@ function ncn_claims_manager_purchase_invoice()
             if ($pid) {
                 $this_user = $user;
                 $mail_params = array(
-                    'merchant' => 'Net Claims Now',
+                    'merchant' => 'True Water Claims',
                     'invoice_number' => $pid,
                     'claim_id' => $claim_id,
                     'customer_id' => $this_user->profile_memberid,

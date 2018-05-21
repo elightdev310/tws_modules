@@ -286,7 +286,7 @@ switch ($tfunction)
     case "update_cc":
         /*
         // check for free
-        if ($_POST['credit_card_number'] != '5424000000000015')
+        if ($_POST['credit_card_number'] != FREE_CARD_NUMBER)
         {
 
             // add the user to cim

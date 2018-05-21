@@ -489,7 +489,8 @@ function ncn_admin_is_user_in_training($uid) {
             return TRUE;
         }
     }
-    
+
+
     return FALSE;
 }
 

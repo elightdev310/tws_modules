@@ -1,4 +1,4 @@
 name = NCN Poll
-description = Net Claims Now Poll
-package = Net Claims Now
+description = True Water Claims Poll
+package = True Water Claims
 core = 7.x

@@ -1381,7 +1381,7 @@ function user_edit_new($in_admin = true, $uid = false)
             
             /*
             // check for free
-            if ($_POST['credit_card_number'] != '5424000000000015')
+            if ($_POST['credit_card_number'] != FREE_CARD_NUMBER)
             {
             
                 // add the user to cim

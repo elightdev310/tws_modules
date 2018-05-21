@@ -70,13 +70,13 @@ function open_prompt_window(sid, width, height) {
 	width += 30;
 	height += 70;
 	// open the colorbox
-	var in_url = Drupal.settings.basePath+"ncn/ncn_splash_promptpage/"+sid;
+	var in_url = Drupal.settings.basePath+"tws/tws_splash_promptpage/"+sid;
 
 	jQuery.colorbox({width:(width+"px"),height:(height+"px"),href:in_url,open:true,iframe:true, overlayClose:false, onClosed:function(){ render_splash_pages('ncn_splash', 'default');  }});
 }
 
 function render_splash_pages(module, type) {
-	var _url = Drupal.settings.basePath+'ncn_splash/process/'+'?is_ajax=1';
+	var _url = Drupal.settings.basePath+'tws_splash/process/'+'?is_ajax=1';
 	if (module != '') {
 		_url = (_url+module+'/'+type+'/?is_ajax=1');
 	}

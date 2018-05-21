@@ -92,7 +92,7 @@
                 $member_type,
                 $row['contactemail'],
                 date('d M Y', $row['create']) ,
-                $_owner->profile_firstname . ' ' . $_owner->profile_lastname,
+                user_fullname($_owner),
                 "<a href='$base_url/admin/config/ncn_create_user/unactivated_member_list/edit/" . $row['member_id'] . "'>Edit</a>&nbsp;&nbsp;" .
 
                 // "<a href='$base_url/admin/user/user/unactivated_member_list/member_delete/".$row['member_id']."' onclick='return on_click_ncn_admin_una_member_delete();'>Delete</a>&nbsp;&nbsp;"
@@ -102,7 +102,7 @@
         );
     }
 
-    if (!$row)
+    if (!$result->rowCount())
     {
         $rows[] = array(
             array(

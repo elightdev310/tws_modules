@@ -29,7 +29,7 @@ function get_claim_invoice_price() {
 		expedite = 'on';
 	}
 	
-	var _url = Drupal.settings.basePath+'ajax/ncn_create_claim/get_claim_invoice';
+	var _url = Drupal.settings.basePath+'ajax/tws_create_claim/get_claim_invoice';
 	
 	jQuery.ajax({
 		url: 	_url,
@@ -76,7 +76,7 @@ function get_claim_invoice_expedite_price() {
 		return;
 	}
 	
-	var _url = Drupal.settings.basePath+'ajax/ncn_create_claim/get_claim_invoice';
+	var _url = Drupal.settings.basePath+'ajax/tws_create_claim/get_claim_invoice';
 	
 	jQuery.ajax({
 		url: 	_url,

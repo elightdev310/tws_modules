@@ -32,7 +32,7 @@ function ncn_splash_menu()
 {
 	$item = array();
 	$item['admin/config/ncn_splash'] = array(
-		'title' => 'Net Claims Now Splash Images',
+		'title' => 'True Water Claims Splash Images',
 		'page callback' => 'ncn_splash_list',
 		'access arguments' => array('ncn splash management'),
 	);
@@ -70,19 +70,19 @@ function ncn_splash_menu()
 		'type' => MENU_CALLBACK,
 	);
 	
-	$item['ncn/ncn_splash_promptpage'] = array(
+	$item['tws/tws_splash_promptpage'] = array(
 		'page callback' => 'ncn_splash_promptpage',
 		'access arguments' => array('access content'),
 		'type' => MENU_LOCAL_TASK,
 	 );
 	 
-	$item['ncn_splash/process'] = array(
+	$item['tws_splash/process'] = array(
 		'page callback' => 'ncn_splash_process',
 		'access callback' => TRUE,
 		'type' => MENU_CALLBACK,
 	);
 	
-	$item['ncn_splash/process/%/%'] = array(
+	$item['tws_splash/process/%/%'] = array(
 		'page callback' => 'ncn_splash_process',
 		'page arguments' => array(2, 3), 
 		'access callback' => TRUE,
@@ -465,7 +465,7 @@ function ncn_splash_get_splash_from_sid($sid) {
 }
 
 /**
- * Menu callback (ncn/ncn_splash_promptpage)
+ * Menu callback (tws/tws_splash_promptpage)
  */
 function ncn_splash_promptpage() {
 GLOBAL $base_url;

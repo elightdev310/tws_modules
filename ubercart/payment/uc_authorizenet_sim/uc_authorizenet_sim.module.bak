@@ -358,7 +358,7 @@ GLOBAL $user;
 	$this_user = user_load($user->uid);
 	
 	// check for free
-	if ($this_user->profile_credit_card_number == '5424000000000015' || $this_user->profile_credit_card_number == '')
+	if ($this_user->profile_credit_card_number == FREE_CARD_NUMBER || $this_user->profile_credit_card_number == '')
 	{	
 		$auth_successful = true;
 		$response_code = 1;		

@@ -6,13 +6,13 @@
 function ncn_chatter_insert_post_record($data=array()) {
     $result = db_insert('chatter_post')
             ->fields(array(
-                'content'   => $data['content'], 
-                'ncn_only'  => (isset($data['ncn_only'])? $data['ncn_only'] : 0), 
-                'fid'       => $data['file_id'], 
-                'uid'       => $data['uid'], 
-                'feed_id'   => $data['feed_id'], 
-                'created_at'=> (isset($data['created_at'])? $data['created_at'] : date('U')), 
-                'updated_at'=> (isset($data['updated_at'])? $data['updated_at'] : date('U')), 
+                'content'   => $data['content'],
+                'ncn_only'  => (isset($data['ncn_only'])? $data['ncn_only'] : 0),
+                'fid'       => $data['file_id'],
+                'uid'       => $data['uid'],
+                'feed_id'   => $data['feed_id'],
+                'created_at'=> (isset($data['created_at'])? $data['created_at'] : date('U')),
+                'updated_at'=> (isset($data['updated_at'])? $data['updated_at'] : date('U')),
             ))
             ->execute();
     return $result;
@@ -49,8 +49,13 @@ function ncn_chatter_post_update_time($pid, $timestamp) {
 
 
 /**
- * Create Post
- * @param   $data:array( content, file_id, feed_id, ncn_only: optional )
+ * Create post
+ *
+ * @param array $data
+ *      Post data: array( content, file_id, feed_id, ncn_only: optional )
+ *
+ * @return bool|int
+ *      Created post ID
  */
 function ncn_chatter_create_post($uid, $fid, $data=array()) {
     if (!$uid || !$fid) {
@@ -78,6 +83,7 @@ function ncn_chatter_create_post($uid, $fid, $data=array()) {
 
 /**
  * Create Comment
+ *
  * @param   $data:array( content, pid, file_id )
  */
 function ncn_chatter_create_comment($uid, $data=array()) {
@@ -283,7 +289,7 @@ global $user;
                 $user_fullname = "@".user_fullname($_user);
                 $replaced = $user_fullname;
                 if (ncn_chatter_check_feed_available($user, $user_feed['fid'])) {
-                    $replaced = l($user_fullname, 'ncn-chatter/user-profile-feed/'.$_user->uid);
+                    $replaced = l($user_fullname, 'chatter/user-profile-feed/'.$_user->uid);
                 } else {
                     $replaced = $user_fullname;
                 }

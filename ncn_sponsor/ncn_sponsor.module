@@ -33,7 +33,7 @@ function ncn_sponsor_menu()
 {
     $item = array();
     $item['admin/config/ncn_sponsor'] = array(
-        'title' => 'Net Claims Now Sponsor',
+        'title' => 'True Water Claims Sponsor',
         'page callback' => 'ncn_sponsor_list_page',
         'access arguments' => array('ncn sponsor management'),
     );

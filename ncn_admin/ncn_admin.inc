@@ -1654,7 +1654,7 @@ function ncn_admin_is_demo_claim_for_gmd($claim_id)
     return FALSE;
 }
 
-// ** Net Claims Now Member Report**//
+// ** True Water Claims Member Report**//
 
 /**
  * Page Handler (admin/config/ncn_member_report)
@@ -2164,7 +2164,7 @@ function ncn_admin_download_user_list()
 
         // is account free?
 
-        /*if ((isset($_user->profile_credit_card_number)) && ($_user->profile_credit_card_number == '5424000000000015'))
+        /*if ((isset($_user->profile_credit_card_number)) && ($_user->profile_credit_card_number == FREE_CARD_NUMBER))
         {   $free_extra = ' (free)';    }
         else
         {   $free_extra = '';   }*/
@@ -3321,7 +3321,7 @@ function ncn_admin_send_cdr($claim_id)
 
         
 
-        Please fax these documents to Net Claims Now at 877.654.8667. Once these documents are received, your Net Claims Now team can begin work on your invoice. If you have any questions please contact us at anytime.
+        Please fax these documents to True Water Claims at 877.654.8667. Once these documents are received, your True Water Claims team can begin work on your invoice. If you have any questions please contact us at anytime.
 
         * Not required but highly recommended. May use your own company's service contract and/or certificate of completion. 
 
@@ -3777,7 +3777,7 @@ function ncn_admin_membership_cal_day_list()
 
     $upcoming_data = ncn_admin_get_upcoming_membership($timestamp);
     $day = date('j', $timestamp);
-    $title = 'Net Claims Now Membership List (' . date('d M Y', $timestamp) . ')';
+    $title = 'True Water Claims Membership List (' . date('d M Y', $timestamp) . ')';
     $upcoming = false;
     if ($timestamp < date('U'))
     {
@@ -4286,7 +4286,7 @@ function ncn_admin_render_user_claim_section($uid)
     $total_count = intval($query_total);
     $result = db_query($query);
     $row_count = $result->rowCount();
-    echo "<div style='float:left;'><a href='$base_url/ncn/ncn_claim_report' target='_blank'>NCN Claim Report</a></div>";
+    echo "<div style='float:left;'><a href='$base_url/tws/tws_claim_report' target='_blank'>NCN Claim Report</a></div>";
     echo '<div style="text-align: right">Number of Claims:&nbsp;&nbsp;' . $total_count . '</div>';
     $column_count = ($user->uid == 1) ? 12 : 11;
     $table_head = '

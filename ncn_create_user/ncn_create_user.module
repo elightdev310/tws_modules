@@ -8,7 +8,7 @@ function ncn_create_user_menu()
 {
     $items = array();
     $items['admin/config/ncn_create_user'] = array(
-        'title' => 'Net Claims Now Create Users',
+        'title' => 'True Water Claims Users',
         'page callback' => 'drupal_get_form',
         'access arguments' => array('administer users'),
     );

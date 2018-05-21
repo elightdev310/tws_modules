@@ -397,7 +397,7 @@ function ncn_asso_create_member_action(&$create_step)
     $contactemail = $new_string = preg_replace("/[^a-zA-Z0-9\/:@\.\+-s]/", "", $_POST['contactemail']);
     $sales_rep = $new_string = preg_replace("/[^a-zA-Z0-9\s\'\.]/", "", $_POST['sales_rep']);
 
-    $card_number = trim($_POST['card_number']); //if ($card_number == "") {$card_number = '5424000000000015'; }
+    $card_number = trim($_POST['card_number']); //if ($card_number == "") {$card_number = FREE_CARD_NUMBER; }
     $expiration_date = trim($_POST['expiration_date']);
     $security_code = trim($_POST['security_code']);
 
@@ -493,7 +493,7 @@ function ncn_asso_create_member_action(&$create_step)
         $add_cim_profile = false;
         $error = false; // ***
 
-        if (($card_number != '') && ($card_number != '5424000000000015')) {
+        if (($card_number != '') && ($card_number != FREE_CARD_NUMBER)) {
             $cim_vars = array(
                 'expiration_date'           => $expiration_date, 
                 'merchant_customer_id'      => $member_id.date("U"), 
@@ -527,7 +527,7 @@ function ncn_asso_create_member_action(&$create_step)
                 ncn_debug_message("User card details were good, flagging to add cim_profile.");
             } // END adding profile failed
 
-        } else if ($card_number == '5424000000000015') // free card number
+        } else if ($card_number == FREE_CARD_NUMBER) // free card number
             {
                 drupal_set_message('Adding new FREE member...', 'status');
 

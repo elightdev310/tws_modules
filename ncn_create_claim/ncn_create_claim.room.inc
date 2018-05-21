@@ -318,7 +318,7 @@ function template_preprocess_ncn_add_room(&$vars)
 }
 
 /**
- * Action Handler ( ajax/ncn_create_claim/remove_photo/% )
+ * Action Handler ( ajax/tws_create_claim/remove_photo/% )
  * Remove Photo in Photo Album
  * @param mixed $claim_id
  */

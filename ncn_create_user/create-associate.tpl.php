@@ -57,7 +57,7 @@
                             'name'  => 'profile_state', 
                             'class' => '', 
                             'disabled' => false, 
-                            'required' => flase )); ?>
+                            'required' => false )); ?>
       </td>
     </tr>
     <tr>

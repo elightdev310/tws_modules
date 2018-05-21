@@ -31,7 +31,7 @@ function ncn_report_menu()
 {
     $items = array();
     $items['admin/config/ncn_report'] = array(
-        'title' => 'Net Claims Now Sales Report',
+        'title' => 'True Water Claims Sales Report',
         'page callback' => 'ncn_report_daily',
         'access arguments' => array('ncn sales report'),
     );
@@ -85,41 +85,41 @@ function ncn_report_menu()
         'weight' => 5,
     );
 
-    $items['download/ncn_report'] = array(
+    $items['download/tws_report'] = array(
         'page callback' => 'ncn_report_download',
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
-    $items['download/distributor/ncn_report'] = array(
+    $items['download/distributor/tws_report'] = array(
         'page callback' => 'ncn_report_download_distributor',
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
-    $items['download/associate/ncn_report'] = array(
+    $items['download/associate/tws_report'] = array(
         'page callback' => 'ncn_report_download_associate',
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
-    $items['download/distributor/detailed/ncn_report'] = array(
+    $items['download/distributor/detailed/tws_report'] = array(
         'page callback' => 'ncn_report_download_monthly_detailed',
         'page arguments' => array('distributor'),
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
-    $items['download/associate/detailed/ncn_report'] = array(
+    $items['download/associate/detailed/tws_report'] = array(
         'page callback' => 'ncn_report_download_monthly_detailed',
         'page arguments' => array('associate'),
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
-    $items['download/company_sales_summary/ncn_report'] = array(
+    $items['download/company_sales_summary/tws_report'] = array(
         'page callback' => 'ncn_report_download_company_sales_summary',
         'type' => MENU_CALLBACK,
         'access arguments' => array('ncn sales report'),
     );
 
     $items['admin/config/ncn_member_renewal_report'] = array(
-        'title' => 'Net Claims Now Member Renewal Report',
+        'title' => 'True Water Claims Member Renewal Report',
         'page callback' => 'ncn_member_renewal_report_daily',
         'access arguments' => array('ncn sales report'),
     );
@@ -153,7 +153,7 @@ function ncn_report_menu()
     );
 
     $items['admin/config/ncn_montly_overview_report'] = array(
-    'title' => 'Net Claims Now Monthly Payment Transaction Report',
+    'title' => 'True Water Claims Monthly Payment Transaction Report',
     'page callback' => 'ncn_report_montly_overview_report',
     'access arguments' => array('ncn sales report'),
   );
@@ -165,7 +165,7 @@ function ncn_report_menu()
     'weight' => 12,
   );
 
-  $items['download/claims_on_mobile/ncn_report'] = array(
+  $items['download/claims_on_mobile/tws_report'] = array(
     'page callback' => 'ncn_report_download_claims_on_mobile',
     'type' => MENU_CALLBACK,
     'access arguments' => array('ncn sales report'),

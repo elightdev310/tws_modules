@@ -10,7 +10,7 @@ function ncn_admin_page_product_settings()
     }
 
 
-    drupal_set_title("Net Claims Now Email Settings");
+    drupal_set_title("True Water Claims Email Settings");
     return drupal_get_form('ncn_admin_product_settings_form');
 }
 
@@ -222,7 +222,7 @@ function ncn_admin_page_email_settings()
         return("Access denied.");
     }
 
-    drupal_set_title("Net Claims Now Email Settings");
+    drupal_set_title("True Water Claims Email Settings");
     return drupal_get_form('ncn_admin_email_settings_form');
 }
 

@@ -984,7 +984,7 @@ GLOBAL $base_url;
         drupal_goto($url.$report_date);
         exit;
     }
-    //$download_url = $base_url."/download/ncn_report/daily?date=$report_date";
+    //$download_url = $base_url."/download/tws_report/daily?date=$report_date";
     _ncn_member_renewal_report_get_data($data, $total, $report_date, "daily");
     
     ob_start();
@@ -1044,7 +1044,7 @@ GLOBAL $base_url;
         exit;
     }
     
-    //$download_url = $base_url."/download/ncn_report/weekly?date=$report_date";
+    //$download_url = $base_url."/download/tws_report/weekly?date=$report_date";
     
     $to = strtotime("next monday", $report_date);
     $from = strtotime("last monday", $to);

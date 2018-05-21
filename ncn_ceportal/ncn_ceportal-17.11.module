@@ -97,7 +97,7 @@ function ncn_ceportal_menu()
 	
 	
 	$items['admin/config/ncn_ceportal'] = array(
-		'title' => 'Net Claims Now CE Portal Settings',
+		'title' => 'True Water Claims CE Portal Settings',
 		'page callback' => 'ncn_ceportal_admin_settings', 
     	'access arguments' => array('ncn ce-portal settings'),
 	);

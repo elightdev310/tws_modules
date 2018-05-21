@@ -68,6 +68,8 @@ function fm_draw_leaduser($title, $name, $required)
 //------------------------------------------------------------------------------
 function draw_countryform_part($params)
 {
+    $name = $params['name'];
+    
     $profile_country = (isset($_POST[$name]) && trim($_POST[$name]) != '' ? $_POST[$name] : '');
     $params['sel_val'] = $profile_country;
     draw_countryform_part_sel($params);
@@ -81,12 +83,14 @@ function draw_countryform_part_sel($params)
         'class'     => $params['class'], 
         'disabled'  => $params['disabled'], 
         'required'  => $params['required'], 
-        'country'   => $params['sel_val'], 
+        'country'   => isset($params['sel_val'])? $params['sel_val'] : '', 
     ));
 }
 
 function draw_stateform_part($params)
 {
+    $name = $params['name'];
+
     $profile_state = (isset($_POST[$name]) && trim($_POST[$name]) != '' ? $_POST[$name] : '');
     $params['sel_val'] = $profile_state;
     $params['country'] = 'US';

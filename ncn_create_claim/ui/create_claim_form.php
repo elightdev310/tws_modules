@@ -68,20 +68,20 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group hidden">
         <div for="claim_type" class="col-sm-3 control-label">Claim Type:<font color=red>*</font> </div>
         <div class="col-sm-9">
             <div class="row">
                 <div class="col-sm-4 col-xs-6">
                     <select id="claim_type" name="claim_type" class="form-control">
-                        <option value="">-- Choose --</option>
+                        <!-- <option value="">-- Choose --</option> -->
                         <option value="residential" <?php echo ((isset($_POST['claim_type']) && $_POST['claim_type']=='residential') ? 'selected' : '');?>>Residential</option>
                         <option value="commercial" <?php echo ((isset($_POST['claim_type']) && $_POST['claim_type']=='commercial') ? 'selected' : '');?>>Commercial</option>
                     </select>
                 </div>
                 <div class="col-sm-4 col-xs-6 pl0">
                     <select id="claim_product" name="claim_product" class="form-control">
-                        <option value="">-- Choose --</option>
+                        <!-- <option value="">-- Choose --</option> -->
                         <option value="Water" <?php echo ((isset($_POST['claim_product']) && $_POST['claim_product']=='Water') ? 'selected' : '');?>>Water</option>
                         <option value="Water With Sketch" <?php echo ((isset($_POST['claim_product']) && $_POST['claim_product']=='Water With Sketch') ? 'selected' : '');?>>Water With Sketch</option>
                    <!-- <option value="Fire" <?php echo ((isset($_POST['claim_product']) && $_POST['claim_product']=='Fire') ? 'selected' : '');?>>Fire</option>
@@ -101,7 +101,7 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group hidden">
         <div class="col-sm-3 col-xs-1 control-label"><input type="checkbox" name="expedite" id="fm_expedite" autocomplete="off"></div>
         <div class="col-sm-6 col-xs-10">
             <label for="fm_expedite" class="checkbox-label text-label">Check this box if you would like to <b>EXPEDITE</b> your claim. Additional fee to expedite is: <span id="expedite_price"></span></label>

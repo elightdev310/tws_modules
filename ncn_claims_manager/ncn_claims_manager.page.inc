@@ -8,7 +8,7 @@ function ncn_claim_manager_member_dashboard_page()
 global $user;
     $total_claim_value = invoiced_to_date($user->uid, true);
     $total_claims = user_detail_get_total_claims($user);
-    $average_claim_value= $total_claim_value / $total_claims;
+    $average_claim_value= $total_claims!=0? ($total_claim_value / $total_claims) : 0;
 
     ob_start();
     @include get_realpath('ncn_claims_manager', 'ui/ncn_member_dashboard.php');
@@ -285,7 +285,6 @@ function ncn_claims_manager_submit_claim_confirm()
     GLOBAL $user, $custom_theme;
 
     // add the css file (always required for this)
-//    drupal_add_css(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.css', 'module', 'all', FALSE);
     drupal_add_css(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
     //drupal_add_js(drupal_get_path('module', 'ncn_claims_manager') . '/ncn_claims_manager.js');
 

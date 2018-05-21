@@ -63,7 +63,7 @@ $user->profile_credit_card_name
 		$row = $result->fetchAssoc();
 		$user = user_load($row['uid']);
 		
-		if (($user->profile_credit_card_number != '5424000000000015') && ($user->profile_credit_card_number != ''))
+		if (($user->profile_credit_card_number != FREE_CARD_NUMBER) && ($user->profile_credit_card_number != ''))
 		{
 		
 
@@ -194,7 +194,7 @@ $user->profile_credit_card_name
 
 		
 		//if (1)	
-		if ($user->profile_credit_card_number != '5424000000000015' && $user->profile_credit_card_number != '')
+		if ($user->profile_credit_card_number != FREE_CARD_NUMBER && $user->profile_credit_card_number != '')
 		{
    		
 		  $date = explode("/", $user->profile_credit_card_expiration);

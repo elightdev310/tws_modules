@@ -1,15 +1,6 @@
 <?php
-// $Id$
 
-/*
-$query = "";
-$result = db_query($query);
-$row_count = mysql_num_rows($result);
-$row = mysql_fetch_assoc($result);
-
-mysql_real_escape_string
-mysql_insert_id();
-*/
+define("FREE_CARD_NUMBER", "5424000000000015");
 
 require_once('ncn_auto_payments.inc');
 require_once('ncn_auto_payments.mail.inc');

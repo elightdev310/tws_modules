@@ -54,13 +54,13 @@ function ncn_create_claim_menu()
         'access arguments' => array('access content'),
         'type' => MENU_CALLBACK,
     );
-    $menu['ajax/ncn_create_claim/get_claim_invoice'] = array(
+    $menu['ajax/tws_create_claim/get_claim_invoice'] = array(
         'page callback' => 'ncn_create_claim_display_price',
         'type' => MENU_CALLBACK,
         'access arguments' => array('access content'),
     );
 
-    $menu['ajax/ncn_create_claim/remove_photo/%'] = array(
+    $menu['ajax/tws_create_claim/remove_photo/%'] = array(
         'page callback' => 'ncn_create_claim_remove_photo',
         'page arguments' => array(3),
         'type' => MENU_CALLBACK,

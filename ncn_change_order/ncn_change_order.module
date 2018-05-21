@@ -23,7 +23,7 @@ function ncn_change_order_menu()
 {
     $items = array();
     
-    $items['account/ncn_change_order_request/%'] = array(
+    $items['account/tws_change_order_request/%'] = array(
         'title' => 'Change Order Request',
         'page callback' => 'ncn_change_order_request',
         'page arguments' => array(2),
@@ -31,7 +31,7 @@ function ncn_change_order_menu()
         'file' => 'ncn_change_order.page.inc',
     );
     
-    $items['ajax/ncn_change_order/get_request_action'] = array(
+    $items['ajax/tws_change_order/get_request_action'] = array(
         'title' => 'Render Request Action',
         'page callback' => 'ncn_change_order_get_request_action',
         'access arguments' => array('ncn change order request'),
@@ -39,7 +39,7 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ajax/ncn_change_order/get_request_action_edit'] = array(
+    $items['ajax/tws_change_order/get_request_action_edit'] = array(
         'title' => 'Render Request Action',
         'page callback' => 'ncn_change_order_get_request_action_edit',
         'access arguments' => array('ncn change order request'),
@@ -48,7 +48,7 @@ function ncn_change_order_menu()
     );
     
     
-    $items['ajax/ncn_change_order/request_submit'] = array(
+    $items['ajax/tws_change_order/request_submit'] = array(
         'title' => 'Request Action Submit',
         'page callback' => 'ncn_change_order_request_submit',
         'access arguments' => array('ncn change order request'),
@@ -56,7 +56,7 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ajax/ncn_change_order/get_request_list'] = array(
+    $items['ajax/tws_change_order/get_request_list'] = array(
         'title' => 'Render Request List',
         'page callback' => 'ncn_change_order_get_request_list',
         'access arguments' => array('ncn change order request'),
@@ -64,7 +64,7 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ncn_change_order/pay/%/%'] = array(
+    $items['tws_change_order/pay/%/%'] = array(
         'title' => 'Make Payment',
         'page callback' => 'ncn_change_order_pay',
         'page arguments'=> array(2,3), 
@@ -72,7 +72,7 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ajax/ncn_change_order/submit/%'] = array(
+    $items['ajax/tws_change_order/submit/%'] = array(
         'title' => 'Submit Request',
         'page callback' => 'ncn_change_order_submit',
         'page arguments'=> array(3), 
@@ -80,14 +80,14 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ajax/ncn_change_order/get_price'] = array(
+    $items['ajax/tws_change_order/get_price'] = array(
         'title' => 'Render Request List',
         'page callback' => 'ncn_change_order_action_get_price',
         'access arguments' => array('ncn change order request'),
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ajax/ncn_change_order/request_remove/%'] = array(
+    $items['ajax/tws_change_order/request_remove/%'] = array(
         'title' => 'Request Remove',
         'page callback' => 'ncn_change_order_request_remove',
         'page arguments'=> array(3), 
@@ -96,7 +96,7 @@ function ncn_change_order_menu()
         'type' =>  MENU_CALLBACK, 
     );
     
-    $items['ncn/ncn_change_order/room_remove/%/%'] = array(
+    $items['tws/tws_change_order/room_remove/%/%'] = array(
         'title' => 'Request Remove',
         'page callback' => 'ncn_change_order_room_remove',
         'page arguments'=> array(3,4), 
@@ -467,7 +467,7 @@ function ncn_change_order_render_request_list_table_admin($claim_id) {
             
             if (!$r_a_data['paid']) {
                 if (user_access('ncn change order request')) {
-                    $_op_url = base_path()."ncn/ncn_change_order/room_remove/$claim_id/$r_id";
+                    $_op_url = base_path()."tws/tws_change_order/room_remove/$claim_id/$r_id";
                     $operation_links = "<a href='$_op_url#cor_rlist_table' onclick=\"return confirm('Are you sure you want to remove room?');\">Remove room</a>";
                 }
             }
@@ -640,7 +640,7 @@ global $auto_payment_messages;
             $this_user = $_user;
             $mail_params = array(
                 'subject' => $subject, 
-                'merchant'=>'Net Claims Now', 
+                'merchant'=>'True Water Claims', 
                 'claim_id'=>$claim_id, 
                 'customer_id'=> $this_user->profile_memberid, 
                 'timestamp' => date('d-M-Y h:i:s A T', time()),
@@ -1148,7 +1148,7 @@ function ncn_change_order_request_handler_remove_room($claim_id, $r_id) {
 }
 
 /**
- * Menu Handler (ncn/ncn_change_order/room_remove/%)
+ * Menu Handler (tws/tws_change_order/room_remove/%)
  */
 function ncn_change_order_room_remove($claim_id, $r_id) 
 {

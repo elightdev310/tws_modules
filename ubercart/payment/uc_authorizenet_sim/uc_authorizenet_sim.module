@@ -418,7 +418,7 @@ function uc_authorizenet_sim_complete($cart_id = NULL)
 
 		// check for free
 
-		if ($this_user->profile_credit_card_number == '5424000000000015')
+		if ($this_user->profile_credit_card_number == FREE_CARD_NUMBER)
 		{
 			$auth_successful = true;
 			$response_code = 1;
@@ -580,7 +580,7 @@ function uc_authorizenet_sim_complete($cart_id = NULL)
 					if ($pid)
 					{
 						$mail_params = array(
-							'merchant' => 'Net Claims Now',
+							'merchant' => 'True Water Claims',
 							'invoice_number' => $pid,
 							'claim_id' => $claim_id,
 							'customer_id' => $this_user->profile_memberid,

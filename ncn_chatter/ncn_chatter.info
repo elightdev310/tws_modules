@@ -1,7 +1,7 @@
 name = NCN Chatter
 description = NCN Chatter like salesforce
 core = 7.x
-package = Net Claims Now
+package = True Water Claims
 
 stylesheets[all][] = ncn_chatter.css
 

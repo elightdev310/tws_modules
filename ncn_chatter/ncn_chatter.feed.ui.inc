@@ -31,7 +31,7 @@ global $user;
 }
 
 /**
- * Page Handler: ncn-chatter/ncn-feed
+ * Page Handler: chatter/feed
  */
 function ncn_chatter_news_feed_page() {
 global $user;
@@ -61,7 +61,7 @@ global $user;
 }
 
 /**
- * Page Handler: ncn-chatter/user-profile-feed/%
+ * Page Handler: chatter/user-profile-feed/%
  */
 function ncn_chatter_user_profile_feed_page($uid) {
     $user_feed = ncn_chatter_get_feed_by_entity(FEED_TYPE_USER, $uid);
@@ -73,7 +73,7 @@ function ncn_chatter_user_profile_feed_page($uid) {
 }
 
 /**
- * Page Handler: ncn-chatter/feed/%
+ * Page Handler: chatter/feed/%
  */
 function ncn_chatter_feed_page($fid) {
     $feed_block = ncn_chatter_feed_block($fid);

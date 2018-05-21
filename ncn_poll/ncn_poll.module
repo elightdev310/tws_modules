@@ -36,7 +36,7 @@ function ncn_poll_menu()
 	$items = array();
 	
 	$items['admin/config/ncn_poll'] = array(
-		'title' => 'Net Claims Now Polls',
+		'title' => 'True Water Claims Polls',
 		'page callback' => 'ncn_poll_admin_list',
    		'access arguments' => array('ncn poll admin'),
 	);
@@ -83,8 +83,8 @@ function ncn_poll_menu()
     'access arguments' => array('ncn poll admin'),
 	);
 	
-	$items['account/ncn_poll/%'] = array(
-		'title' => 'Net Claims Now Poll',
+	$items['account/tws_poll/%'] = array(
+		'title' => 'True Water Claims Poll',
 		'page callback' => 'ncn_poll_account_choice',
 		'page arguments' => array(2), 
 		'access arguments' => array('ncn poll'),

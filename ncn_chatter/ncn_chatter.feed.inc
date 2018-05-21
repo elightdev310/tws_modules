@@ -65,6 +65,8 @@ function ncn_chatter_create_user_feed($uid) {
         'entity_id' => $uid
     ));
 
+    $account = user_load($uid);
+
     if (is_member_user($account)) {
         // Company Feed
         $company_fid = ncn_chatter_create_feed(array(

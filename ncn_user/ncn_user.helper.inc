@@ -158,13 +158,15 @@ function check_existing_memberid($member_id, $used) {
     return $result->rowCount();
 }
 
-function user_fullname($user) {
-    $fullname = '';
-    if (!isset($user->profile_firstname) || $user->profile_firstname == '')
-    {
-        $fullname = $user->name;
-    } else {
-        $fullname = $user->profile_firstname.' '.$user->profile_lastname;
+function user_fullname($user, $default='') {
+    $fullname = $default;
+    if ($user) {
+        if (!isset($user->profile_firstname) || $user->profile_firstname == '')
+        {
+            $fullname = $user->name;
+        } else {
+            $fullname = $user->profile_firstname.' '.$user->profile_lastname;
+        }
     }
     return $fullname;
 }

@@ -2,7 +2,7 @@
 <div style="width: 600px; background-color: #a3c1de; font-family : Arial; font-size: 12px; margin: 5px auto;">
 	<div style="width: 580px; margin: 0px auto; padding-top: 10px; padding-bottom: 20px;">
 		<div style="color: #1d5ca8; font-style: italic;	width: 100%; margin: 5px 0px; overflow: hidden;">
-			<div style="float: left;"><b>Net Claims Now</b> - Email</div>
+			<div style="float: left;"><b>True Water Claims</b> - Email</div>
 			<div style="float: right">Contact us today! <b>wecare@netclaimsnow.com - 877.654.8668</b></div>
 		</div>
 		<div style="width: 100%; background-color: white;">
@@ -35,7 +35,7 @@
 					<div>- <span style="color: #1d5ca8">**</span> Job site photos submitted through Virtual Office Suite. </div>
 				</div>
 				<div style="margin:15px 0px 0px;" >
-					Please fax these documents to Net Claims Now at <span style="color: #86b144;">877.654.8667</span>. Once these documents are received, your Net Claims Now team can begin work on your invoice. If you have any questions please contact us at anytime.
+					Please fax these documents to True Water Claims at <span style="color: #86b144;">877.654.8667</span>. Once these documents are received, your True Water Claims team can begin work on your invoice. If you have any questions please contact us at anytime.
 				</div>
 				<div style="margin:15px 0px 0px; color: #1d5ca8; font-size: 11px;" >
 					* Not required but highly recommended. May use your own company's service contract and/or <br/>
@@ -78,8 +78,8 @@
 				The information transmitted is intended solely for the individual or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of or taking action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you have received this email in error please contact the sender and delete the material from any computer.
 			</div>
 			<div style="margin:15px 0px; text-align: center; font-size: 11px;">
-				&copy; 2011 Net Claims Now, LLC<br/>
-				Net Claims Now, the Net Claims Now logo are trademarks of Net Claims Now,</br>
+				&copy; 2011 True Water Claims, LLC<br/>
+				True Water Claims, the True Water Claims logo are trademarks of True Water Claims,</br>
 				LLC. All other brand names may be trademarks of their respective owners
 			</div>
 		</div>

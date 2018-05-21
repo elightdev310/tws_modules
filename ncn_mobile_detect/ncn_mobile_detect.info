@@ -1,7 +1,7 @@
 ; $Id$
 name = NCN Mobile Detect
 description = Mobile Detction
-package = Net Claims Now
+package = True Water Claims
 
 version = "7.x-1.0"
 core = 7.x

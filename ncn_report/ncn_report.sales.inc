@@ -24,7 +24,7 @@ GLOBAL $base_url;
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/ncn_report/daily?date=$report_date";
+    $download_url = $base_url."/download/tws_report/daily?date=$report_date";
     _ncn_report_get_data($data, $total, $report_date, "daily");
     $best_total = ncn_report_get_best_total_value($total['1'], $report_date, 'daily');
     ob_start();
@@ -74,7 +74,7 @@ GLOBAL $base_url;
         exit;
     }
     
-    $download_url = $base_url."/download/ncn_report/weekly?date=$report_date";
+    $download_url = $base_url."/download/tws_report/weekly?date=$report_date";
     
     $to = strtotime("next monday", $report_date);
     $from = strtotime("last monday", $to);
@@ -129,7 +129,7 @@ GLOBAL $base_url;
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/ncn_report/monthly?date=$report_date";
+    $download_url = $base_url."/download/tws_report/monthly?date=$report_date";
     
     _ncn_report_get_data($data, $total, $report_date, "monthly");
     $best_total = ncn_report_get_best_total_value($total['1'], $report_date, 'monthly');
@@ -194,7 +194,7 @@ function ncn_report_distributor() {
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/distributor/ncn_report/?date=$report_date";
+    $download_url = $base_url."/download/distributor/tws_report/?date=$report_date";
     
     _ncn_report_get_data_distributor($data, $report_date);
     
@@ -260,7 +260,7 @@ function ncn_report_associate() {
         exit;
     }
     
-    $download_url = $base_url."/download/associate/ncn_report/?date=$report_date";
+    $download_url = $base_url."/download/associate/tws_report/?date=$report_date";
     
     _ncn_report_get_data_associate($data, $report_date);
     
@@ -351,7 +351,7 @@ function ncn_report_distributor_detailed() {
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/distributor/detailed/ncn_report/?date=$report_date&uid=$distributor_uid";
+    $download_url = $base_url."/download/distributor/detailed/tws_report/?date=$report_date&uid=$distributor_uid";
     
     _ncn_report_get_data_distributor_detailed($data, $report_date, $distributor_uid);
     
@@ -460,7 +460,7 @@ function ncn_report_associate_detailed() {
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/associate/detailed/ncn_report/?date=$report_date&uid=$associate_uid";
+    $download_url = $base_url."/download/associate/detailed/tws_report/?date=$report_date&uid=$associate_uid";
     
     _ncn_report_get_data_associate_detailed($data, $report_date, $associate_uid);
     
@@ -1290,7 +1290,7 @@ function ncn_report_company_sales_summary() {
         drupal_goto($url.$report_date);
         exit;
     }
-    $download_url = $base_url."/download/company_sales_summary/ncn_report/?date=$report_date";
+    $download_url = $base_url."/download/company_sales_summary/tws_report/?date=$report_date";
     
     _ncn_report_get_data_company_sales($data, $report_date);
     $total = 0;

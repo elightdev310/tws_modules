@@ -154,6 +154,7 @@ function ncn_chatter_get_user_follow_fid($uid) {
     while ($record = $result->fetchAssoc()) {
         $data[$record['fid']] = $record['fid'];
     }
+
     return $data;
 }
 

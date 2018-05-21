@@ -22,7 +22,7 @@ function ncn_report_mobile_monthly_claims_on_mobile_app() {
     exit;
   }
   
-  $download_url = $base_url."/download/claims_on_mobile/ncn_report/?date=$report_date";
+  $download_url = $base_url."/download/claims_on_mobile/tws_report/?date=$report_date";
   
   ob_start();
 ?>

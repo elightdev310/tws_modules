@@ -29,7 +29,7 @@ define('MT_PLATINUM',                                6);    // v2
 
 // Product - Retail Kit
 define('SKU_SUF_DF',                                33);    // $279, $329
-define('SKU_RETAIL_KIT',                            34);    // $329
+define('SKU_RETAIL_KIT',                            34);    // $99 (TWS)
 define('SKU_CSI_SIGN_UP',                           40);    // $0 
 define('SKU_NCN_RETAIL_KIT_OPT',                    41);    // $149             // 3 Months
 define('SKU_NCN_PREMIUM_KIT_OPT',                   42);    // $249             // 3 Months

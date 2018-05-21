@@ -64,14 +64,14 @@ function ncn_chatter_menu() {
     );
 
     // NCN Feed Page
-    $items['ncn-chatter/ncn-feed'] = array(
-        'title' => 'NCN Feed',
+    $items['chatter/feed'] = array(
+        'title' => 'Feed',
         'page callback' => 'ncn_chatter_news_feed_page',
         'access arguments' => array('view chatter feed'),
         'type' => MENU_CALLBACK,
     );
     // User Profile Feed Page
-    $items['ncn-chatter/user-profile-feed/%'] = array(
+    $items['chatter/user-profile-feed/%'] = array(
         'title' => 'User Profile Feed',
         'page callback' => 'ncn_chatter_user_profile_feed_page',
         'page arguments'=> array(2), 
@@ -79,7 +79,7 @@ function ncn_chatter_menu() {
         'type' => MENU_CALLBACK,
     );
     // Feed Page
-    $items['ncn-chatter/feed/%'] = array(
+    $items['chatter/feed/%'] = array(
         'title' => 'User Profile Feed',
         'page callback' => 'ncn_chatter_feed_page',
         'page arguments'=> array(2), 

@@ -171,7 +171,7 @@ function user_register_form_submit($form, &$form_state)
 
     // check for free / admin already added profile
     // ** This needs to be removed **
-    /*if ((isset($_POST['profile_credit_card_number'])) && ($_POST['profile_credit_card_number'] != '5424000000000015'))
+    /*if ((isset($_POST['profile_credit_card_number'])) && ($_POST['profile_credit_card_number'] != FREE_CARD_NUMBER))
     {
         // add the user to cim
           $content =
@@ -827,7 +827,7 @@ function _user_forms(&$edit, $account, $category, $hook = 'form') {
 
                     unset($groups['Credit Card Information']['#type']);
                     //$groups['Credit Card Information']['profile_credit_card_number']['#type'] = "hidden";
-                    //$groups['Credit Card Information']['profile_credit_card_number']['#default_value'] = "5424000000000015";
+                    //$groups['Credit Card Information']['profile_credit_card_number']['#default_value'] = FREE_CARD_NUMBER;
                 }
                 else
                 {

@@ -34,7 +34,7 @@ function ncn_claim_report_menu()
 {
     $items = array();
     
-    $items['ncn/ncn_claim_report'] = array(
+    $items['tws/tws_claim_report'] = array(
         'title' => t('NCN Claim Report'),
         'page callback' => 'ncn_claim_report_render_page',
         'access arguments' => array('ncn claim report'),
@@ -42,7 +42,7 @@ function ncn_claim_report_menu()
         'weight' => 2,
     );
     
-    $items['ncn/ncn_claim_report_qa_ms'] = array(
+    $items['tws/tws_claim_report_qa_ms'] = array(
         'title' => t('NCN Claim Report For QA and MS'),
         'page callback' => 'ncn_claim_report_render_page_qa_ms',
         'access arguments' => array('ncn claim report for qa & ms'),
@@ -50,7 +50,7 @@ function ncn_claim_report_menu()
         'weight' => 3,
     );
     
-    $items['ncn/ncn_claim_report_am'] = array(
+    $items['tws/tws_claim_report_am'] = array(
         'title' => t('NCN Claim Report For AM'),
         'page callback' => 'ncn_claim_report_render_page_am',
         'access arguments' => array('ncn claim report for am'),

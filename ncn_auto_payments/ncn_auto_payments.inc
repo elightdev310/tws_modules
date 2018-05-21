@@ -5,7 +5,7 @@ function make_monthly_payment($user, $product_nid, &$pid, $mode="standard")
     GLOBAL $auto_payment_messages;    
     
     // check for free user
-    if (isset($user->profile_credit_card_number) && $user->profile_credit_card_number == "5424000000000015")
+    if (isset($user->profile_credit_card_number) && $user->profile_credit_card_number == FREE_CARD_NUMBER)
     {
         $message = "WARNING: Ignoring monthly membership fee for '".$user->name."' (".$user->mail.") because user is FREE.";
         watchdog('cron', $message);
@@ -313,7 +313,7 @@ function make_payment($user, $product_nid, $price, &$pid, $mode="standard")
 GLOBAL $auto_payment_messages;
 
     // check for free user
-    if ($user->profile_credit_card_number == "5424000000000015")
+    if ($user->profile_credit_card_number == FREE_CARD_NUMBER)
     {
         $message = "WARNING: Ignoring payment for '".$user->name."' (".$user->mail.") because user is FREE.";
         watchdog('cron', $message);

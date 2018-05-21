@@ -17,7 +17,7 @@ function ncn_location_menu()
 		'type' => MENU_CALLBACK,
 		'access arguments' => array('access content'),
 	);*/
-	$items['ajax/ncn_loc_change_state'] = array(
+	$items['ajax/tws_loc_change_state'] = array(
 		'page callback' => 'ncn_loc_change_state',
 		'type' => MENU_CALLBACK,
 		'access arguments' => array('access content'),
@@ -64,7 +64,7 @@ function ncn_loc_country($params) {
 		});	
 		
 		function onchange_country() {
-			var _url = Drupal.settings.basePath + "ajax/ncn_loc_change_state";
+			var _url = Drupal.settings.basePath + "ajax/tws_loc_change_state";
 			jQuery.ajax({
 				url: 	_url,
 				data: 	{

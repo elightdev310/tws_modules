@@ -314,7 +314,7 @@
     }
 
     function render_request_action_new(claim_id, roomname) {
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/get_request_action';
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/get_request_action';
         jQuery.ajax({
             url:    _url,
             type:   'POST',
@@ -343,7 +343,7 @@
             jQuery('#cor_rf_line').css('display', 'block');
         }
 
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/get_price';
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/get_price';
         var _form = jQuery('#cor_request_form');
         jQuery.ajax({
             url:    _url,
@@ -369,7 +369,7 @@
     }
 
     function on_submit_cor_request() {
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/request_submit';
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/request_submit';
         var _form = jQuery('#cor_request_form');
 
         jQuery.ajax({
@@ -407,7 +407,7 @@
     }
 
     function on_render_request_list(claim_id) {
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/get_request_list';
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/get_request_list';
         jQuery.ajax({
             url:    _url,
             type:   'POST',
@@ -434,7 +434,7 @@
 
     // Submit Change Order
     function on_click_cor_request_submit(claim_id) {
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/submit/'+claim_id;
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/submit/'+claim_id;
         jQuery.ajax({
             url:    _url,
             type:   'POST',
@@ -462,7 +462,7 @@
     }
 
     function on_click_edit_cor_item(r_id) {
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/get_request_action_edit';
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/get_request_action_edit';
             jQuery.ajax({
                 url:    _url,
                 type:   'POST',
@@ -490,7 +490,7 @@
             return;
         }
 
-        var _url = Drupal.settings.basePath+'ajax/ncn_change_order/request_remove/'+r_id;
+        var _url = Drupal.settings.basePath+'ajax/tws_change_order/request_remove/'+r_id;
             jQuery.ajax({
                 url:    _url,
                 type:   'POST',
@@ -1388,7 +1388,7 @@
 
     // Remove Photo in Photo Album
     function removePhotoInAlbum(claim_id, room_name, image_id) {
-      var _url = Drupal.settings.basePath+'ajax/ncn_create_claim/remove_photo/'+claim_id;
+      var _url = Drupal.settings.basePath+'ajax/tws_create_claim/remove_photo/'+claim_id;
 
       jQuery.ajax({
         url:   _url,

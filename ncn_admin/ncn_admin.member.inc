@@ -275,7 +275,7 @@ function ncn_admin_quick_add_member_action() {
     $contactemail = $new_string = preg_replace("/[^a-zA-Z0-9\/:@\.\+-s]/", "", $_POST['contactemail']);
     $sales_rep = $new_string = preg_replace("/[^a-zA-Z0-9\s\'\.]/", "", $_POST['sales_rep']);
     
-    $card_number = trim($_POST['card_number']); //if ($card_number == "") {$card_number = '5424000000000015'; }
+    $card_number = trim($_POST['card_number']); //if ($card_number == "") {$card_number = FREE_CARD_NUMBER; }
     $expiration_date = trim($_POST['expiration_date']);
     $security_code = trim($_POST['security_code']);
     $am_uid = trim($_POST['am_uid']);
@@ -343,7 +343,7 @@ function ncn_admin_quick_add_member_action() {
         // check credit card
         $add_cim_profile = false;
         $error = false;
-        if (($card_number != '') && ($card_number != '5424000000000015'))
+        if (($card_number != '') && ($card_number != FREE_CARD_NUMBER))
         {
             $cim_vars = array(
                 'expiration_date'           => $expiration_date, 
@@ -378,7 +378,7 @@ function ncn_admin_quick_add_member_action() {
                 //}
             }
         }
-        else if ($card_number == '5424000000000015')    // free card number 
+        else if ($card_number == FREE_CARD_NUMBER)    // free card number 
         {
             drupal_set_message('Adding new FREE member...' , 'status');
 
@@ -484,9 +484,9 @@ function ncn_admin_quick_add_member_action() {
 function ncn_admin_render_member_type($member_type) {
     ?>
     <select id="member_type" name="member_type">
-        <option value="0" <?php if($member_type==MT_GOLD)       {echo "selected";} ?> >NCN Gold Member</option>
-        <option value="1" <?php if($member_type==MT_SILVER)     {echo "selected";} ?> >NCN Silver Member</option>
-        <option value="6" <?php if($member_type==MT_PLATINUM)   {echo "selected";} ?> >NCN Platinum Member</option>
+        <option value="0" <?php if($member_type==MT_GOLD)       {echo "selected";} ?> >Gold Member</option>
+        <!-- <option value="1" <?php if($member_type==MT_SILVER)     {echo "selected";} ?> >NCN Silver Member</option>
+        <option value="6" <?php if($member_type==MT_PLATINUM)   {echo "selected";} ?> >NCN Platinum Member</option> -->
 
         <!-- <option value="2" <?php if($member_type==MT_GOLD_LITE)  {echo "selected";} ?> >NCN Gold Lite Member</option>
         <option value="3" <?php if($member_type==MT_COACH_ON_CALL){echo "selected";} ?> >NCN Coach on Call Member</option>
@@ -924,7 +924,7 @@ function user_extra_profile_form($form, &$form_state) {
                     unset($groups['Credit Card Information']['#type']);
                     
                     $groups['Credit Card Information']['profile_credit_card_number']['#type'] = "hidden";                   
-                    $groups['Credit Card Information']['profile_credit_card_number']['#default_value'] = "5424000000000015";                    
+                    $groups['Credit Card Information']['profile_credit_card_number']['#default_value'] = FREE_CARD_NUMBER;                    
                 }
                 else
                 {

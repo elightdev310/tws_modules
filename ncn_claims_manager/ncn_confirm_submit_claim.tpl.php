@@ -1,6 +1,6 @@
 <h1 class="submit_title">Claims Checklist: Check each task completed</h1>
 <div>
-  <p>Did you send complete Claim Documentation? Check off each claim documentation you have sent to have Net Claims Now start working on your invoice.</p>
+  <p>Did you send complete Claim Documentation? Check off each claim documentation you have sent to have True Water Claims start working on your invoice.</p>
 </div>
 <div style="margin-left:50px;">
   <table>
@@ -47,7 +47,7 @@
 <div>
   <p>* Not required but highly recommended. May have used your company's own service contract and/or certificate of completion.</p>
   <p>** Not required but highly recommended. You will not be able to add more photos after pressing "Continue".</p>
-  <p>By pressing "Continue" you are stating that you have submitted all completed claim documents to Net Claims Now and uploaded all available photos for this claim. You may click "cancel" if you do not want to continue or have not sent all of your documents.</p>
+  <p>By pressing "Continue" you are stating that you have submitted all completed claim documents to True Water Claims and uploaded all available photos for this claim. You may click "cancel" if you do not want to continue or have not sent all of your documents.</p>
   <p>If your claim documents are incomplete and/or documented poorly, your documents will be required to be clarified and/or rewritten for further processing.</p>
   <p>We will send you an email with what information is needed. Please send your clarifications/answers to fax@netclaimsnow.com to add information to your claim documents.</p>
 </div>

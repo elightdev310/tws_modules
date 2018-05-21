@@ -124,7 +124,7 @@
                                     <?php else: ?>
                                         <?php echo "<a href='#' class='approve-btn btn btn-primary' onclick=\"window.location = '".$base_url."/account/approve_invoice/".$row['claim_id']."';\">Approve</a>"; ?>
                                     <?php endif; ?>
-                                    <?php $_change_order_request_url = $base_url . "/account/ncn_change_order_request/" . $row['claim_id']; ?>
+                                    <?php $_change_order_request_url = $base_url . "/account/tws_change_order_request/" . $row['claim_id']; ?>
                                     <a href="<?php echo $_change_order_request_url; ?>" class="reject-btn btn btn-primary">Change Order</a>
                                     <!-- <a href="#" class="reject-btn" onclick="if (confirm('Please confirm you wish to change this invoice and notify the administrator.')) { window.location = '/account/reject_invoice/<?= $claim_id; ?>'; }">Reject</a> -->
                                 <?php endif; ?>

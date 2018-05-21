@@ -172,7 +172,7 @@ if (module_exists('ncn_capsulecrm')) {
         </table>
     </form>
 </fieldset>
-<?php @endif; ?>
+<?php endif; ?>
 
 <fieldset>
     <h2>Activation Email</h2>

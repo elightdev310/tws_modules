@@ -6,15 +6,7 @@
         <div class="col-sm-4">
             <div class="panel-box">
                 <div class="panel-box-content">
-                    <div class="box-title">Average Invoice Amount</div>
-                    <div class="box-value"><?php print '$' . number_format($average_claim_value, 2); ?></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="panel-box">
-                <div class="panel-box-content">
-                    <div class="box-title">Number of MYNCN Claims Lifetime</div>
+                    <div class="box-title">Claims Sold</div>
                     <div class="box-value"><?php print $total_claims; ?></div>
                 </div>
             </div>
@@ -22,7 +14,15 @@
         <div class="col-sm-4">
             <div class="panel-box">
                 <div class="panel-box-content">
-                    <div class="box-title">Total MYNCN Claim Value</div>
+                    <div class="box-title">Average Claim Value</div>
+                    <div class="box-value"><?php print '$' . number_format($average_claim_value, 2); ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel-box">
+                <div class="panel-box-content">
+                    <div class="box-title">Total Claims Value</div>
                     <div class="box-value"><?php print '$' . number_format($total_claim_value, 2); ?></div>
                 </div>
             </div>
@@ -37,7 +37,6 @@
             <li><a data-toggle="pill" href="#d_more_info">More Info Needed</a></li>
             <li><a data-toggle="pill" href="#d_invoices_completed">Invoices Completed</a></li>
             <li><a data-toggle="pill" href="#d_out_approval">Out for Approval</a></li>
-            <li><a data-toggle="pill" href="#d_ars">ARS in Progress</a></li>
         </ul>
 
         <div class="tab-content panel-box">
@@ -55,9 +54,6 @@
             </div>
             <div id="d_out_approval" class="tab-pane fade panel-box-content">
               <?php print ncn_claims_manager_dashboard_out_for_approval_section(); ?>
-            </div>
-            <div id="d_ars" class="tab-pane fade panel-box-content">
-              <?php print ncn_claims_manager_dashboard_ars_in_progress_section(); ?>
             </div>
         </div>
     </div>

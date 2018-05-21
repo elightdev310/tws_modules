@@ -99,8 +99,8 @@ function ncn_contact_mail($key, &$message, $params)
 {
 	$options = array('langcode' => $message['language']->language);	
 	
-	$sub = "Net Claims Now contact from: !name";
-	$body = "!name sent you a message via Net Claims Now.
+	$sub = "True Water Claims contact from: !name";
+	$body = "!name sent you a message via True Water Claims.
 	
 			 Name: !name
 			 Phone: !phone

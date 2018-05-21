@@ -18,6 +18,12 @@ function require_once_folder_files($module, $path){
         //require_once(drupal_realpath($file->uri));
     }
 }
+
+/**
+ * @param $module
+ * @param $path
+ * @return false|string
+ */
 function get_realpath($module, $path) {
     return drupal_realpath(drupal_get_path('module', $module).DIRECTORY_SEPARATOR .$path);
 }
@@ -83,7 +89,7 @@ function ncn_admin_menu()
   $items = array();
 
   $items['admin/config/ncn_admin'] = array(
-    'title' => 'Net Claims Now Administration',
+    'title' => 'True Water Claims Administration',
     'page callback' => 'ncn_admin_page',
     'access arguments' => array('view ncn claim'),
   );
@@ -226,26 +232,26 @@ function ncn_admin_menu()
     
     
     $items['admin/config/ncn_member_report'] = array(
-        'title' => 'Net Claims Now Member Report',
+        'title' => 'True Water Claims Member Report',
         'page callback' => 'ncn_admin_member_report',
         'access arguments' => array('administer ncn_admin settings'),
         /*'type' => MENU_LOCAL_TASK,*/
     );
     $items['admin/config/ncn_membership_cal'] = array(
-        'title' => 'Net Claims Now Membership Calendar',
+        'title' => 'True Water Claims Membership Calendar',
         'page callback' => 'ncn_admin_membership_cal',
         'access arguments' => array('administer ncn_admin settings'),
     );
     
     $items['admin/config/ncn_membership_cal_day_list'] = array(
-        'title' => 'Net Claims Now Membership List',
+        'title' => 'True Water Claims Membership List',
         'page callback' => 'ncn_admin_membership_cal_day_list',
         'access arguments' => array('administer ncn_admin settings'),
         'type' => MENU_CALLBACK,
     );
     
     $items['admin/config/ncn_user/%/all_payments'] = array(
-        'title' => 'Net Claims Now User All Payment',
+        'title' => 'True Water Claims User All Payment',
         'page callback' => 'ncn_admin_ncn_user_all_payments',
         'page arguments'=> array(3), 
         'access arguments' => array('payment_transaction_page'),
@@ -253,7 +259,7 @@ function ncn_admin_menu()
     );
     
     $items['admin/config/ncn_user/%/ytd'] = array(
-        'title' => 'Net Claims Now User YTD Payment',
+        'title' => 'True Water Claims User YTD Payment',
         'page callback' => 'ncn_admin_ncn_user_ytd_payments',
         'page arguments'=> array(3), 
         'access arguments' => array('payment_transaction_page'),
@@ -723,11 +729,11 @@ function ncn_admin_mail($key, &$message, $params)
           $message['body'][] = ncn_admin_get_mail_body( '{not_received_docs}', $message, $params );
           break;
         case "congrats_claim_reminder":
-          $message['subject'] = "Congratulations on creating your first claim with Net Claims Now!";
+          $message['subject'] = "Congratulations on creating your first claim with True Water Claims!";
           $message['body'][] = ncn_admin_get_mail_body( '{congrats_claim_reminder}', $message, $params );
           break;
         case "order_claim":
-          $message['subject'] = "Net Claims Now Claim Invoice";
+          $message['subject'] = "True Water Claims Claim Invoice";
           $message['body'][] = ncn_admin_get_mail_body( '{order_claim}', $message, $params );
           break;
         case "submit_change_order_requests":

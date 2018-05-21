@@ -443,7 +443,7 @@ GLOBAL $base_url;
         exit;
     }
     
-    //$download_url = $base_url."/download/ncn_report/weekly?date=$report_date";
+    //$download_url = $base_url."/download/tws_report/weekly?date=$report_date";
     
     $to = strtotime("next monday", $report_date);
     $from = strtotime("last monday", $to);

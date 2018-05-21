@@ -76,7 +76,7 @@ GLOBAL $base_url;
 	
 	$poll_id = ncn_poll_get_upcoming_poll_id($user->uid);
 	if ($poll_id != 0) {
-		$url = $base_url.base_path().'account/ncn_poll/'.$poll_id;
+		$url = $base_url.base_path().'account/tws_poll/'.$poll_id;
 		$eval_code = "open_colorbox_window('$url', 750, 500);";
 		return $eval_code;
 	}

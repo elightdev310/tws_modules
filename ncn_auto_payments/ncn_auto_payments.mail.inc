@@ -21,7 +21,7 @@ function credit_card_declined_mail_template($params) {
             <table cellpadding="0" cellspacing="0" border="0" width="580"> 
                 <tr valign="top"> 
                     <td  width="580" height="37" style="line-height: 37px;" align="center"> 
-                        <font style="font-family: Verdana, Geneva, sans-serif; font-size: 10px;">To make sure you get your Net Claims Now emails, add <a href="mailto:info@netclaimsnow.com">info@netclaimsnow.com</a> to your address book.</font> 
+                        <font style="font-family: Verdana, Geneva, sans-serif; font-size: 10px;">To make sure you get your True Water Claims emails, add <a href="mailto:info@netclaimsnow.com">info@netclaimsnow.com</a> to your address book.</font> 
                     </td> 
                 </tr> 
                 <tr valign="top"> 
@@ -53,7 +53,7 @@ function credit_card_declined_mail_template($params) {
                                                     If you have contacted your bank and believe the issue is resolved, please reply to this email and add the word "RESOLVED" to the subject line and your bank's telephone number. We will attempt to reauthorize your order as soon as possible.<br /><br /> 
                                                     If you would like to provide a new form of payment, please contact us by phone at (877) 654-8668 and select option number 3. Our hours of operation are 8:30 am -5:30pm (EST) Monday through Friday. Please do not send any credit card information via email.<br /><br /> 
                                                     Thank you again for your business. We look forward to serving you in the future.<br /><br /> 
-                                                    -Your friends at Net Claims Now, LLC.
+                                                    -Your friends at True Water Claims, LLC.
  
                                                 </font> 
                                             </td> 
@@ -106,7 +106,7 @@ function credit_card_expired_mail_template($params) {
             <table cellpadding="0" cellspacing="0" border="0" width="580"> 
                 <tr valign="top"> 
                     <td  width="580" height="37" style="line-height: 37px;" align="center"> 
-                        <font style="font-family: Verdana, Geneva, sans-serif; font-size: 10px;">To make sure you get your Net Claims Now emails, add <a href="mailto:info@netclaimsnow.com">info@netclaimsnow.com</a> to your address book.</font> 
+                        <font style="font-family: Verdana, Geneva, sans-serif; font-size: 10px;">To make sure you get your True Water Claims emails, add <a href="mailto:info@netclaimsnow.com">info@netclaimsnow.com</a> to your address book.</font> 
                     </td> 
                 </tr> 
                 <tr valign="top"> 
@@ -134,10 +134,10 @@ function credit_card_expired_mail_template($params) {
                                                 <h2 style="margin:0 0 15px; padding:0; color: #0c0c0c; font-size:18px;">Credit Card Expiration</h2> 
                                                 <font color="#0c0c0c" style="font-size: 12px; line-height: 16px;"> 
                                                     Dear <?php echo $params['member_name']; ?>,<br /><br /> 
-                                                    Thanks for your continued support of Net Claims Now! We'd like to let you know that the credit card you're using on your Net Claims Now account will expire this month. If you've received a new card with a new expiration date, please contact us by phone at (877) 654-8668 and select option number 3. Our hours of operation are 8:30 am -5:30pm (EST) Monday through Friday. Please do not send any credit card information via email. <br /><br /> 
+                                                    Thanks for your continued support of True Water Claims! We'd like to let you know that the credit card you're using on your True Water Claims account will expire this month. If you've received a new card with a new expiration date, please contact us by phone at (877) 654-8668 and select option number 3. Our hours of operation are 8:30 am -5:30pm (EST) Monday through Friday. Please do not send any credit card information via email. <br /><br /> 
                                                     If you haven't received a new card, please remember to contact us as soon as you receive the new expiration date, so your service won't be interrupted.<br /><br /> 
-                                                    Thanks again for your commitment to Net Claims Now. We look forward to continuing to serve your insurance billing needs!<br /><br /> 
-                                                    -Your friends at Net Claims Now, LLC.
+                                                    Thanks again for your commitment to True Water Claims. We look forward to continuing to serve your insurance billing needs!<br /><br /> 
+                                                    -Your friends at True Water Claims, LLC.
  
                                                 </font> 
                                             </td> 

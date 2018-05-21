@@ -8,7 +8,7 @@
   			if ($member_type == 1) { echo nl2br(variable_get('ncn_terms_text_silver', '')); } 
   			else if ($member_type == 2) { echo nl2br(variable_get('ncn_terms_text_gold_lite', '')); } 
   			else if ($member_type == 3) { echo nl2br(variable_get('ncn_terms_text_coach_on_call', '')); } 
-        else { echo nl2br(variable_get('ncn_terms_text', '')); } 
+            else { echo nl2br(variable_get('ncn_terms_text', '')); }
   		?>
       </p>
       <div>

@@ -53,7 +53,7 @@ $user_feed = ncn_chatter_get_feed_by_entity(FEED_TYPE_USER, $user->uid);
                         </div>
                         <?php if ($is_ncn_user): ?>
                         <select class="post-filter" name="post_filter">
-                            <option value="1">Netclaimsnow Only</option>
+                            <option value="1">Truewaterclaims Only</option>
                             <option value="0">Public</option>
                         </select>
                         <?php endif; ?>

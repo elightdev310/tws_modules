@@ -1482,6 +1482,11 @@ function attempt_add_distributor_card()
   {     $date = "20".$date[1]."-".$date[0];   }
   else
   {     $date = '';     }
+  
+  if ($_POST['profile_credit_card_number'] == FREE_CARD_NUMBER || strtoupper($_POST['profile_credit_card_number']) == 'FREE' ) {
+    return true;
+  }
+
 
   // add the user to cim
     $content =
@@ -1504,8 +1509,8 @@ function attempt_add_distributor_card()
 
     $customerProfileId = $parsedresponse->customerProfileId;
     
-  // add a payment profile to cim
-$content =
+    // add a payment profile to cim
+    $content =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" .
     "<createCustomerPaymentProfileRequest xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\">" .
     MerchantAuthenticationBlock().
@@ -1558,6 +1563,7 @@ $content =
    //                                                      );";
     $result = db_query('INSERT INTO member_distributor_cim VALUES(:a,:b,:c)',
     array(':a'=>$_POST['name'],':b'=>$customerProfileId,':c'=>$customerPaymentProfileId));
+
     return true;
 }
 
