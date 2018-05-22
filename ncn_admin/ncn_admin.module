@@ -126,13 +126,13 @@ function ncn_admin_menu()
     'weight' => 7,
    );
    
-  $items['admin/config/ncn_admin/product_settings'] = array(
-    'title' => t('Product/Ordering Settings'),
-    'page callback' => 'ncn_admin_page_product_settings',
-    'access arguments' => array('administer ncn_admin settings'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 6,
-  );
+  // $items['admin/config/ncn_admin/product_settings'] = array(
+  //   'title' => t('Product/Ordering Settings'),
+  //   'page callback' => 'ncn_admin_page_product_settings',
+  //   'access arguments' => array('administer ncn_admin settings'),
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 6,
+  // );
    
 
   $items['admin/config/ncn_admin/email_settings'] = array(

@@ -3,7 +3,7 @@
 	<div style="width: 580px; margin: 0px auto; padding-top: 10px; padding-bottom: 20px;">
 		<div style="color: #1d5ca8; font-style: italic;	width: 100%; margin: 5px 0px; overflow: hidden;">
 			<div style="float: left;"><b>True Water Claims</b> - Email</div>
-			<div style="float: right">Contact us today! <b>wecare@netclaimsnow.com - 877.654.8668</b></div>
+			<div style="float: right">Contact us today! <b>wecare@truewaterclaims.net - 877.654.8668</b></div>
 		</div>
 		<div style="width: 100%; background-color: white;">
 			<div style="width: 540px; margin: 0px auto; padding: 10px 0px;">
@@ -18,7 +18,7 @@
 				</div>
 				<div style="margin:15px 0px;" >
 					<b>You may now log in to</b>&nbsp;
-					<a href="<?php echo $base_url."/user"; ?>" style="color: #86b144;">http://www.netclaimsnow.com/user</a>&nbsp;
+					<a href="<?php echo $base_url."/user"; ?>" style="color: #86b144;">http://www.truewaterclaims.net/user</a>&nbsp;
 					using the following
 				</div>
 				<div style="padding: 10px; color: #1d5ca8; background-color: #e4ebf4; width: 280px;	font-size: 14px; margin:15px 0px;">
@@ -58,7 +58,7 @@
 				</tr>
 				</table>
 				<div style="font-style: italic; padding: 5px 0px; text-align: center; background-color: #e4ebf4; font-size: 11px; margin-top: 20px; margin-bottom: 5px;" style="margin:15px 0px;" >
-					Please do not reply to this email. If you have questions about your account in general, email us at <a href="mailto:wecare@netclaimsnow.com" style="color: #1d5ca8" >wecare@netclaimsnow.com</a> or contact member services at <span style="color: #1d5ca8">877.654.8668</span>
+					Please do not reply to this email. If you have questions about your account in general, email us at <a href="mailto:wecare@truewaterclaims.net" style="color: #1d5ca8" >wecare@truewaterclaims.net</a> or contact member services at <span style="color: #1d5ca8">877.654.8668</span>
 				</div>
 			</div>
 		</div>

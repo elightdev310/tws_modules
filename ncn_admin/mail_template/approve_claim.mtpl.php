@@ -3,7 +3,7 @@
 	<div style="width: 580px; margin: 0px auto; padding-top: 10px; padding-bottom: 20px;">
 		<div style="color: #1d5ca8; font-style: italic;	width: 100%; margin: 5px 0px; overflow: hidden;">
 			<div style="float: left;"><b>True Water Claims</b> - Email</div>
-			<div style="float: right">Contact us today! <b>wecare@netclaimsnow.com - 877.654.8668</b></div>
+			<div style="float: right">Contact us today! <b>wecare@truewaterclaims.net - 877.654.8668</b></div>
 		</div>
 		<div style="width: 100%; background-color: white;">
 			<div style="width: 540px; margin: 0px auto; padding: 10px 0px;">

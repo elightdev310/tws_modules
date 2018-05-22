@@ -13,13 +13,13 @@ function ncn_executive_menu()
 {
 	$items = array();
 	
-	$items['tws/tws_sales_report'] = array(
+	$items['twc/twc_sales_report'] = array(
 		'title' => 'Sales Report',
 		'page callback' => 'ncn_executive_ncn_sales_report',
 		'access arguments' => array('ncn executive section'),
 		'weight' => 3,
 	);
-	$items['tws/tws_payment_transaction'] = array(
+	$items['twc/twc_payment_transaction'] = array(
 		'title' => 'Payment Transaction',
 		'page callback' => 'ncn_executive_ncn_payment_transaction',
 		'access arguments' => array('ncn executive section'),
