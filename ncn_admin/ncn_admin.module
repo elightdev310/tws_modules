@@ -796,8 +796,8 @@ function ncn_admin_mail_alter(&$message) {
         $message['headers']['Bcc'] = $bcc;
     }
     
-    $message['from'] = "noreply@netclaimsnow.com";
-    $message['headers']['From'] = "noreply@netclaimsnow.com";
+    $message['from'] = "noreply@truewaterclaims.net";
+    $message['headers']['From'] = "noreply@truewaterclaims.net";
 
     /////////////////////////////////////////
     // For Test

@@ -153,7 +153,7 @@ function _ncn_claim_manager_homepage_my_active_claims($min_row) {
                         <td width="120px">Customer Name</td>
                         <td width="100px">Photo Album</td>
                         <td width="100px">Claims Processing</td>
-                        <td>Create My Invoice</td>
+                        <td>Buy My Claim</td>
                     </tr>
                 </table>
             </div>
@@ -281,7 +281,7 @@ function _ncn_claim_manager_homepage_my_active_claims($min_row) {
                             <?php
                             } else {
                                 ?>
-                                <td><a href="#" class="create-invoice-btn enabled">Create My Invoice</a>
+                                <td><a href="#" class="create-invoice-btn enabled">Buy My Claim</a>
                                 </td>
                             <?php
                             }?>
@@ -672,7 +672,7 @@ function ncn_claim_manager_page_internal($page_title, $class_name, $order_by = "
                 <?php endif; ?>
 
                 <?php if ($send_to_admin == true): ?>
-                    <td class="td-create-my-invoice">Create My Invoice</td>
+                    <td class="td-create-my-invoice">Buy My Claim</td>
                     <td class="td-edit-additional-data">Claims Processing</td>
                 <?php endif; ?>
             </tr>
@@ -883,11 +883,11 @@ function ncn_claim_manager_page_internal($page_title, $class_name, $order_by = "
         <?php if ($row['claim_status'] == "incomplete" && !is_leaduser($user) /*&& $live_invoice_count > 0*/): ?>
             <td class="td-create-my-invoice">
                 <!--<a href="#" class="create-invoice-btn enabled" onclick="open_submit_box(<?= $claim_id; ?>);return false;">Create My Invoice</a>-->
-                <a class="create-invoice-btn enabled colorbox-node" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?= $claim_id; ?>?width=700&height=540">Create My Invoice</a>
+                <a class="create-invoice-btn enabled colorbox-node" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?= $claim_id; ?>?width=700&height=540">Buy My Claim</a>
             </td>
         <?php elseif ($send_to_admin == true): ?>
             <td class="td-create-my-invoice">
-                <a href="#" class="create-invoice-btn disabled">Create My Invoice</a>
+                <a href="#" class="create-invoice-btn disabled">Buy My Claim</a>
             </td>
         <?php endif; ?>
 

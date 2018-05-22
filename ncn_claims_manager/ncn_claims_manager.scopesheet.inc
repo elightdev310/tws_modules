@@ -148,17 +148,19 @@ function ncn_claims_manager_scopesheet_render_section_links($claim_id, $room_nam
 function ncn_claims_manager_get_scopesheet_sections() {
     return array(
         'room_dimensions'               => array('title'        =>'Room dimensions',
-                                                 'render_func'  =>'ncn_admin_ss_render_room_dimensions' ), 
-        'exterior_interior_temperatures'=> array('title'        =>'Exterior & Interior Temperatures', 
-                                                 'render_func'  =>'ncn_admin_ss_render_ext_inter_temperatures'), 
+                                                 'render_func'  =>'ncn_admin_ss_render_room_dimensions' ),
+        'services'                      => array('title'        =>'Services',
+                                                 'render_func'  =>'ncn_admin_ss_render_services'),
+        'comments'                      => array('title'        =>'Comments',
+                                                 'render_func'  =>'ncn_admin_ss_render_comments'),
+        'equipment_placement'           => array('title'        =>'Equipment Placement',
+                                                 'render_func'  =>'ncn_admin_ss_render_equipment_placement'),
+        'exterior_interior_temperatures'=> array('title'        =>'Exterior & Interior Temperatures',
+                                                 'render_func'  =>'ncn_admin_ss_render_ext_inter_temperatures'),
         'structural_moisture_reading'   => array('title'        =>'Structural Moisture Readings',
-                                                 'render_func'  =>'ncn_admin_ss_render_structural_moisture_readings'), 
-        'equipment_placement'           => array('title'        =>'Equipment Placement', 
-                                                 'render_func'  =>'ncn_admin_ss_render_equipment_placement'), 
-        'services'                      => array('title'        =>'Services', 
-                                                 'render_func'  =>'ncn_admin_ss_render_services'), 
-        'comments'                      => array('title'        =>'Comments', 
-                                                 'render_func'  =>'ncn_admin_ss_render_comments'), 
+                                                 'render_func'  =>'ncn_admin_ss_render_structural_moisture_readings'),
+
+
     );
 }
 

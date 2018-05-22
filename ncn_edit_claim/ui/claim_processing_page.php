@@ -25,9 +25,9 @@
             </div>
         </div>
         <?php if ($send_to_admin == true && !is_leaduser($user)): ?>
-            <a class="btn btn-primary claim-right-link create-invoice-btn enabled colorbox-node" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?= $claim_id; ?>?width=700&height=540">Create My Invoice</a>
+            <a class="btn btn-primary claim-right-link create-invoice-btn enabled colorbox-node" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?= $claim_id; ?>?width=700&height=540">Buy My Claim</a>
         <?php else: ?>
-            <a class="btn btn-primary disabled" >Create My Invoice</a>
+            <a class="btn btn-primary disabled" >Buy My Claim</a>
         <?php endif; ?>
     </div>
     </div>

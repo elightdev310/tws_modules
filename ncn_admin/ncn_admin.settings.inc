@@ -298,7 +298,7 @@ function ncn_admin_email_settings_form($form_state)
     // user clicked "create my invoice"
     $form['create_my_invoice'] = array(
         '#type' => 'fieldset',
-        '#title' => t('Create My Invoice Administrator/Account Manager confirmation'),
+        '#title' => t('Buy My Claim Administrator/Account Manager confirmation'),
         '#weight' => 2,
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,

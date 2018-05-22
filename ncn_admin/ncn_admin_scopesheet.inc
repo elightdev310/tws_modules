@@ -1458,242 +1458,476 @@ function ncn_admin_ss_render_services($claim_id, $room_name, $section) {
         <th class="service-reset">Reset</th>
 	</thead>
 	<tbody>
+        <!--Content-->
+        <tr><td colspan="4" class="ss-services-sub-section">Content</td></tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_move_out_reset_time_ah" name="ss_services[c][move_out_reset][time]" value="after" <?php if (isset($data['c']['move_out_reset']['time'])&&$data['c']['move_out_reset']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_move_out_reset_time_rh" name="ss_services[c][move_out_reset][time]" value="reg" <?php if (isset($data['c']['move_out_reset']['time'])&&$data['c']['move_out_reset']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Contents - move out then reset - </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][move_out_reset][room]" class="required-text" id="ss_service_c_move_out_reset_room" value="<?php echo isset($data['c'])?$data['c']['move_out_reset']['room']:''; ?>" />Room) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_protect_cwp_time_ah" name="ss_services[c][protect_cwp][time]" value="after" <?php if (isset($data['c']['protect_cwp']['time'])&&$data['c']['protect_cwp']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_we_move_out_reset_time_rh" name="ss_services[c][protect_cwp][time]" value="reg" <?php if (isset($data['c']['protect_cwp']['time'])&&$data['c']['protect_cwp']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Protect - Cover with plastic </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][protect_cwp][sf]" class="required-text" id="ss_service_c_protect_cwp_sf" value="<?php echo isset($data['c'])?$data['c']['protect_cwp']['sf']:''; ?>" />SF) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_refrigerator_detach_time_ah" name="ss_services[c][refrigerator_detach][time]" value="after" <?php if (isset($data['c']['refrigerator_detach']['time'])&&$data['c']['refrigerator_detach']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_we_move_out_reset_time_rh" name="ss_services[c][refrigerator_detach][time]" value="reg" <?php if (isset($data['c']['refrigerator_detach']['time'])&&$data['c']['refrigerator_detach']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Refrigerator - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][refrigerator_detach][ea]" class="required-text" id="ss_service_c_refrigerator_detach_ea" value="<?php echo isset($data['c'])?$data['c']['refrigerator_detach']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_range_fed_time_ah" name="ss_services[c][range_fed][time]" value="after" <?php if (isset($data['c']['range_fed']['time'])&&$data['c']['range_fed']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_we_move_out_reset_time_rh" name="ss_services[c][range_fed][time]" value="reg" <?php if (isset($data['c']['range_fed']['time'])&&$data['c']['range_fed']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Range - freestanding - electric - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][range_fed][ea]" class="required-text" id="ss_service_c_range_fed_ea" value="<?php echo isset($data['c'])?$data['c']['range_fed']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_range_fgd_time_ah" name="ss_services[c][range_fgd][time]" value="after" <?php if (isset($data['c']['range_fgd']['time'])&&$data['c']['range_fgd']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_range_fgd_time_rh" name="ss_services[c][range_fgd][time]" value="reg" <?php if (isset($data['c']['range_fgd']['time'])&&$data['c']['range_fgd']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Range - freestanding - gas - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][range_fgd][ea]" class="required-text" id="ss_service_c_range_fgd_ea" value="<?php echo isset($data['c'])?$data['c']['range_fgd']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dishwasher_detach_time_ah" name="ss_services[c][dishwasher_detach][time]" value="after" <?php if (isset($data['c']['dishwasher_detach']['time'])&&$data['c']['dishwasher_detach']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dishwasher_detach_time_rh" name="ss_services[c][dishwasher_detach][time]" value="reg" <?php if (isset($data['c']['dishwasher_detach']['time'])&&$data['c']['dishwasher_detach']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dishwasher - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dishwasher_detach][ea]" class="required-text" id="ss_service_c_dishwasher_detach_ea" value="<?php echo isset($data['c'])?$data['c']['dishwasher_detach']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_garbage_dd_time_ah" name="ss_services[c][garbage_dd][time]" value="after" <?php if (isset($data['c']['garbage_dd']['time'])&&$data['c']['garbage_dd']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_garbage_dd_time_rh" name="ss_services[c][garbage_dd][time]" value="reg" <?php if (isset($data['c']['garbage_dd']['time'])&&$data['c']['garbage_dd']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Garbage disposer - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][garbage_dd][ea]" class="required-text" id="ss_service_c_garbage_dd_ea" value="<?php echo isset($data['c'])?$data['c']['garbage_dd']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_washing_md_time_ah" name="ss_services[c][washing_md][time]" value="after" <?php if (isset($data['c']['washing_md']['time'])&&$data['c']['washing_md']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_washing_md_time_rh" name="ss_services[c][washing_md][time]" value="reg" <?php if (isset($data['c']['washing_md']['time'])&&$data['c']['washing_md']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Washing machine - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][washing_md][ea]" class="required-text" id="ss_service_c_washing_md_ea" value="<?php echo isset($data['c'])?$data['c']['washing_md']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dryer_ed_time_ah" name="ss_services[c][dryer_ed][time]" value="after" <?php if (isset($data['c']['dryer_ed']['time'])&&$data['c']['dryer_ed']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dryer_ed_time_rh" name="ss_services[c][dryer_ed][time]" value="reg" <?php if (isset($data['c']['dryer_ed']['time'])&&$data['c']['dryer_ed']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dryer - electric - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dryer_ed][ea]" class="required-text" id="ss_service_c_dryer_ed_ea" value="<?php echo isset($data['c'])?$data['c']['dryer_ed']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dryer_gd_time_ah" name="ss_services[c][dryer_gd][time]" value="after" <?php if (isset($data['c']['dryer_gd']['time'])&&$data['c']['dryer_gd']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dryer_gd_time_rh" name="ss_services[c][dryer_gd][time]" value="reg" <?php if (isset($data['c']['dryer_gd']['time'])&&$data['c']['dryer_gd']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dryer - gas - Detach </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dryer_gd][ea]" class="required-text" id="ss_service_c_dryer_gd_ea" value="<?php echo isset($data['c'])?$data['c']['dryer_gd']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_refr_rr_time_ah" name="ss_services[c][refr_rr][time]" value="after" <?php if (isset($data['c']['refr_rr']['time'])&&$data['c']['refr_rr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_refr_rr_time_rh" name="ss_services[c][refr_rr][time]" value="reg" <?php if (isset($data['c']['refr_rr']['time'])&&$data['c']['refr_rr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Refrigerator - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][refr_rr][ea]" class="required-text" id="ss_service_c_refr_rr_ea" value="<?php echo isset($data['c'])?$data['c']['refr_rr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_range_err_time_ah" name="ss_services[c][range_err][time]" value="after" <?php if (isset($data['c']['range_err']['time'])&&$data['c']['range_err']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_range_err_time_rh" name="ss_services[c][range_err][time]" value="reg" <?php if (isset($data['c']['range_err']['time'])&&$data['c']['range_err']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Range - electric - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][range_err][ea]" class="required-text" id="ss_service_c_range_err_ea" value="<?php echo isset($data['c'])?$data['c']['range_err']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_range_grr_time_ah" name="ss_services[c][range_grr][time]" value="after" <?php if (isset($data['c']['range_grr']['time'])&&$data['c']['range_grr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_range_grr_time_rh" name="ss_services[c][range_grr][time]" value="reg" <?php if (isset($data['c']['range_grr']['time'])&&$data['c']['range_grr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Range - gas - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][range_grr][ea]" class="required-text" id="ss_service_c_range_grr_ea" value="<?php echo isset($data['c'])?$data['c']['range_grr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_washing_machine_rr_time_ah" name="ss_services[c][washing_machine_rr][time]" value="after" <?php if (isset($data['c']['washing_machine_rr']['time'])&&$data['c']['washing_machine_rr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_washing_machine_rr_time_rh" name="ss_services[c][washing_machine_rr][time]" value="reg" <?php if (isset($data['c']['washing_machine_rr']['time'])&&$data['c']['washing_machine_rr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Washing machine - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][washing_machine_rr][ea]" class="required-text" id="ss_service_c_washing_machine_rr_ea" value="<?php echo isset($data['c'])?$data['c']['washing_machine_rr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dryer_err_time_ah" name="ss_services[c][dryer_err][time]" value="after" <?php if (isset($data['c']['dryer_err']['time'])&&$data['c']['dryer_err']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dryer_err_time_rh" name="ss_services[c][dryer_err][time]" value="reg" <?php if (isset($data['c']['dryer_err']['time'])&&$data['c']['dryer_err']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dryer - electric - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dryer_err][ea]" class="required-text" id="ss_service_c_dryer_err_ea" value="<?php echo isset($data['c'])?$data['c']['dryer_err']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dryer_grr_time_ah" name="ss_services[c][dryer_grr][time]" value="after" <?php if (isset($data['c']['dryer_grr']['time'])&&$data['c']['dryer_grr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dryer_grr_time_rh" name="ss_services[c][dryer_grr][time]" value="reg" <?php if (isset($data['c']['dryer_grr']['time'])&&$data['c']['dryer_grr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dryer - gas - Remove & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dryer_grr][ea]" class="required-text" id="ss_service_c_dryer_grr_ea" value="<?php echo isset($data['c'])?$data['c']['dryer_grr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_dishwasher_dr_time_ah" name="ss_services[c][dishwasher_dr][time]" value="after" <?php if (isset($data['c']['dishwasher_dr']['time'])&&$data['c']['dishwasher_dr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_dishwasher_dr_time_rh" name="ss_services[c][dishwasher_dr][time]" value="reg" <?php if (isset($data['c']['dishwasher_dr']['time'])&&$data['c']['dishwasher_dr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Dishwasher - Detach & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][dishwasher_dr][ea]" class="required-text" id="ss_service_c_dishwasher_dr_ea" value="<?php echo isset($data['c'])?$data['c']['dishwasher_dr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_c_garbage_ddr_time_ah" name="ss_services[c][garbage_ddr][time]" value="after" <?php if (isset($data['c']['garbage_ddr']['time'])&&$data['c']['garbage_ddr']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_c_garbage_ddr_time_rh" name="ss_services[c][garbage_ddr][time]" value="reg" <?php if (isset($data['c']['garbage_ddr']['time'])&&$data['c']['garbage_ddr']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Garbage disposer - Detach & reset </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[c][garbage_ddr][ea]" class="required-text" id="ss_service_c_garbage_ddr_ea" value="<?php echo isset($data['c'])?$data['c']['garbage_ddr']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+
+        <!--Containment-->
+        <tr><td colspan="4" class="ss-services-sub-section">Containment</td></tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_contain_badc_time_ah" name="ss_services[contain][badc][time]" value="after" <?php if (isset($data['contain']['badc']['time'])&&$data['contain']['badc']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_contain_badc_time_rh" name="ss_services[contain][badc][time]" value="reg" <?php if (isset($data['contain']['badc']['time'])&&$data['contain']['badc']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Containment Barrier/Airlock/Decon. Chamber </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[contain][badc][sf]" class="required-text" id="ss_service_contain_badc_sf" value="<?php echo isset($data['contain'])?$data['contain']['badc']['sf']:''; ?>" />SF) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_contain_tzp_time_ah" name="ss_services[contain][tzp][time]" value="after" <?php if (isset($data['contain']['tzp']['time'])&&$data['contain']['tzp']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_contain_tzp_time_rh" name="ss_services[contain][tzp][time]" value="reg" <?php if (isset($data['contain']['tzp']['time'])&&$data['contain']['tzp']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Tension/ZipWall poles (EA) </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[contain][tzp][ea]" class="required-text" id="ss_service_contain_tzp_ea" value="<?php echo isset($data['contain'])?$data['contain']['tzp']['ea']:''; ?>" />EA) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+
+
+        <!--Water Extraction-->
 		<tr><td colspan="4" class="ss-services-sub-section">Water Extraction</td></tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_carpet_time_ah" name="ss_services[we][carpet][time]" value="after" <?php if (isset($data['we']['carpet']['time'])&&$data['we']['carpet']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_carpet_tim_rh" name="ss_services[we][carpet][time]" value="reg" <?php if (isset($data['we']['carpet']['time'])&&$data['we']['carpet']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Carpet: </label>
-				<ul class="field-check-lists inline-group-fields clearfix">
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_we_carpet_type_regular" name="ss_services[we][carpet][type]" value="Regular" <?php if(isset($data['we']['carpet']['type'])&&$data['we']['carpet']['type']=='Regular') { echo "checked='checked'";} ?> ><label for="ss_service_we_carpet_type_regular">Regular</label></li>
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_we_carpet_type_heavy" name="ss_services[we][carpet][type]" value="Heavy" <?php if(isset($data['we']['carpet']['type'])&&$data['we']['carpet']['type']=='Heavy') { echo "checked='checked'";} ?> ><label for="ss_service_we_carpet_type_heavy">Heavy</label></li>
-				</ul>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][carpet][heavy][sf]" class="required-text" id="ss_service_we_carpet_heavy_sf" value="<?php echo isset($data['we'])?$data['we']['carpet']['heavy']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Carpet under Water Extraction</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_hard_floor_time_ah" name="ss_services[we][hard_floor][time]" value="after" <?php if (isset($data['we']['hard_floor']['time'])&&$data['we']['hard_floor']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_hard_floor_time_rh" name="ss_services[we][hard_floor][time]" value="reg" <?php if (isset($data['we']['hard_floor']['time'])&&$data['we']['hard_floor']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Hard Floor: </label>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][hard_floor][sf]" class="required-text" id="ss_service_we_hard_floor_sf" value="<?php echo isset($data['we'])?$data['we']['hard_floor']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Hard Floor under Water Extraction</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_weight_assisted_time_ah" name="ss_services[we][weight_assisted][time]" value="after" <?php if (isset($data['we']['weight_assisted']['time'])&&$data['we']['weight_assisted']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_weight_assisted_time_rh" name="ss_services[we][weight_assisted][time]" value="reg" <?php if (isset($data['we']['weight_assisted']['time'])&&$data['we']['weight_assisted']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Weight-Assisted: </label>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][weight_assisted][sf]" class="required-text" id="ss_service_we_weight_assisted_sf" value="<?php echo isset($data['we'])?$data['we']['weight_assisted']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Weight-Assisted under Water Extraction</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_lift_float_carpet_time_ah" name="ss_services[we][lift_float_carpet][time]" value="after" <?php if (isset($data['we']['lift_float_carpet']['time'])&&$data['we']['lift_float_carpet']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_lift_float_carpet_time_rh" name="ss_services[we][lift_float_carpet][time]" value="reg" <?php if (isset($data['we']['lift_float_carpet']['time'])&&$data['we']['lift_float_carpet']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"> <div><label>Lift/Float Carpet: </label>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][lift_float_carpet][sf]" class="required-text" id="ss_service_we_lift_float_carpet_sf" value="<?php echo isset($data['we'])?$data['we']['lift_float_carpet']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Lift/Float Carpet under Water Extraction</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		
-		<tr><td colspan="4" class="ss-services-sub-section">Material Removal</td></tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_carpet_time_ah" name="ss_services[mr][carpet][time]" value="after" <?php if (isset($data['mr']['carpet']['time'])&&$data['mr']['carpet']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_carpet_time_rh" name="ss_services[mr][carpet][time]" value="reg" <?php if (isset($data['mr']['carpet']['time'])&&$data['mr']['carpet']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Carpet: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][carpet][sf]" class="required-text" id="ss_service_mr_carpet_sf" value="<?php echo isset($data['mr'])?$data['mr']['carpet']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Carpet under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_glued_carpet_time_ah" name="ss_services[mr][glued_carpet][time]" value="after" <?php if (isset($data['mr']['glued_carpet']['time'])&&$data['mr']['glued_carpet']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_glued_carpet_time_rh" name="ss_services[mr][glued_carpet][time]" value="reg" <?php if (isset($data['mr']['glued_carpet']['time'])&&$data['mr']['glued_carpet']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Glued Carpet: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][glued_carpet][sf]" class="required-text" id="ss_service_mr_glued_carpet_sf" value="<?php echo isset($data['mr'])?$data['mr']['glued_carpet']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Glued Carpet under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_padding_time_ah" name="ss_services[mr][padding][time]" value="after" <?php if (isset($data['mr']['padding']['time'])&&$data['mr']['padding']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_padding_time_rh" name="ss_services[mr][padding][time]" value="reg" <?php if (isset($data['mr']['padding']['time'])&&$data['mr']['padding']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Padding: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][padding][sf]" class="required-text" id="ss_service_mr_padding_sf" value="<?php echo isset($data['mr'])?$data['mr']['padding']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Padding under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_vinyl_time_ah" name="ss_services[mr][vinyl][time]" value="after" <?php if (isset($data['mr']['vinyl']['time'])&&$data['mr']['vinyl']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_vinyl_time_rh" name="ss_services[mr][vinyl][time]" value="reg" <?php if (isset($data['mr']['vinyl']['time'])&&$data['mr']['vinyl']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Vinyl: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][vinyl][sf]" class="required-text" id="ss_service_mr_vinyl_sf" value="<?php echo isset($data['mr'])?$data['mr']['vinyl']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Vinyl under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_hardwood_time_ah" name="ss_services[mr][hardwood][time]" value="after" <?php if (isset($data['mr']['hardwood']['time'])&&$data['mr']['hardwood']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_hardwood_time_rh" name="ss_services[mr][hardwood][time]" value="reg" <?php if (isset($data['mr']['hardwood']['time'])&&$data['mr']['hardwood']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Hardwood: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][hardwood][sf]" class="required-text" id="ss_service_mr_hardwood_sf" value="<?php echo isset($data['mr'])?$data['mr']['hardwood']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Hardwood under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>		
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_laminate_time_ah" name="ss_services[mr][laminate][time]" value="after" <?php if (isset($data['mr']['laminate']['time'])&&$data['mr']['laminate']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_laminate_time_rh" name="ss_services[mr][laminate][time]" value="reg" <?php if (isset($data['mr']['laminate']['time'])&&$data['mr']['laminate']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Laminate: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][laminate][sf]" class="required-text" id="ss_service_mr_laminate_sf" value="<?php echo isset($data['mr'])?$data['mr']['laminate']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Laminate under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_tile_time_ah" name="ss_services[mr][tile][time]" value="after" <?php if (isset($data['mr']['tile']['time'])&&$data['mr']['tile']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_tile_time_rh" name="ss_services[mr][tile][time]" value="reg" <?php if (isset($data['mr']['tile']['time'])&&$data['mr']['tile']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Tile: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][tile][sf]" class="required-text" id="ss_service_mr_tile_sf" value="<?php echo isset($data['mr'])?$data['mr']['tile']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Tile under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>		
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_baseboard_time_ah" name="ss_services[mr][baseboard][time]" value="after" <?php if (isset($data['mr']['baseboard']['time'])&&$data['mr']['baseboard']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_baseboard_time_rh" name="ss_services[mr][baseboard][time]" value="reg" <?php if (isset($data['mr']['baseboard']['time'])&&$data['mr']['baseboard']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><label>Baseboard: </label>
-				<ul class="field-check-lists inline-group-fields clearfix">
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_mr_baseboard_type_detach" name="ss_services[mr][baseboard][type]" value="Detach" <?php if(isset($data['mr']['baseboard']['type'])&&$data['mr']['baseboard']['type']=='Detach') { echo "checked='checked'";} ?> ><label for="ss_service_mr_baseboard_type_detach">Detach</label></li>
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_mr_baseboard_type_dispose" name="ss_services[mr][baseboard][type]" value="Detach & Dispose" <?php if(isset($data['mr']['baseboard']['type'])&&$data['mr']['baseboard']['type']=='Detach & Dispose') { echo "checked='checked'";} ?> ><label for="ss_service_mr_baseboard_type_dispose">Detach & Dispose</label></li>
-				</ul>
-				<span class="field-item text-field-item small-size">( <input type="text" name="ss_services[mr][baseboard][lf]" class="required-text" id="ss_service_mr_baseboard_lf" value="<?php echo isset($data['mr'])?$data['mr']['baseboard']['lf']:''; ?>" /> LF)</span> 
-				<div class="hidden-div"><label class="service-name">Baseboard under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_track_strip_time_ah" name="ss_services[mr][track_strip][time]" value="after" <?php if (isset($data['mr']['track_strip']['time'])&&$data['mr']['track_strip']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_track_strip_time_rh" name="ss_services[mr][track_strip][time]" value="reg" <?php if (isset($data['mr']['track_strip']['time'])&&$data['mr']['track_strip']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Track Strip: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][track_strip][lf]" class="required-text" id="ss_service_mr_track_strip_lf" value="<?php echo isset($data['mr'])?$data['mr']['track_strip']['lf']:''; ?>" /> </span> LF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Track Strip under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>		
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_toe_kick_time_ah" name="ss_services[mr][toe_kick][time]" value="after" <?php if (isset($data['mr']['toe_kick']['time'])&&$data['mr']['toe_kick']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_toe_kick_time_rh" name="ss_services[mr][toe_kick][time]" value="reg" <?php if (isset($data['mr']['toe_kick']['time'])&&$data['mr']['toe_kick']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Toe Kick: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][toe_kick][lf]" class="required-text" id="ss_service_mr_toe_kick_lf" value="<?php echo isset($data['mr'])?$data['mr']['toe_kick']['lf']:''; ?>" /> </span> LF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Toe Kick under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>		
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_door_casing_time_ah" name="ss_services[mr][door_casing][time]" value="after" <?php if (isset($data['mr']['door_casing']['time'])&&$data['mr']['door_casing']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_door_casing_time_rh" name="ss_services[mr][door_casing][time]" value="reg" <?php if (isset($data['mr']['door_casing']['time'])&&$data['mr']['door_casing']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Door casing: </label>
-				<ul class="field-check-lists inline-group-fields clearfix">
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_mr_door_casing_type_detach" name="ss_services[mr][door_casing][type]" value="Detach" <?php if(isset($data['mr']['door_casing']['type'])&&$data['mr']['door_casing']['type']=='Detach') { echo "checked='checked'";} ?> ><label for="ss_service_mr_door_casing_type_detach">Detach</label></li>
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_mr_door_casing_type_dispose" name="ss_services[mr][door_casing][type]" value="Detach & Dispose" <?php if(isset($data['mr']['door_casing']['type'])&&$data['mr']['door_casing']['type']=='Detach & Dispose') { echo "checked='checked'";} ?> ><label for="ss_service_mr_door_casing_type_dispose">Detach & Dispose</label></li>
-				</ul>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][door_casing][lf]" class="required-text" id="ss_service_mr_door_casing_lf" value="<?php echo isset($data['mr'])?$data['mr']['door_casing']['lf']:''; ?>" /> </span> LF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Door casing under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_drywall_time_ah" name="ss_services[mr][drywall][time]" value="after" <?php if (isset($data['mr']['drywall']['time'])&&$data['mr']['drywall']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_drywall_time_rh" name="ss_services[mr][drywall][time]" value="reg" <?php if (isset($data['mr']['drywall']['time'])&&$data['mr']['drywall']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Drywall: </label>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[mr][drywall][sf]" class="required-text" id="ss_service_we_drywall_sf" value="<?php echo isset($data['mr'])?$data['mr']['drywall']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Drywall under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_we_plaster_time_ah" name="ss_services[mr][plaster][time]" value="after" <?php if (isset($data['mr']['plaster']['time'])&&$data['mr']['plaster']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_we_plaster_time_rh" name="ss_services[mr][plaster][time]" value="reg" <?php if (isset($data['mr']['plaster']['time'])&&$data['mr']['plaster']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Plaster: </label>
-				<span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[mr][plaster][sf]" class="required-text" id="ss_service_we_plaster_sf" value="<?php echo isset($data['mr'])?$data['mr']['plaster']['sf']:''; ?>" />SF) </span>
-			</div>
-			<div class="hidden-div"><label class="service-name">Plaster under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_insulation_time_ah" name="ss_services[mr][insulation][time]" value="after" <?php if (isset($data['mr']['insulation']['time'])&&$data['mr']['insulation']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_insulation_time_rh" name="ss_services[mr][insulation][time]" value="reg" <?php if (isset($data['mr']['insulation']['time'])&&$data['mr']['insulation']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Insulation: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][insulation][sf]" class="required-text" id="ss_service_mr_insulation_sf" value="<?php echo isset($data['mr'])?$data['mr']['insulation']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Insulation under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>		
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_cabinets_vanity_time_ah" name="ss_services[mr][cabinets_vanity][time]" value="after" <?php if (isset($data['mr']['cabinets_vanity']['time'])&&$data['mr']['cabinets_vanity']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_cabinets_vanity_time_rh" name="ss_services[mr][cabinets_vanity][time]" value="reg" <?php if (isset($data['mr']['cabinets_vanity']['time'])&&$data['mr']['cabinets_vanity']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Cabinets or Vanity: </label>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][cabinets_vanity][lf]" class="required-text" id="ss_service_mr_cabinets_vanity_lf" value="<?php echo isset($data['mr'])?$data['mr']['cabinets_vanity']['lf']:''; ?>" /> </span> LF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Cabinets or Vanity under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>	
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_mr_countertop_time_ah" name="ss_services[mr][countertop][time]" value="after" <?php if (isset($data['mr']['countertop']['time'])&&$data['mr']['countertop']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_mr_countertop_time_rh" name="ss_services[mr][countertop][time]" value="reg" <?php if (isset($data['mr']['countertop']['time'])&&$data['mr']['countertop']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Countertop: </label>
-				<ul class="field-check-lists inline-group-fields clearfix">
-					<li class="inline-field-item"><input type="radio" name="ss_services[mr][countertop][type]" id="ss_service_mr_countertop_type_laminate" value="Laminate" <?php if (isset($data['mr']['countertop']['type'])&&$data['mr']['countertop']['type']=='Laminate'){ echo "checked";} ?> class="cboxradio" />
-				<label class="cboxlabel" for="ss_service_mr_countertop_laminate_lf">Laminate(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][countertop][laminate][lf]" id="ss_service_mr_countertop_laminate_lf" value="<?php echo isset($data['mr'])?$data['mr']['countertop']['laminate']['lf']:''; ?>" /> </span> LF)</label></li>
-					<li class="inline-field-item"><input type="radio" id="ss_service_mr_countertop_type_marble" name="ss_services[mr][countertop][type]" value="Marble" <?php if(isset($data['mr']['countertop']['type'])&&$data['mr']['countertop']['type']=='Marble') { echo "checked='checked'";} ?> ><label for="ss_service_mr_countertop_type_marble">Marble</label></li>
-					<li class="inline-field-item"><input type="radio" id="ss_service_mr_countertop_type_granite" name="ss_services[mr][countertop][type]" value="Granite" <?php if(isset($data['mr']['countertop']['type'])&&$data['mr']['countertop']['type']=='Granite') { echo "checked='checked'";} ?> ><label for="ss_service_mr_countertop_type_granite">Granite</label></li>
-				</ul>
-				(<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[mr][countertop][marble_granite][sf]" id="ss_service_mr_countertop_marble_granite_sf" value="<?php echo isset($data['mr'])?$data['mr']['countertop']['marble_granite']['sf']:''; ?>" /> </span> SF)
-			</div>
-			<div class="hidden-div"><label class="service-name">Countertop under Material Removal</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>	
-		
-		<tr><td colspan="4" class="ss-services-sub-section">Detach Only / Detach & Reset</td></tr>
-		<tr class="required-row">
-			<td class="after-hours"><input type="radio" id="ss_service_dodr_singledoor_time_ah" name="ss_services[dodr][singledoor][time]" value="after" <?php if (isset($data['dodr']['singledoor']['time'])&&$data['dodr']['singledoor']['time']=='after'){ echo "checked";} ?> /></td>
-			<td class="reg-hours"><input type="radio" id="ss_service_dodr_singledoor_time_rh" name="ss_services[dodr][singledoor][time]" value="reg" <?php if (isset($data['dodr']['singledoor']['time'])&&$data['dodr']['singledoor']['time']=='reg'){ echo "checked";} ?> /></td>
-			<td class="ss-service-data"><div><label>Single Door: </label>
-				<ul class="field-check-lists inline-group-fields clearfix">
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_dodr_singledoor_type_detach" name="ss_services[dodr][singledoor][type]" value="Detach" <?php if(isset($data['dodr']['singledoor']['type'])&&$data['dodr']['singledoor']['type']=='Detach') { echo "checked='checked'";} ?> ><label for="ss_service_dodr_singledoor_type_detach">Detach</label></li>
-					<li class="inline-field-item"><input type="radio" class="required-radio" id="ss_service_dodr_singledoor_type_dr" name="ss_services[dodr][singledoor][type]" value="Detach & Reset" <?php if(isset($data['dodr']['singledoor']['type'])&&$data['dodr']['singledoor']['type']=='Detach & Reset') { echo "checked='checked'";} ?> ><label for="ss_service_dodr_singledoor_type_dr">Detach & Reset</label></li>
-				</ul>
-				(#<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[dodr][singledoor][count]" class="required-text" id="ss_service_dodr_singledoor_count" value="<?php echo isset($data['dodr'])?$data['dodr']['singledoor']['count']:''; ?>" /> </span>)
-			</div>
-			<div class="hidden-div"><label class="service-name">Single Door under Detach Only / Detach & Reset</label></div>
-			</td>
-      <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
-		</tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_we_hard_floor_time_ah" name="ss_services[we][hard_floor][time]" value="after" <?php if (isset($data['we']['hard_floor']['time'])&&$data['we']['hard_floor']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_we_hard_floor_time_rh" name="ss_services[we][hard_floor][time]" value="reg" <?php if (isset($data['we']['hard_floor']['time'])&&$data['we']['hard_floor']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Hard Surface Floor </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][hard_floor][sf]" class="required-text" id="ss_service_we_hard_floor_sf" value="<?php echo isset($data['we'])?$data['we']['hard_floor']['sf']:''; ?>" />SF) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_we_carpeted_floor_time_ah" name="ss_services[we][carpeted_floor][time]" value="after" <?php if (isset($data['we']['carpeted_floor']['time'])&&$data['we']['carpeted_floor']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_we_carpeted_floor_time_rh" name="ss_services[we][carpeted_floor][time]" value="reg" <?php if (isset($data['we']['carpeted_floor']['time'])&&$data['we']['carpeted_floor']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Carpeted floor </label>
+                    <span class="field-item text-field-item small-size"> (<input type="text" name="ss_services[we][carpeted_floor][sf]" class="required-text" id="ss_service_we_carpeted_floor_sf" value="<?php echo isset($data['we'])?$data['we']['carpeted_floor']['sf']:''; ?>" />SF) </span>
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+
+        <!--Detach (Salvage)-->
+		<tr><td colspan="4" class="ss-services-sub-section">Detach (Salvage)</td></tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_door_so_time_ah" name="ss_services[ds][door_so][time]" value="after" <?php if (isset($data['ds']['door_so']['time'])&&$data['ds']['door_so']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_door_so_time_rh" name="ss_services[ds][door_so][time]" value="reg" <?php if (isset($data['ds']['door_so']['time'])&&$data['ds']['door_so']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Door slab only </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][door_so][ea]" class="required-text" id="ss_service_ds_door_so_ea" value="<?php echo isset($data['ds'])?$data['ds']['door_so']['ea']:''; ?>" />EA</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_shoe_molding_time_ah" name="ss_services[ds][shoe_molding][time]" value="after" <?php if (isset($data['ds']['shoe_molding']['time'])&&$data['ds']['shoe_molding']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_shoe_molding_time_rh" name="ss_services[ds][shoe_molding][time]" value="reg" <?php if (isset($data['ds']['shoe_molding']['time'])&&$data['ds']['shoe_molding']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Shoe molding </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][shoe_molding][lf]" class="required-text" id="ss_service_ds_shoe_molding_lf" value="<?php echo isset($data['ds'])?$data['ds']['shoe_molding']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_baseboard_time_ah" name="ss_services[ds][baseboard][time]" value="after" <?php if (isset($data['ds']['baseboard']['time'])&&$data['ds']['baseboard']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_baseboard_time_rh" name="ss_services[ds][baseboard][time]" value="reg" <?php if (isset($data['ds']['baseboard']['time'])&&$data['ds']['baseboard']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Baseboard </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][baseboard][lf]" class="required-text" id="ss_service_ds_baseboard_lf" value="<?php echo isset($data['ds'])?$data['ds']['baseboard']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_lcfd_time_ah" name="ss_services[ds][lcfd][time]" value="after" <?php if (isset($data['ds']['lcfd']['time'])&&$data['ds']['lcfd']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_lcfd_time_rh" name="ss_services[ds][lcfd][time]" value="reg" <?php if (isset($data['ds']['lcfd']['time'])&&$data['ds']['lcfd']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Lift carpet for drying </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][lcfd][sf]" class="required-text" id="ss_service_ds_lcfd_sf" value="<?php echo isset($data['ds'])?$data['ds']['lcfd']['sf']:''; ?>" />SF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_sink_sb_time_ah" name="ss_services[ds][sink_sb][time]" value="after" <?php if (isset($data['ds']['sink_sb']['time'])&&$data['ds']['sink_sb']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_sink_sb_time_rh" name="ss_services[ds][sink_sb][time]" value="reg" <?php if (isset($data['ds']['sink_sb']['time'])&&$data['ds']['sink_sb']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Sink - single bowl </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][sink_sb][ea]" class="required-text" id="ss_service_ds_sink_sb_ea" value="<?php echo isset($data['ds'])?$data['ds']['sink_sb']['ea']:''; ?>" />EA</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_sink_db_time_ah" name="ss_services[ds][sink_db][time]" value="after" <?php if (isset($data['ds']['sink_db']['time'])&&$data['ds']['sink_db']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_sink_db_time_rh" name="ss_services[ds][sink_db][time]" value="reg" <?php if (isset($data['ds']['sink_db']['time'])&&$data['ds']['sink_db']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Sink - double bowl </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][sink_db][ea]" class="required-text" id="ss_service_ds_sink_db_ea" value="<?php echo isset($data['ds'])?$data['ds']['sink_db']['ea']:''; ?>" />EA</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_ds_toilet_time_ah" name="ss_services[ds][toilet][time]" value="after" <?php if (isset($data['ds']['toilet']['time'])&&$data['ds']['toilet']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_toilet_time_rh" name="ss_services[ds][toilet][time]" value="reg" <?php if (isset($data['ds']['toilet']['time'])&&$data['ds']['toilet']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Toilet </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][toilet][ea]" class="required-text" id="ss_service_ds_toilet_ea" value="<?php echo isset($data['ds'])?$data['ds']['toilet']['ea']:''; ?>" />EA</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_countertop_pl_time_ah" name="ss_services[ds][countertop_pl][time]" value="after" <?php if (isset($data['ds']['countertop_pl']['time'])&&$data['ds']['countertop_pl']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_countertop_pl_time_rh" name="ss_services[ds][countertop_pl][time]" value="reg" <?php if (isset($data['ds']['countertop_pl']['time'])&&$data['ds']['countertop_pl']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Countertop - plastic laminate </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][countertop_pl][lf]" class="required-text" id="ss_service_ds_countertop_pl_lf" value="<?php echo isset($data['ds'])?$data['ds']['countertop_pl']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_countertop_ssg_time_ah" name="ss_services[ds][countertop_ssg][time]" value="after" <?php if (isset($data['ds']['countertop_ssg']['time'])&&$data['ds']['countertop_ssg']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_countertop_ssg_time_rh" name="ss_services[ds][countertop_ssg][time]" value="reg" <?php if (isset($data['ds']['countertop_ssg']['time'])&&$data['ds']['countertop_ssg']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Countertop - solid surface/granite </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][countertop_ssg][sf]" class="required-text" id="ss_service_ds_countertop_ssg_sf" value="<?php echo isset($data['ds'])?$data['ds']['countertop_ssg']['sf']:''; ?>" />SF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_uwu_time_ah" name="ss_services[ds][cabinet_uwu][time]" value="after" <?php if (isset($data['ds']['cabinet_uwu']['time'])&&$data['ds']['cabinet_uwu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_cabinet_uwu_time_rh" name="ss_services[ds][cabinet_uwu][time]" value="reg" <?php if (isset($data['ds']['cabinet_uwu']['time'])&&$data['ds']['cabinet_uwu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - upper (wall) unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][cabinet_uwu][lf]" class="required-text" id="ss_service_ds_cabinet_uwu_lf" value="<?php echo isset($data['ds'])?$data['ds']['cabinet_uwu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_lbu_time_ah" name="ss_services[ds][cabinet_lbu][time]" value="after" <?php if (isset($data['ds']['cabinet_lbu']['time'])&&$data['ds']['cabinet_lbu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_cabinet_lbu_time_rh" name="ss_services[ds][cabinet_lbu][time]" value="reg" <?php if (isset($data['ds']['cabinet_lbu']['time'])&&$data['ds']['cabinet_lbu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - lower (base) unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][cabinet_lbu][lf]" class="required-text" id="ss_service_ds_cabinet_lbu_lf" value="<?php echo isset($data['ds'])?$data['ds']['cabinet_lbu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_fhu_time_ah" name="ss_services[ds][cabinet_fhu][time]" value="after" <?php if (isset($data['ds']['cabinet_fhu']['time'])&&$data['ds']['cabinet_fhu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_ds_cabinet_fhu_time_rh" name="ss_services[ds][cabinet_fhu][time]" value="reg" <?php if (isset($data['ds']['cabinet_fhu']['time'])&&$data['ds']['cabinet_fhu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - full height unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[ds][cabinet_fhu][lf]" class="required-text" id="ss_service_ds_cabinet_fhu_lf" value="<?php echo isset($data['ds'])?$data['ds']['cabinet_fhu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+
+        <!--Tear Out (Dispose)-->
+        <tr><td colspan="4" class="ss-services-sub-section">Tear Out (Dispose)</td></tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_to_cashing_time_ah" name="ss_services[to][cashing][time]" value="after" <?php if (isset($data['to']['cashing']['time'])&&$data['to']['cashing']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_cashing_time_rh" name="ss_services[to][cashing][time]" value="reg" <?php if (isset($data['to']['cashing']['time'])&&$data['to']['cashing']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Casing </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][cashing][lf]" class="required-text" id="ss_service_to_cashing_lf" value="<?php echo isset($data['to'])?$data['to']['cashing']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_to_shoe_molding_time_ah" name="ss_services[to][shoe_molding][time]" value="after" <?php if (isset($data['to']['shoe_molding']['time'])&&$data['to']['shoe_molding']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_shoe_molding_time_rh" name="ss_services[to][shoe_molding][time]" value="reg" <?php if (isset($data['to']['shoe_molding']['time'])&&$data['to']['shoe_molding']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Shoe molding </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][shoe_molding][lf]" class="required-text" id="ss_service_to_shoe_molding_lf" value="<?php echo isset($data['to'])?$data['to']['shoe_molding']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_to_baseboard_time_ah" name="ss_services[to][baseboard][time]" value="after" <?php if (isset($data['to']['baseboard']['time'])&&$data['to']['baseboard']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_baseboard_time_rh" name="ss_services[to][baseboard][time]" value="reg" <?php if (isset($data['to']['baseboard']['time'])&&$data['to']['baseboard']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Baseboard </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][baseboard][lf]" class="required-text" id="ss_service_to_baseboard_lf" value="<?php echo isset($data['to'])?$data['to']['baseboard']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_to_toe_kick_time_ah" name="ss_services[to][toe_kick][time]" value="after" <?php if (isset($data['to']['toe_kick']['time'])&&$data['to']['toe_kick']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_toe_kick_time_rh" name="ss_services[to][toe_kick][time]" value="reg" <?php if (isset($data['to']['toe_kick']['time'])&&$data['to']['toe_kick']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Toe kick </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][toe_kick][lf]" class="required-text" id="ss_service_to_toe_kick_lf" value="<?php echo isset($data['to'])?$data['to']['toe_kick']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_uwu_time_ah" name="ss_services[to][cabinet_uwu][time]" value="after" <?php if (isset($data['to']['cabinet_uwu']['time'])&&$data['to']['cabinet_uwu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_cabinet_uwu_time_rh" name="ss_services[to][cabinet_uwu][time]" value="reg" <?php if (isset($data['to']['cabinet_uwu']['time'])&&$data['to']['cabinet_uwu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - upper (wall) unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][cabinet_uwu][lf]" class="required-text" id="ss_service_to_cabinet_uwu_lf" value="<?php echo isset($data['to'])?$data['to']['cabinet_uwu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_lbu_time_ah" name="ss_services[to][cabinet_lbu][time]" value="after" <?php if (isset($data['to']['cabinet_lbu']['time'])&&$data['to']['cabinet_lbu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_cabinet_lbu_time_rh" name="ss_services[to][cabinet_lbu][time]" value="reg" <?php if (isset($data['to']['cabinet_lbu']['time'])&&$data['to']['cabinet_lbu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - lower (base) unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][cabinet_lbu][lf]" class="required-text" id="ss_service_to_cabinet_lbu_lf" value="<?php echo isset($data['to'])?$data['to']['cabinet_lbu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+        <tr class="required-row">
+            <td class="after-hours"><input type="radio" id="ss_service_cabinet_fhu_time_ah" name="ss_services[to][cabinet_fhu][time]" value="after" <?php if (isset($data['to']['cabinet_fhu']['time'])&&$data['to']['cabinet_fhu']['time']=='after'){ echo "checked";} ?> /></td>
+            <td class="reg-hours"><input type="radio" id="ss_service_to_cabinet_fhu_time_rh" name="ss_services[to][cabinet_fhu][time]" value="reg" <?php if (isset($data['to']['cabinet_fhu']['time'])&&$data['to']['cabinet_fhu']['time']=='reg'){ echo "checked";} ?> /></td>
+            <td class="ss-service-data">
+                <div>
+                    <label>Cabinet - full height unit </label>
+                    (<span class="field-item text-field-item small-size"> <input type="text" name="ss_services[to][cabinet_fhu][lf]" class="required-text" id="ss_service_to_cabinet_fhu_lf" value="<?php echo isset($data['to'])?$data['to']['cabinet_fhu']['lf']:''; ?>" />LF</span>)
+                </div>
+            </td>
+            <td class="reset-radio"><input type="button" class="radio-reset-button" value="Reset" /></td>
+        </tr>
+
+
+
+
 		<tr class="required-row">
 			<td class="after-hours"><input type="radio" id="ss_service_dodr_dbldoor_time_ah" name="ss_services[dodr][dbldoor][time]" value="after" <?php if (isset($data['dodr']['dbldoor']['time'])&&$data['dodr']['dbldoor']['time']=='after'){ echo "checked";} ?> /></td>
 			<td class="reg-hours"><input type="radio" id="ss_service_dodr_dbldoor_time_rh" name="ss_services[dodr][dbldoor][time]" value="reg" <?php if (isset($data['dodr']['dbldoor']['time'])&&$data['dodr']['dbldoor']['time']=='reg'){ echo "checked";} ?> /></td>

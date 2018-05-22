@@ -30,7 +30,7 @@ function ncn_pvc_menu()
 {
 	$items = array();
 	$items['admin/config/ncn_admin/ncn_pvc'] = array(
-		'title' => t('NCN Permission of View Claim') ,
+		'title' => t('TWC Permission of View Claim') ,
 		'page callback' => 'ncn_pvc_settings',
 		'access arguments' => array(
 			'ncn permission of view claim'

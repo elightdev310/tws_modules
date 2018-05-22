@@ -16,7 +16,7 @@
             <th class="td-claim-processing">Claim Processing</th>
             <th class="td-rooms">Rooms</th>
             <th class="td-photo-album">Photo Album</th>
-            <th class="td-create-my-invoice">Create My Invoice</th>
+            <th class="td-create-my-invoice">Buy My Claim</th>
         </tr>
     </thead>
     <tbody>
@@ -87,7 +87,7 @@
                 </td>
                 <td class="td-create-my-invoice">
                     <?php if ($send_to_admin == true && !is_leaduser($user)): ?>
-                    <a class="create-invoice-btn enabled colorbox-node btn btn-primary" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?php echo $row['claim_id']; ?>?width=700&height=540">Create My Invoice</a>
+                    <a class="create-invoice-btn enabled colorbox-node btn btn-primary" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?php echo $row['claim_id']; ?>?width=700&height=540">Buy My Claim</a>
                     <?php endif; ?>
                     
                 </td>
