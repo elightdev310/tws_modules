@@ -184,7 +184,7 @@ function ncn_admin_menu()
     'weight' => 9,
    );
    
-   $items['admin/config/ncn_admin/config'] = array(
+  $items['admin/config/ncn_admin/config'] = array(
     'title' => 'Settings',
     'page callback' => 'ncn_admin_page_settings',
     'access arguments' => array('administer ncn_admin settings'),

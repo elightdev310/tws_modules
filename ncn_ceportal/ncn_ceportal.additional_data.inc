@@ -445,7 +445,7 @@ function ncn_ceportal_aci_render_daily_claim_log($claim_id, $section) {
 <thead>
     <th class='dcl-day-week'>Day of Week</th>
     <th class='dcl-date'>Date</th>
-    <th class='dcl-men'># Men</th>
+    <th class='dcl-men'># Technicians</th>
     <th class='dcl-hours-day'>Hours Per Day</th>
     <th class='dcl-total-hours'>Totoal Hours</th>
     <th class='dcl-after-hours'>After Hours</th>

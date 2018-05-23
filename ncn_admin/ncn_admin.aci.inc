@@ -620,7 +620,7 @@ function ncn_admin_aci_render_dcl_log_list($claim_id) {
 <thead>
     <th class='dcl-day-week'>Day of Week</th>
     <th class='dcl-date'>Date</th>
-    <th class='dcl-men'># Men</th>
+    <th class='dcl-men'># Technicians</th>
     <th class='dcl-hours-day'>Hours Per Day</th>
     <th class='dcl-total-hours'>Total Hours</th>
     <th class='dcl-after-hours'>After Hours</th>
@@ -675,7 +675,7 @@ function ncn_admin_aci_render_dcl_action_panel($claim_id, $action, $index=0) {
         </div>
     </div>
     <div class="form-group">
-        <div for="dcl_men" class="col-sm-4 control-label"># Men:</div>
+        <div for="dcl_men" class="col-sm-4 control-label"># Technicians:</div>
         <div class="col-sm-8">
             <input type="text" class="form-control" name="dc_log[men]" id="dcl_men" onkeypress="return isNumberKey(event, false);" onkeyup="dcl_calc_total_hours();" value="<?php echo isset($log['men'])?$log['men']:''; ?>" />
         </div>
