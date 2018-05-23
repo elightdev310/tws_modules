@@ -22,6 +22,10 @@ function ncn_admin_aci_render_property_owner_info($claim_id, $section) {
         <td><div class="field-item text-field-item"><input type="text" name="poi[insured_name]" id="poi_insured_name" value="<?php echo isset($data['insured_name'])?$data['insured_name']:''; ?>" /></div></td>
     </tr>
     <tr>
+        <td class="td-label"><label for="poi_biz_name">Business Name (if applicable):</label></td>
+        <td><div class="field-item text-field-item"><input type="text" name="poi[biz_name]" id="poi_biz_name" value="<?php echo isset($data['biz_name'])?$data['biz_name']:''; ?>" /></div></td>
+    </tr>
+    <tr>
         <td class="td-label"><label for="poi_insured_address">Property Loss Address:</label></td>
         <td><div class="field-item text-field-item"><input type="text" name="poi[insured_address]" id="poi_insured_address" value="<?php echo isset($data['insured_address'])?$data['insured_address']:''; ?>" /></div></td>
     </tr>
@@ -1109,7 +1113,6 @@ function ncn_admin_aci_render_sections($claim_id) {
   </div>
     <?php 
         $sections = ncn_admin_get_aci_sections();
-        $s_info = $sections[$section];
         foreach ($sections as $section=>$s_info) {
             if ($s_info['render_func'] && function_exists($s_info['render_func'])) {
                 echo "<div class='$section'>";

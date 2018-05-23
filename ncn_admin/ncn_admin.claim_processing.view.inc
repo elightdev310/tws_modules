@@ -64,92 +64,96 @@ function ncn_admin_view_aci_render_property_owner_info($claim_id, $section) {
   $data = ncn_admin_get_aci_property_owner_info($claim_id);
   
   ob_start();
-?>
-<table>
-  <tr>
-    <td class="td-label"><label for="poi_insured_name">Owner/Insured Name:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_insured_name"><?php echo $data['insured_name']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_insured_address">Property Loss Address:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_insured_address"><?php echo $data['insured_address']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_apt_bldg">Apt/Suite/Bldg:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_apt_bldg"><?php echo $data['apt_bldg']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_insured_city">City:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_insured_city"><?php echo $data['insured_city']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_insured_state">State:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_insured_state"><?php echo $data['insured_state']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_insured_zip">Zip Code:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_insured_zip"><?php echo $data['insured_zip']; ?></div></div></td>
-  </tr>
+  ?>
+    <table>
+        <tr>
+            <td class="td-label"><label for="poi_insured_name">Owner/Insured Name:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_insured_name"><?php echo (!empty($data['insured_name']))? $data['insured_name']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_biz_name">Business Name (if applicable):</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_biz_name"><?php echo (!empty($data['biz_name']))? $data['biz_name']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_insured_address">Property Loss Address:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_insured_address"><?php echo (!empty($data['insured_address']))? $data['insured_address']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_apt_bldg">Apt/Suite/Bldg:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_apt_bldg"><?php echo (!empty($data['apt_bldg']))? $data['apt_bldg']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_insured_city">City:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_insured_city"><?php echo (!empty($data['insured_city']))? $data['insured_city']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_insured_state">State:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_insured_state"><?php echo (!empty($data['insured_state']))? $data['insured_state']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_insured_zip">Zip Code:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_insured_zip"><?php echo (!empty($data['insured_zip']))? $data['insured_zip']:''; ?></div></div></td>
+        </tr>
 
-  <tr>
-    <td class="td-label"><label for="poi_billing_address">Billing Address:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_billing_address"><?php echo $data['billing_address']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_billing_apt_bldg">Apt/Suite/Bldg:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_billing_apt_bldg"><?php echo $data['billing_apt_bldg']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_billing_city">City:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_billing_city"><?php echo $data['billing_city']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_billing_state">State:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_billing_state"><?php echo $data['billing_state']; ?></div></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_billing_zip">Zip Code:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_billing_zip"><?php echo $data['billing_zip']; ?></div></div></td>
-  </tr>
+        <tr>
+            <td class="td-label"><label for="poi_billing_address">Billing Address:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_billing_address"><?php echo (!empty($data['billing_address']))? $data['billing_address']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_billing_apt_bldg">Apt/Suite/Bldg:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_billing_apt_bldg"><?php echo (!empty($data['billing_apt_bldg']))? $data['billing_apt_bldg']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_billing_city">City:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_billing_city"><?php echo (!empty($data['billing_city']))? $data['billing_city']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_billing_state">State:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_billing_state"><?php echo (!empty($data['billing_state']))? $data['billing_state']:''; ?></div></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_billing_zip">Zip Code:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_billing_zip"><?php echo (!empty($data['billing_zip']))? $data['billing_zip']:''; ?></div></div></td>
+        </tr>
 
-  <tr>
-    <td class="td-label">
-      <label for="poi_phone_0_number">Phone
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="poi_phone_0_type_home"><?php if($data['phone'][0]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_home">Home</label></li>
-        <li class="inline-field-item"><span id="poi_phone_0_type_work"><?php if($data['phone'][0]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_work">Work</label></li>
-        <li class="inline-field-item"><span id="poi_phone_0_type_cell"><?php if($data['phone'][0]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_cell">Cell:</label></li>
-      </ul></label>
-    </td>
-    <td><div class="field-item text-field-item"><span id="poi_phone_0_number" class="phone-style-field"><?php echo $data['phone'][0]['number']; ?></span></div></td>
-  </tr>
-  <tr>
-    <td class="td-label">
-      <label for="poi_phone_1_number">Phone
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="poi_phone_1_type_home"><?php if($data['phone'][1]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_home">Home</label></li>
-        <li class="inline-field-item"><span id="poi_phone_1_type_work"><?php if($data['phone'][1]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_work">Work</label></li>
-        <li class="inline-field-item"><span id="poi_phone_1_type_cell"><?php if($data['phone'][1]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_cell">Cell:</label></li>
-      </ul></label>
-    </td>
-    <td><div class="field-item text-field-item"><span id="poi_phone_1_number" class="phone-style-field"><?php echo $data['phone'][1]['number']; ?></span></div></td>
-  </tr>
-  <tr>
-    <td class="td-label">
-      <label for="poi_phone_2_number">Phone
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="poi_phone_2_type_home"><?php if($data['phone'][2]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_home">Home</label></li>
-        <li class="inline-field-item"><span id="poi_phone_2_type_work"><?php if($data['phone'][2]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_work">Work</label></li>
-        <li class="inline-field-item"><span id="poi_phone_2_type_cell"><?php if($data['phone'][2]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_cell">Cell:</label></li>
-      </ul></label>
-    </td>
-    <td><div class="field-item text-field-item"><span id="poi_phone_2_number" class="phone-style-field"><?php echo $data['phone'][2]['number']; ?></span></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="poi_email">Email:</label></td>
-    <td><div class="field-item text-field-item"><div id="poi_property_owner_email"><?php echo $data['property_owner_email']; ?></div></div></td>
-  </tr>
-</table>
+        <tr>
+            <td class="td-label">
+                <label for="poi_phone_0_number">Phone
+                    <ul class="field-check-lists inline-group-fields clearfix">
+                        <li class="inline-field-item"><span id="poi_phone_0_type_home"><?php if($data['phone'][0]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_home">Home</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_0_type_work"><?php if($data['phone'][0]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_work">Work</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_0_type_cell"><?php if($data['phone'][0]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_0_type_cell">Cell:</label></li>
+                    </ul></label>
+            </td>
+            <td><div class="field-item text-field-item"><span id="poi_phone_0_number" class="phone-style-field"><?php echo (!empty($data['phone'][0]['number']))? $data['phone'][0]['number']:''; ?></span></div></td>
+        </tr>
+        <tr>
+            <td class="td-label">
+                <label for="poi_phone_1_number">Phone
+                    <ul class="field-check-lists inline-group-fields clearfix">
+                        <li class="inline-field-item"><span id="poi_phone_1_type_home"><?php if($data['phone'][1]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_home">Home</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_1_type_work"><?php if($data['phone'][1]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_work">Work</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_1_type_cell"><?php if($data['phone'][1]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_1_type_cell">Cell:</label></li>
+                    </ul></label>
+            </td>
+            <td><div class="field-item text-field-item"><span id="poi_phone_1_number" class="phone-style-field"><?php echo (!empty($data['phone'][1]['number']))? $data['phone'][1]['number']:''; ?></span></div></td>
+        </tr>
+        <tr>
+            <td class="td-label">
+                <label for="poi_phone_2_number">Phone
+                    <ul class="field-check-lists inline-group-fields clearfix">
+                        <li class="inline-field-item"><span id="poi_phone_2_type_home"><?php if($data['phone'][2]['type']=='Home') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_home">Home</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_2_type_work"><?php if($data['phone'][2]['type']=='Work') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_work">Work</label></li>
+                        <li class="inline-field-item"><span id="poi_phone_2_type_cell"><?php if($data['phone'][2]['type']=='Cell') { echo "&#9745;";} else { echo "&#9744"; } ?></span> <label for="poi_phone_2_type_cell">Cell:</label></li>
+                    </ul></label>
+            </td>
+            <td><div class="field-item text-field-item"><span id="poi_phone_2_number" class="phone-style-field"><?php echo (!empty($data['phone'][2]['number']))? $data['phone'][2]['number']:''; ?></span></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="poi_email">Email:</label></td>
+            <td><div class="field-item text-field-item"><div id="poi_property_owner_email"><?php echo (!empty($data['property_owner_email']))? $data['property_owner_email']:''; ?></div></div></td>
+        </tr>
+    </table>
 <?php  
   $output = ob_get_contents();
   ob_end_clean();

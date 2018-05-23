@@ -15,6 +15,12 @@
         </div>
     </div>
     <div class="form-group">
+        <div for="poi_biz_name" class="col-sm-5 control-label">Business Name (if applicable): </div>
+        <div class="col-sm-7">
+            <input type="text" class="form-control" name="poi[biz_name]" id="poi_biz_name" value="<?php echo isset($data['biz_name'])?$data['biz_name']:''; ?>" />
+        </div>
+    </div>
+    <div class="form-group">
         <div for="poi_insured_address" class="col-sm-5 control-label">Property Loss Address: </div>
         <div class="col-sm-7">
             <input type="text" class="form-control" name="poi[insured_address]" id="poi_insured_address" value="<?php echo isset($data['insured_address'])?$data['insured_address']:''; ?>" />
