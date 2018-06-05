@@ -314,3 +314,37 @@ function ncn_cd($claim_id, $key, $array_val=false)
     
     return $res;
 }
+
+/**
+ * Get All Claim Status
+ *
+ * @return array
+ */
+function ncn_get_claim_status() {
+    $claim_status = array(
+        'incomplete'    => 'Docs in Progress',
+        'out for review'=> 'Out for Approval',
+        'returned'      => 'More Info Needed',
+        'approved'      => 'TWC Purchase Approved',
+        'con_approved'  => 'Contractor Purchased Approved',
+        'archived'      => 'Funded / Closed',
+        'declined'      => 'TWC Declined',
+        'con_declined'  => 'Contractor Declined',
+    );
+    return $claim_status;
+}
+
+/**
+ * Get Claim Status Label from Key
+ * @param $key string
+ *      claim status key
+ *
+ * @return mixed|string
+ */
+function ncn_get_claim_status_label($key) {
+    $claim_status = ncn_get_claim_status();
+    if (isset($claim_status[$key])) {
+        return $claim_status[$key];
+    }
+    return '';
+}

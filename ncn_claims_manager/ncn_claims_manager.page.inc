@@ -18,9 +18,9 @@ global $user;
     return $content;
 }
 /**
- * Dashboard - Claims Section
+ * Dashboard - Claims in Progress Section
  */
-function ncn_claims_manager_dashboard_claims_section() {
+function ncn_claims_manager_dashboard_claims_in_progress_section() {
 global $user;
     $claims = db_select('claims', 'c')
             ->fields('c')
@@ -41,9 +41,9 @@ global $user;
     return $content;
 }
 /**
- * Dashboard - Invoices Section
+ * Dashboard - Out for Approval Section
  */
-function ncn_claims_manager_dashboard_invoices_section() {
+function ncn_claims_manager_dashboard_out_for_approval_section() {
 global $user;
     $claims = db_select('claims', 'c')
             ->fields('c')
@@ -72,8 +72,8 @@ global $user;
             ->fields('c')
             ->condition('c.user_id', $user->uid)
             ->condition('c.deleted', 0)
-            ->condition('c.claim_status', 'out for review')
-            ->condition('c.workflow', 'rejected_claim_docs')
+            ->condition('c.claim_status', 'returned')
+            //->condition('c.workflow', 'rejected_claim_docs')
             ->orderBy('c.last_modified', 'DESC')
             ->extend('PagerDefault')
             ->limit(5)
@@ -90,11 +90,13 @@ global $user;
 /**
  * Dashboard - Invoices Completed Section
  */
-function ncn_claims_manager_dashboard_invoices_completed_section() {
+function ncn_claims_manager_dashboard_approved_declined_section() {
 global $user;
     $db_or = db_or();
-    $db_or->condition('c.claim_status', 'returned');
     $db_or->condition('c.claim_status', 'approved');
+    $db_or->condition('c.claim_status', 'con_approved');
+    $db_or->condition('c.claim_status', 'declined');
+    $db_or->condition('c.claim_status', 'con_declined');
     
     $claims = db_select('claims', 'c')
             ->fields('c')
@@ -114,31 +116,7 @@ global $user;
 
     return $content;
 }
-/**
- * Dashboard - Out for Approval Section
- */
-function ncn_claims_manager_dashboard_out_for_approval_section() {
-global $user;    
-    $claims = db_select('claims', 'c')
-            ->fields('c')
-            ->condition('c.user_id', $user->uid)
-            ->condition('c.deleted', 0)
-            ->condition('c.ars', 1)
-            ->condition('c.claim_status', 'receivables')
-            ->condition('c.ars_file_status', ARS_OUT_FOR_APPROVAL)
-            ->orderBy('c.last_modified', 'DESC')
-            ->extend('PagerDefault')
-            ->limit(5)
-            ->execute()
-            ->fetchAll();
 
-    ob_start();
-    @include get_realpath('ncn_claims_manager', 'ui/dashboard/ncn_member/claims.php');
-    $content = ob_get_contents();
-    ob_end_clean();
-
-    return $content;
-}
 /**
  * Dashboard - ARS in Progress Section
  */

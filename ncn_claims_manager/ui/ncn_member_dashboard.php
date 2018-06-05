@@ -32,28 +32,24 @@
     <!--  -->
     <div class="dashboard-claim-section">
         <ul class="nav nav-pills">
-            <li class="active"><a data-toggle="pill" href="#d_claims">Claims</a></li>
-            <li><a data-toggle="pill" href="#d_invoices">Invoices</a></li>
-            <li><a data-toggle="pill" href="#d_more_info">More Info Needed</a></li>
-            <li><a data-toggle="pill" href="#d_invoices_completed">Invoices Completed</a></li>
+            <li class="active"><a data-toggle="pill" href="#d_claims_progress">Claims in Progress</a></li>
             <li><a data-toggle="pill" href="#d_out_approval">Out for Approval</a></li>
+            <li><a data-toggle="pill" href="#d_more_info">More Info Needed</a></li>
+            <li><a data-toggle="pill" href="#d_approved_declined">Approved / Declined</a></li>
         </ul>
 
         <div class="tab-content panel-box">
-            <div id="d_claims" class="tab-pane fade in active panel-box-content">
-                <?php print ncn_claims_manager_dashboard_claims_section(); ?>
+            <div id="d_claims_progress" class="tab-pane fade in active panel-box-content">
+                <?php print ncn_claims_manager_dashboard_claims_in_progress_section(); ?>
             </div>
-            <div id="d_invoices" class="tab-pane fade panel-box-content">
-              <?php print ncn_claims_manager_dashboard_invoices_section(); ?>
+            <div id="d_out_approval" class="tab-pane fade panel-box-content">
+              <?php print ncn_claims_manager_dashboard_out_for_approval_section(); ?>
             </div>
             <div id="d_more_info" class="tab-pane fade panel-box-content">
               <?php print ncn_claims_manager_dashboard_more_info_needed_section(); ?>
             </div>
-            <div id="d_invoices_completed" class="tab-pane fade panel-box-content">
-              <?php print ncn_claims_manager_dashboard_invoices_completed_section(); ?>
-            </div>
-            <div id="d_out_approval" class="tab-pane fade panel-box-content">
-              <?php print ncn_claims_manager_dashboard_out_for_approval_section(); ?>
+            <div id="d_approved_declined" class="tab-pane fade panel-box-content">
+              <?php print ncn_claims_manager_dashboard_approved_declined_section(); ?>
             </div>
         </div>
     </div>

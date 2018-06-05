@@ -31,18 +31,10 @@ function ncn_admin_view_claim($claim_id)
 //  $query2 = "SELECT * FROM claims_log WHERE claim_id=".$claim_id.";";
     $result2 = db_query('SELECT * FROM {claims_log} WHERE claim_id=:a',array(':a'=>$claim_id));
     $entries_in_log = $result2->rowCount();
-    
+
     // get claim status'
-    $query = "SHOW COLUMNS FROM `claims` LIKE 'claim_status'";
-    $result = db_query($query);
-    $row = $result->fetchAssoc();
-    
-    $statuses = str_replace("'", "", $row['Type']);
-    $statuses = str_replace("enum(", "", $statuses);
-    $statuses = str_replace(")", "", $statuses);
-    $statuses = explode(',', $statuses);
-    
-        
+
+    $statuses = ncn_get_claim_status();
 
     // ---- draw controls -----
 //  $query = "SELECT * FROM claims WHERE claim_id=".$claim_id.";";
@@ -229,7 +221,7 @@ function ncn_admin_view_claim($claim_id)
                                 <select name="claim_status" >
                                     <?php
                                     
-                                    foreach ($statuses as $status)
+                                    foreach ($statuses as $status=>$label)
                                     {
                                         if ($status == $row['claim_status'])
                                         {   $checked = " selected ";    }
@@ -237,7 +229,7 @@ function ncn_admin_view_claim($claim_id)
                                         {   $checked = '';  }
                                     
                                         ?>
-                                        <option value="<?= $status; ?>" <?= $checked; ?> ><?= ucwords($status); ?></option>
+                                        <option value="<?= $status; ?>" <?= $checked; ?> ><?= $label; ?></option>
                                         <?php
                                     }
                                     
@@ -1203,17 +1195,8 @@ function ncn_admin_list_claims()
     {   $url_part = "ncn_admin";    }
 
     // ---- draw the filter controls ----
-    // get claim status'
-    $query = "SHOW COLUMNS FROM `claims` LIKE 'claim_status'";
-    $result = db_query($query)->fetchAssoc();
-    $row = (array)$result;
-    
-    $statuses = str_replace("'", "", $row['Type']);
-    $statuses = str_replace("enum(", "", $statuses);
-    $statuses = str_replace(")", "", $statuses);
-    $statuses = str_replace("unpurchased,", "", $statuses);
-    $statuses = explode(',', $statuses);
-    array_unshift($statuses, "show all"); 
+    $statuses = ncn_get_claim_status();
+    $statuses = array_merge(array("show all"=>"Show All"), $statuses);
     
     // get active users
     // $query = "SELECT DISTINCT user_id FROM claims WHERE claim_status != 'unpurchased' AND deleted=0;";
@@ -1274,14 +1257,14 @@ function ncn_admin_list_claims()
                 <td>
                     <select name="status" id="filter_status_id">
                     <?php
-                        foreach ($statuses as $status)
+                        foreach ($statuses as $status=>$label)
                         {
                             if ($status == $filter)
                             {   $checked = " selected ";    }
                             else
                             {   $checked = '';  }
                             ?>
-                            <option value="<?= $status; ?>" <?= $checked; ?>><?= ucwords($status); ?></option>
+                            <option value="<?= $status; ?>" <?= $checked; ?>><?= $label; ?></option>
                             <?php
                         }
                     ?>
@@ -1508,7 +1491,7 @@ function ncn_admin_list_claims()
                     <td><?= $_user->profile_firstname.' '.$_user->profile_lastname ?> (<?= $_user->name; ?>)</td>
                     <td><?= date("m/d/Y", $row['created']); ?></td>
                     <td><?= date("m/d/Y", $row['last_modified']); ?></td>
-                    <td><?= ucwords($row['claim_status']); ?></td>
+                    <td><?= ncn_get_claim_status_label($row['claim_status']); ?></td>
                     <td><?php 
                         $timer_trigger = render_claim_timer($claim_id, 1);
                         $workflow = render_claim_workflow($claim_id);

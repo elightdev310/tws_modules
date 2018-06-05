@@ -5,15 +5,7 @@
         <div class="pull-left">
             <?php print theme_select(array(
                 'element' => array(
-                    '#options' => array(
-                            'all'           => 'All Claims', 
-                            'incomplete'    => 'Active Claims', 
-                            'out for review'=> 'Out for Review', 
-                            'returned'      => 'Returned', 
-                            'approved'      => 'Approved', 
-                            'receivables'   => 'Receivables', 
-                            'archived'      => 'Archived'
-                        ), 
+                    '#options' => array_merge(array('all' => 'All Claims'), ncn_get_claim_status()),
                     '#value' => $filter, 
                     '#attributes' => array('class'=>array('claim-list-filter')), 
                 ))); ?>

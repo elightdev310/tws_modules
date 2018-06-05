@@ -939,7 +939,7 @@ function ncn_admin_view_claim_action($claim_id)
         
         
         $updated_user = $GLOBALS['user']->name;
-        $log_message = "Status updated by " . ncn_amin_get_user_role_and_name() . " to '".$_POST['claim_status']."' ";
+        $log_message = "Status updated by " . ncn_amin_get_user_role_and_name() . " to '".ncn_get_claim_status_label($_POST['claim_status'])."' ";
         
         if (trim($_POST['claim_status_message']) != '') // only add status message to log if it's not blank
         {

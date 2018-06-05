@@ -14,7 +14,7 @@ function ncn_claims_manager_get_account_header_menu()
 
 function ncn_claim_manager_claim_status_style($claim_status)
 {
-    $str_status = ucwords($claim_status);
+    $str_status = ncn_get_claim_status_label($claim_status);
     return "<span class=\"claim_status $claim_status\">$str_status</span>";
 }
 
