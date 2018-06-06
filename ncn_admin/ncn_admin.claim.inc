@@ -455,6 +455,11 @@ function ncn_admin_view_claim($claim_id)
         $row['val'] = unserialize($row['val']);
         $res = "";
 
+        // Remove Date of Loss
+        if ($row['key'] == 'date_of_loss') {
+            continue;
+        }
+
         if (empty($row['val'])||!is_array($row['val'])) {
             
         } else {

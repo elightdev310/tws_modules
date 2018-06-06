@@ -144,17 +144,18 @@ function create_claim_page1_submit($P_DATA = array())
 		drupal_set_message("Please select Lead user", 'error');
 		return FALSE;
 	}*/
-	if ($P_DATA['date_of_loss'] == '') {
-		drupal_set_message("Please input Date of Loss", 'error');
-		return FALSE;
-	} else {
-		$date_of_loss = strtotime($P_DATA['date_of_loss']);
-		$P_DATA['date_of_loss'] = array(
-			date('F', $date_of_loss),
-			date('j', $date_of_loss),
-			date('Y', $date_of_loss),
-		);
-	}
+
+	// if ($P_DATA['date_of_loss'] == '') {
+	// 	drupal_set_message("Please input Date of Loss", 'error');
+	// 	return FALSE;
+	// } else {
+	// 	$date_of_loss = strtotime($P_DATA['date_of_loss']);
+	// 	$P_DATA['date_of_loss'] = array(
+	// 		date('F', $date_of_loss),
+	// 		date('j', $date_of_loss),
+	// 		date('Y', $date_of_loss),
+	// 	);
+	// }
 
 	$P_DATA['customer_name'] = ncn_admin_remove_special_char_from_customer_name($P_DATA['customer_name']);
 

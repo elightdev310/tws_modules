@@ -5,12 +5,12 @@
     <input type="hidden" name="page" value="1">
 
     <?php fm_draw_leaduser("Internal Use Only", "lead_user", false); ?>
-    <div class="form-group">
+    <!--<div class="form-group">
         <div for="fm_date_of_loss" class="col-sm-3 control-label">Date of Loss:<font color=red>*</font> </div>
         <div class="col-sm-6 date-control">
-            <input type="text" name="date_of_loss" id="fm_date_of_loss" class="form-control" value="<?= isset($_POST['date_of_loss'])?$_POST['date_of_loss']:''; ?>" >
+            <input type="text" name="date_of_loss" id="fm_date_of_loss" class="form-control" value="<?/*= isset($_POST['date_of_loss'])?$_POST['date_of_loss']:''; */?>" >
         </div>
-    </div>
+    </div>-->
     <div class="form-group">
         <div for="fm_customer_name" class="col-sm-3 control-label">Insured's Name:<font color=red>*</font> </div>
         <div class="col-sm-6">

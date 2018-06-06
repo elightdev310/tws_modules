@@ -127,6 +127,25 @@ function ncn_edit_claim_aci_ci_panel($claim_id) {
 }
 
 /**
+ * ACI - Project Specific Costs Panel
+ */
+function ncn_edit_claim_aci_psc_panel($claim_id) {
+    $data = array();
+    if (isset($_POST['ci'])) {
+        $data = $_POST['ci'];
+    } else {
+        $data = ncn_admin_get_aci_claim_information($claim_id);
+    }
+
+    ob_start();
+    @include get_realpath('ncn_edit_claim', 'ui/aci/claim_aci_psc_panel.php');
+    $content = ob_get_contents();
+    ob_end_clean();
+
+    return $content;
+}
+
+/**
  * ACI - Daily Claim Log Panel
  */
 function ncn_edit_claim_aci_dcl_panel($claim_id) {

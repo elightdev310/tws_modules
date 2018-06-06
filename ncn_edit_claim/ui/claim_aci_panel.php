@@ -14,6 +14,7 @@
     <ul class="nav nav-pills panel-box-content">
         <li class="active"><a data-toggle="pill" href="#aci_poi">Property Owner Info</a></li>
         <li><a data-toggle="pill" href="#aci_ci">Claim Information</a></li>
+        <li><a data-toggle="pill" href="#aci_psc">Project Specific Costs</a></li>
         <li><a data-toggle="pill" href="#aci_dcl" class="aci-dcl-link">Daily Claim Log</a></li>
         <li><a data-toggle="pill" href="#aci_icp">Insurance Policy Information</a></li>
         <li><a data-toggle="pill" href="#aci_comments">Comments</a></li>
@@ -24,6 +25,9 @@
         </div>
         <div id="aci_ci" class="tab-pane fade">
             <?php print ncn_edit_claim_aci_ci_panel($claim_id); ?>
+        </div>
+        <div id="aci_psc" class="tab-pane fade">
+            <?php print ncn_edit_claim_aci_psc_panel($claim_id); ?>
         </div>
         <div id="aci_dcl" class="tab-pane fade">
             <?php print ncn_edit_claim_aci_dcl_panel($claim_id); ?>

@@ -302,7 +302,11 @@ function ncn_cd($claim_id, $key, $array_val=false)
     
     /* Hack for Mobile App Data */
     if($key=='date_of_loss'){
-        $res = date("F j Y", strtotime($res));
+        if (empty($res)) {
+            $res = '';
+        } else {
+            $res = date("F j Y", strtotime($res));
+        }
     }
     if($key=='insured_state'){
         preg_match('/\(([^\)]*)\)/', $res, $ins_match);

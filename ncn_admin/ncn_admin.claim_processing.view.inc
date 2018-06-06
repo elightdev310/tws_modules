@@ -52,7 +52,8 @@ function ncn_admin_view_aci_render_sections($claim_id) {
 function ncn_admin_get_view_aci_sections() {
   return array(
     'property_owner_info'   => array('title'=>'Property Owner Information', 'render_func'=>'ncn_admin_view_aci_render_property_owner_info' ), 
-    'claim_information'     => array('title'=>'Claim Information', 'render_func'=>'ncn_admin_view_aci_render_claim_information'), 
+    'claim_information'     => array('title'=>'Claim Information', 'render_func'=>'ncn_admin_view_aci_render_claim_information'),
+    'project_specific_costs'=> array('title'=>'Project Specific Costs', 'render_func'=>'ncn_admin_view_aci_render_project_specific_costs'),
     'daily_claim_log'       => array('title'=>'Daily Claim Log', 'render_func'=>'ncn_admin_view_aci_render_daily_claim_log'), 
     'insurance_claim_policy'=> array('title'=>'Insurance Policy Information', 'render_func'=>'ncn_admin_view_aci_render_insurance_claim_policy'), 
     'comments'               => array('title'=>'Comments', 'render_func'=>'ncn_admin_view_aci_render_comments'), 
@@ -237,162 +238,180 @@ function ncn_admin_view_aci_render_claim_information($claim_id, $section) {
     <td class="td-label"><label for="ci_deductible_collected">Deductible Collected:</label></td>
     <td><div class="field-item text-field-item small-size"><?php if ($data['deductible_collected']): ?><span id="ci_deductible_collected">$<?php echo $data['deductible_collected']; ?>"</span><?php endif; ?></div></td>
   </tr>
-  <tr>
-    <td class="td-label"><label for="ci_vehicle_fuel">Vehicle Fuel:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_vf_yes_45"><?php if($data['vehicle_fuel']=='Yes($45)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_vf_yes_45">Yes($45)</label></li>
-        <li class="inline-field-item"><span id="ci_vf_yes_other"><?php if($data['vehicle_fuel']=='Yes(Other @d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_vf_yes_other">Yes(Other <?php if ($data['vehicle_fuel_other']): ?><span class="field-item text-field-item small-size"><span id="ci_vehicle_fuel_other" >$<?php echo $data['vehicle_fuel_other']; ?></span><?php endif; ?></span>)</label></li>
-        <li class="inline-field-item"><span id="ci_vf_no"><?php if($data['vehicle_fuel']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_vf_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_haul_debris">Haul Debris:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_hd_yes_load"><?php if($data['haul_debris']=="Yes(@d Loads)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_hd_yes_load">Yes(# <span class="field-item text-field-item small-size"><span id="ci_haul_debris_yes_load" ><?php echo $data['haul_debris_yes_load']; ?> </span> Loads</span>)</label></li>
-        <li class="inline-field-item"><span id="ci_hd_yes_yd"><?php if($data['haul_debris']=="Yes(@d YD Dumpster)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_hd_yes_yd">Yes(# <span class="field-item text-field-item small-size"><span id="ci_haul_debris_yes_yd" ><?php echo $data['haul_debris_yes_yd']; ?> </span> YD Dumpster</span>)</label></li>
-        <li class="inline-field-item"><span id="ci_hd_no"><?php if($data['haul_debris']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_hd_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_equipment_fuel">Equipment Fuel:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_ef_yes" ><?php if($data['equipment_fuel']=="Yes(@d)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_ef_yes">Yes(
-            <span class="field-item text-field-item small-size">Type: <span id="ci_haul_debris_yes_type"><?php echo $data['equipment_fuel_yes_type']; ?></span></span>
-            <span class="field-item text-field-item small-size">Gallons: <span id="ci_haul_debris_yes_price"><?php echo $data['equipment_fuel_yes_price']; ?></span></span>
-            <span class="field-item text-field-item small-size">$Fee: <span id="ci_haul_debris_yes_fee"><?php echo $data['equipment_fuel_yes_fee']; ?></span></span>
-            )
-          </label></li>
-        <li class="inline-field-item"><span id="ci_ef_no" ><?php if($data['equipment_fuel']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ef_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_base_services_charges">Base Services Charges:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_bsc_yes"><?php if($data['base_services_charges']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_bsc_yes">Yes</label></li>
-        <li class="inline-field-item"><span ="ci_bsc_no"><?php if($data['base_services_charges']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_bsc_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_overhead_profit">Overhead & Profit:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_op_yes"><?php if($data['overhead_profit']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_yes">Yes</label></li>
-        <li class="inline-field-item"><span id="ci_op_yes_cumulative"><?php if($data['overhead_profit']=='Yes(Cumulative)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_yes_cumulative">Yes(Cumulative)</label></li>
-        <li class="inline-field-item"><span id="ci_op_no"><?php if($data['overhead_profit']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_project_management">Project Management Time:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_pm_yes"><?php if($data['project_management']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_pm_yes">Yes<?php if ($data['project_management_time']): ?>(<span class="field-item text-field-item small-size"><span id="ci_project_management_time"><?php echo $data['project_management_time']; ?></span> Hours</span>)<?php endif; ?></label>
-        </li>
-        <li class="inline-field-item"><span id="ci_pm_no"><?php if($data['project_management']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_pm_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_thermal_image">Thermal Image:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_ti_yes_150"><?php if($data['thermal_image']=='Yes($150)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ti_yes_150">Yes($150)</label></li>
-        <li class="inline-field-item"><span id="ci_ti_other"><?php if($data['thermal_image']=='Other(@d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_ti_other">Other<?php if ($data['thermal_image_other_price']): ?>(<span>$ </span><span class="field-item text-field-item small-size"><span id="ci_thermal_image_other_price"><?php echo $data['thermal_image_other_price']; ?></span></span>)<?php endif; ?></label></li>
-        <li class="inline-field-item"><span id="ci_ti_no"><?php if($data['thermal_image']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ti_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_ppe">PPE (coverall, tape, gloves, masks):</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_ppe_standard_65"><?php if($data['ppe']=='Standard $65') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ppe_standard_65">Standard $65</label></li>
-        <li class="inline-field-item"><span id="ci_ppe_other"><?php if($data['ppe']=='Other(@d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_ppe_other">Other<?php if ($data['ppe_other_price']): ?>(<span>$ </span><span class="field-item text-field-item small-size"><span id="ci_ppe_other_price"><?php echo $data['ppe_other_price']; ?></span></span>)<?php endif; ?></label></li>
-        <li class="inline-field-item"><span id="ci_ppe_no"><?php if($data['ppe']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ppe_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_respirators">Respirators:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_r_full"><?php if($data['respirators']=='Full') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_r_full">Full</label></li>
-        <li class="inline-field-item"><span id="ci_r_half"><?php if($data['respirators']=='Half') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_r_half">Half  
-            <span class="field-item text-field-item small-size"><span id="ci_respirators_half_ea"><?php echo $data['respirators_half_ea']; ?></span></span><span>EA x</span>
-            <span class="field-item text-field-item small-size"><span id="ci_respirators_half_days"><?php echo $data['respirators_half_days']; ?></span></span><span>Days</span>
-          </label>
-        </li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_respirator_cartridges">Respirator Cartridges:</label></td>
-    <td><div class="field-item text-field-item small-size"><?php if ($data['respirator_cartridges']): ?><span id="ci_respirator_cartridges"><?php echo $data['respirator_cartridges']; ?></span><span>EA</span><?php endif; ?></div></td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_air_testing">Air Testing:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_at_yes"><?php if($data['air_testing']=="Yes(@d)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_at_yes">Yes <?php if ($data['air_testing_yes_price']): ?>(<span class="field-item text-field-item small-size"><span>$ </span><span id="ci_air_testing_yes_price"><?php echo $data['air_testing_yes_price']; ?></span></span>)<?php endif; ?></label></li>
-        <li class="inline-field-item"><span id="ci_at_no"><?php if($data['air_testing']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_at_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td class="td-label"><label for="ci_hvac_duct_cleaning">HVAC/ Duct Cleaning:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_hadc_reg"><?php if($data['hvac_duct_cleaning']['type']=='Reg') { echo "&#9745;";} else { echo "&#9744"; }  ?></span><label for="ci_hadc_reg">Reg</label></li>
-        <li class="inline-field-item"><span id="ci_hadc_heavy"><?php if($data['hvac_duct_cleaning']['type']=='Heavy') { echo "&#9745;";} else { echo "&#9744"; }  ?></span><label for="ci_hadc_heavy">Heavy</label></li>
-        <li class="inline-field-item">
-          <ul class="field-check-lists inline-group-fields clearfix">
-            <li class="inline-field-item"><span id="ci_hadc_rh_type_per_register"><?php if($data['hvac_duct_cleaning']['rh_type']=="Per Register") { echo "&#9745;";} else { echo "&#9744"; }  ?></span>
-              <label for="ci_hadc_rh_type_per_register">Per Register<?php if ($data['hvac_duct_cleaning']['rh_per_register']): ?>(# <span class="field-item text-field-item small-size"><span type="text" id="ci_hadc_rh_per_register"><?php echo $data['hvac_duct_cleaning']['rh_per_register']; ?></span></span>)<?php endif; ?></label>
-            </li>
-            <li class="inline-field-item"><span id="ci_hadc_rh_type_bid_price"><?php if($data['hvac_duct_cleaning']['rh_type']=="Bid Price") { echo "checked='checked'";} ?></span>
-              <label for="ci_hadc_rh_type_bid_price">Bid Price<?php if ($data['hvac_duct_cleaning']['rh_bid_price']): ?>($ <span class="field-item text-field-item small-size"><span type="text" id="ci_hadc_rh_per_register"><?php echo $data['hvac_duct_cleaning']['rh_bid_price']; ?></span></span>)<?php endif; ?></label>
-            </li>
-          </ul>
-        </li>
-        <li class="inline-field-item"><span id="ci_hadc_no"><?php if($data['hvac_duct_cleaning']['type']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_hadc_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
-  <!-- One row more -->
-  <tr>
-    <td class="td-label"><label for="ci_clean_air_handler">Clean Air Handler:</label></td>
-    <td>
-      <ul class="field-check-lists inline-group-fields clearfix">
-        <li class="inline-field-item"><span id="ci_cah_yes_150"><?php if($data['clean_air_handler']=='Yes($150)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_cah_yes_150">Yes($150)</label></li>
-        <li class="inline-field-item"><span id="ci_cah_yes_other"><?php if($data['clean_air_handler']=='Yes(Other @d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
-          <label for="ci_cah_yes_other">Yes(Other <?php if ($data['clean_air_handler_other']): ?>$<span class="field-item text-field-item small-size"><span id="clean_air_handler_other"><?php echo $data['clean_air_handler_other']; ?></span></span><?php endif; ?>)</label></li>
-        <li class="inline-field-item"><span id="ci_cah_no"><?php if($data['clean_air_handler']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_cah_no">No</label></li>
-      </ul>
-    </td>
-  </tr>
 </table>
 <?php
   $output = ob_get_contents();
   ob_end_clean();
   
   return $output;
+}
+
+/**
+ * ACI Render - "Project Specific Costs" Section (dividing Claim Information section)
+ */
+function ncn_admin_view_aci_render_project_specific_costs($claim_id, $section) {
+    $data = array();
+    $data = ncn_admin_get_aci_claim_information($claim_id);
+
+    ob_start();
+    ?>
+    <table id="aci_ci_content" border="1">
+        <tr>
+            <td class="td-label"><label for="ci_vehicle_fuel">Vehicle Fuel:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_vf_yes_45"><?php if($data['vehicle_fuel']=='Yes($45)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_vf_yes_45">Yes($45)</label></li>
+                    <li class="inline-field-item"><span id="ci_vf_yes_other"><?php if($data['vehicle_fuel']=='Yes(Other @d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_vf_yes_other">Yes(Other <?php if ($data['vehicle_fuel_other']): ?><span class="field-item text-field-item small-size"><span id="ci_vehicle_fuel_other" >$<?php echo $data['vehicle_fuel_other']; ?></span><?php endif; ?></span>)</label></li>
+                    <li class="inline-field-item"><span id="ci_vf_no"><?php if($data['vehicle_fuel']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_vf_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_haul_debris">Haul Debris:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_hd_yes_load"><?php if($data['haul_debris']=="Yes(@d Loads)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_hd_yes_load">Yes(# <span class="field-item text-field-item small-size"><span id="ci_haul_debris_yes_load" ><?php echo $data['haul_debris_yes_load']; ?> </span> Loads</span>)</label></li>
+                    <li class="inline-field-item"><span id="ci_hd_yes_yd"><?php if($data['haul_debris']=="Yes(@d YD Dumpster)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_hd_yes_yd">Yes(# <span class="field-item text-field-item small-size"><span id="ci_haul_debris_yes_yd" ><?php echo $data['haul_debris_yes_yd']; ?> </span> YD Dumpster</span>)</label></li>
+                    <li class="inline-field-item"><span id="ci_hd_no"><?php if($data['haul_debris']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_hd_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_equipment_fuel">Equipment Fuel:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_ef_yes" ><?php if($data['equipment_fuel']=="Yes(@d)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_ef_yes">Yes(
+                            <span class="field-item text-field-item small-size">Type: <span id="ci_haul_debris_yes_type"><?php echo $data['equipment_fuel_yes_type']; ?></span></span>
+                            <span class="field-item text-field-item small-size">Gallons: <span id="ci_haul_debris_yes_price"><?php echo $data['equipment_fuel_yes_price']; ?></span></span>
+                            <span class="field-item text-field-item small-size">$Fee: <span id="ci_haul_debris_yes_fee"><?php echo $data['equipment_fuel_yes_fee']; ?></span></span>
+                            )
+                        </label></li>
+                    <li class="inline-field-item"><span id="ci_ef_no" ><?php if($data['equipment_fuel']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ef_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_base_services_charges">Base Services Charges:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_bsc_yes"><?php if($data['base_services_charges']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_bsc_yes">Yes</label></li>
+                    <li class="inline-field-item"><span ="ci_bsc_no"><?php if($data['base_services_charges']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_bsc_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_overhead_profit">Overhead & Profit:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_op_yes"><?php if($data['overhead_profit']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_yes">Yes</label></li>
+                    <li class="inline-field-item"><span id="ci_op_yes_cumulative"><?php if($data['overhead_profit']=='Yes(Cumulative)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_yes_cumulative">Yes(Cumulative)</label></li>
+                    <li class="inline-field-item"><span id="ci_op_no"><?php if($data['overhead_profit']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_op_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_project_management">Project Management Time:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_pm_yes"><?php if($data['project_management']=='Yes') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_pm_yes">Yes<?php if ($data['project_management_time']): ?>(<span class="field-item text-field-item small-size"><span id="ci_project_management_time"><?php echo $data['project_management_time']; ?></span> Hours</span>)<?php endif; ?></label>
+                    </li>
+                    <li class="inline-field-item"><span id="ci_pm_no"><?php if($data['project_management']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_pm_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_thermal_image">Thermal Image:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_ti_yes_150"><?php if($data['thermal_image']=='Yes($150)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ti_yes_150">Yes($150)</label></li>
+                    <li class="inline-field-item"><span id="ci_ti_other"><?php if($data['thermal_image']=='Other(@d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_ti_other">Other<?php if ($data['thermal_image_other_price']): ?>(<span>$ </span><span class="field-item text-field-item small-size"><span id="ci_thermal_image_other_price"><?php echo $data['thermal_image_other_price']; ?></span></span>)<?php endif; ?></label></li>
+                    <li class="inline-field-item"><span id="ci_ti_no"><?php if($data['thermal_image']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ti_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_ppe">PPE (coverall, tape, gloves, masks):</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_ppe_standard_65"><?php if($data['ppe']=='Standard $65') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ppe_standard_65">Standard $65</label></li>
+                    <li class="inline-field-item"><span id="ci_ppe_other"><?php if($data['ppe']=='Other(@d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_ppe_other">Other<?php if ($data['ppe_other_price']): ?>(<span>$ </span><span class="field-item text-field-item small-size"><span id="ci_ppe_other_price"><?php echo $data['ppe_other_price']; ?></span></span>)<?php endif; ?></label></li>
+                    <li class="inline-field-item"><span id="ci_ppe_no"><?php if($data['ppe']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_ppe_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_respirators">Respirators:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_r_full"><?php if($data['respirators']=='Full') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_r_full">Full</label></li>
+                    <li class="inline-field-item"><span id="ci_r_half"><?php if($data['respirators']=='Half') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_r_half">Half
+                            <span class="field-item text-field-item small-size"><span id="ci_respirators_half_ea"><?php echo $data['respirators_half_ea']; ?></span></span><span>EA x</span>
+                            <span class="field-item text-field-item small-size"><span id="ci_respirators_half_days"><?php echo $data['respirators_half_days']; ?></span></span><span>Days</span>
+                        </label>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_respirator_cartridges">Respirator Cartridges:</label></td>
+            <td><div class="field-item text-field-item small-size"><?php if ($data['respirator_cartridges']): ?><span id="ci_respirator_cartridges"><?php echo $data['respirator_cartridges']; ?></span><span>EA</span><?php endif; ?></div></td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_air_testing">Air Testing:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_at_yes"><?php if($data['air_testing']=="Yes(@d)") { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_at_yes">Yes <?php if ($data['air_testing_yes_price']): ?>(<span class="field-item text-field-item small-size"><span>$ </span><span id="ci_air_testing_yes_price"><?php echo $data['air_testing_yes_price']; ?></span></span>)<?php endif; ?></label></li>
+                    <li class="inline-field-item"><span id="ci_at_no"><?php if($data['air_testing']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_at_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-label"><label for="ci_hvac_duct_cleaning">HVAC/ Duct Cleaning:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_hadc_reg"><?php if($data['hvac_duct_cleaning']['type']=='Reg') { echo "&#9745;";} else { echo "&#9744"; }  ?></span><label for="ci_hadc_reg">Reg</label></li>
+                    <li class="inline-field-item"><span id="ci_hadc_heavy"><?php if($data['hvac_duct_cleaning']['type']=='Heavy') { echo "&#9745;";} else { echo "&#9744"; }  ?></span><label for="ci_hadc_heavy">Heavy</label></li>
+                    <li class="inline-field-item">
+                        <ul class="field-check-lists inline-group-fields clearfix">
+                            <li class="inline-field-item"><span id="ci_hadc_rh_type_per_register"><?php if($data['hvac_duct_cleaning']['rh_type']=="Per Register") { echo "&#9745;";} else { echo "&#9744"; }  ?></span>
+                                <label for="ci_hadc_rh_type_per_register">Per Register<?php if ($data['hvac_duct_cleaning']['rh_per_register']): ?>(# <span class="field-item text-field-item small-size"><span type="text" id="ci_hadc_rh_per_register"><?php echo $data['hvac_duct_cleaning']['rh_per_register']; ?></span></span>)<?php endif; ?></label>
+                            </li>
+                            <li class="inline-field-item"><span id="ci_hadc_rh_type_bid_price"><?php if($data['hvac_duct_cleaning']['rh_type']=="Bid Price") { echo "checked='checked'";} ?></span>
+                                <label for="ci_hadc_rh_type_bid_price">Bid Price<?php if ($data['hvac_duct_cleaning']['rh_bid_price']): ?>($ <span class="field-item text-field-item small-size"><span type="text" id="ci_hadc_rh_per_register"><?php echo $data['hvac_duct_cleaning']['rh_bid_price']; ?></span></span>)<?php endif; ?></label>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="inline-field-item"><span id="ci_hadc_no"><?php if($data['hvac_duct_cleaning']['type']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_hadc_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+        <!-- One row more -->
+        <tr>
+            <td class="td-label"><label for="ci_clean_air_handler">Clean Air Handler:</label></td>
+            <td>
+                <ul class="field-check-lists inline-group-fields clearfix">
+                    <li class="inline-field-item"><span id="ci_cah_yes_150"><?php if($data['clean_air_handler']=='Yes($150)') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_cah_yes_150">Yes($150)</label></li>
+                    <li class="inline-field-item"><span id="ci_cah_yes_other"><?php if($data['clean_air_handler']=='Yes(Other @d)') { echo "&#9745;";} else { echo "&#9744"; } ?></span>
+                        <label for="ci_cah_yes_other">Yes(Other <?php if ($data['clean_air_handler_other']): ?>$<span class="field-item text-field-item small-size"><span id="clean_air_handler_other"><?php echo $data['clean_air_handler_other']; ?></span></span><?php endif; ?>)</label></li>
+                    <li class="inline-field-item"><span id="ci_cah_no"><?php if($data['clean_air_handler']=='No') { echo "&#9745;";} else { echo "&#9744"; } ?></span><label for="ci_cah_no">No</label></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    <?php
+    $output = ob_get_contents();
+    ob_end_clean();
+
+    return $output;
 }
 
 /**
