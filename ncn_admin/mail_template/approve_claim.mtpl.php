@@ -14,7 +14,7 @@
 					<div style="float: left;"><img src="<?php echo $img_basepath."check.jpg";?>" alt="check"/></div>
 					<div style="float: left;">
 						<div style="font-weight: bold; color: #7eb235">Your invoice is complete.</div>
-						<div>Your NCN team has completed your invoice.</div>
+						<div>Your TWC team has completed your invoice.</div>
 					</div>
 				</div>
 				<div style="margin:15px 0px;" >

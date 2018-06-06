@@ -17,16 +17,14 @@
             <table class="table">
             <thead>
                 <tr>
-                    <th class="td-id">ID</th>
                     <th class="td-created-at">Created Date</th>
-                    <th class="td-claim-status">Status</th>
                     <th class="td-insured-name">Insured Name</th>
                     <th class="td-property-loss-address">Property Loss Address</th>
                     <th class="td-claim-processing">Claim Processing</th>
                     <th class="td-rooms">Rooms</th>
                     <th class="td-photo-album">Photo Album</th>
+                    <th class="td-claim-status">Status</th>
                     <th class="td-create-my-invoice">Buy My Claim</th>
-                    <th class="td-final-approval">Approval</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,16 +69,10 @@
                     }
                 ?>
                     <tr>
-                        <td class="td-id">
-                            <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class=""><?php echo $row['claim_id'] ?></a>
-                        </td>
                         <td class="td-created-at">
                             <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="">
                                 <?php echo strTime($row['created']) ?>
                             </a>
-                        </td>
-                        <td class="td-claim-status">
-                            <?php echo ncn_claim_manager_claim_status_style($row['claim_status']) ?>
                         </td>
                         <td class="td-insured-name">
                             <a href="<?php print url("account/edit_claim/".$row['claim_id']) ?>" class="">
@@ -107,23 +99,12 @@
                                 </a>
                             <?php endif; ?>
                         </td>
+                        <td class="td-claim-status">
+                            <?php echo ncn_claim_manager_claim_status_style($row['claim_status']) ?>
+                        </td>
                         <td class="td-create-my-invoice">
                             <?php if ($send_to_admin == true && !is_leaduser($user)): ?>
                             <a class="create-invoice-btn enabled colorbox-node btn btn-primary" href="<?php echo $base_url; ?>/account/confirm_submit_claim/<?php echo $row['claim_id']; ?>?width=700&height=540">Buy My Claim</a>
-                            <?php endif; ?>
-                        </td>
-                        <td class="td-final-approval">
-                            <?php if ($approve_deny == true && $row['claim_status'] != 'returned'): ?>
-                                <?php if ($live_claim_count > 0): ?>
-                                    <?php if ($claim_locked == true): ?>
-                                        <?php echo "<a href='#' class='purchase-btn btn btn-primary' onclick=\"window.location = '".$base_url."/account/purchase_invoice/".$row['claim_id']."';\">Purchase</a>"; ?>
-                                    <?php else: ?>
-                                        <?php echo "<a href='#' class='approve-btn btn btn-primary' onclick=\"window.location = '".$base_url."/account/approve_invoice/".$row['claim_id']."';\">Approve</a>"; ?>
-                                    <?php endif; ?>
-                                    <?php $_change_order_request_url = $base_url . "/account/tws_change_order_request/" . $row['claim_id']; ?>
-                                    <a href="<?php echo $_change_order_request_url; ?>" class="reject-btn btn btn-primary">Change Order</a>
-                                    <!-- <a href="#" class="reject-btn" onclick="if (confirm('Please confirm you wish to change this invoice and notify the administrator.')) { window.location = '/account/reject_invoice/<?= $claim_id; ?>'; }">Reject</a> -->
-                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                     </tr>

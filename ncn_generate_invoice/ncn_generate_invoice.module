@@ -61,9 +61,10 @@ function doctopdf_and_serve()
         $doc_desc = base64_decode(arg(3));
         $logo = ncn_admin_get_member_logo_info($user->profile_memberid);
         
-        // build the filenames      
-        $tmp_doc_name = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true).".doc";
-        $tmp_pdf_name = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true).".pdf";
+        // build the filenames
+        $tmp_filename = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true);
+        $tmp_doc_name = $tmp_filename.".doc";
+        $tmp_pdf_name = $tmp_filename.".pdf";
 
         // variables
         $membername = $user->profile_firstname." ".$user->profile_lastname;
@@ -125,7 +126,13 @@ function doctopdf_and_serve()
         
         //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/jod/lib/jodconverter-core-3.0-beta-4.jar $in_file $out_file";
         //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].base_path()."jod/lib/jodconverter-core-3.0-beta-4.jar $tmp_doc_name $tmp_pdf_name";
-        $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
+
+        //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
+
+        // soffice --headless --convert-to pdf file.doc
+        $drupal_root = DRUPAL_ROOT;
+        $command = "soffice --headless --convert-to pdf $drupal_root/$tmp_doc_name";
+
         watchdog('java-cmd', $command);
         $output = shell_exec($command);
 

@@ -5,20 +5,16 @@ $GLOBALS['ncn_debug'] = true;
 // LIVE
 if (!isset($GLOBALS['ncn_debug']) || $GLOBALS['ncn_debug'] == false)
 {
-    $GLOBALS['g_loginname'] = "9WB3k7y8Ej3"; 
-    $GLOBALS['g_transactionkey'] = "38gT3tr2dMx7bV85";  
+    $GLOBALS['g_loginname'] = "9WB3k7y8Ej3";
+    $GLOBALS['g_transactionkey'] = "38gT3tr2dMx7bV85";
     $GLOBALS['g_apihost'] = "api.authorize.net";
     $GLOBALS['g_apipath'] = "/xml/v1/request.api";
 }
 // TEST
 else
 {
-    $GLOBALS['g_loginname'] = "2gf4J2A5";
-    $GLOBALS['g_transactionkey'] = "2x2N5H2u5Q8a6h2p";
-    
-    // elight310 sandbox account
-    // $GLOBALS['g_loginname'] = "7X8NvWb2Z";
-    // $GLOBALS['g_transactionkey'] = "6v9j7F9ERWH77aAY";
+    $GLOBALS['g_loginname'] = "97KYxe4pV";
+    $GLOBALS['g_transactionkey'] = "4k62C9z6n7STxL7s";
     
     $GLOBALS['g_apihost'] = "apitest.authorize.net";
     $GLOBALS['g_apipath'] = "/xml/v1/request.api";

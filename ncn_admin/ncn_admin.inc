@@ -4286,7 +4286,7 @@ function ncn_admin_render_user_claim_section($uid)
     $total_count = intval($query_total);
     $result = db_query($query);
     $row_count = $result->rowCount();
-    echo "<div style='float:left;'><a href='$base_url/tws/tws_claim_report' target='_blank'>NCN Claim Report</a></div>";
+    echo "<div style='float:left;'><a href='$base_url/tws/tws_claim_report' target='_blank'>TWC Claim Report</a></div>";
     echo '<div style="text-align: right">Number of Claims:&nbsp;&nbsp;' . $total_count . '</div>';
     $column_count = ($user->uid == 1) ? 12 : 11;
     $table_head = '

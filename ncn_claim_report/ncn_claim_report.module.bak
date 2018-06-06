@@ -27,7 +27,7 @@ function ncn_claim_report_menu()
 	$items = array();
 	
 	$items['ncn/ncn_claim_report'] = array(
-		'title' => t('NCN Claim Report'),
+		'title' => t('TWC Claim Report'),
 		'page callback' => 'ncn_claim_report_render_page',
 		'access arguments' => array('ncn claim report'),
 		'options' => array('attributes'=>array('target'=>'_blank')),
