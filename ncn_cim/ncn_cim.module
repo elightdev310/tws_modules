@@ -572,6 +572,10 @@ function ncn_get_distributor_cim($username) {
 }
 
 function twc_authorize_test_action() {
+    $command = "java -jar /home/truewaterclaims/public_html/AspriseJavaPDF-free.jar /home/truewaterclaims/public_html/sites/default/files/invoices/1/1528386478_first.pdf /home/truewaterclaims/public_html/sites/default/files/tmp/ 1528386478_first.pdf-";
+    $output = shell_exec($command);
+    echo $output;
+    exit;
     return;
 
     $cim_vars = array(

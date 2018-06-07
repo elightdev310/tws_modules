@@ -192,14 +192,14 @@ function _get_blank_room_image_url($type, $index){
  * @return bool
  */
 function convert_pdf_to_jpg($file, $dir_url) {
-    
-    $old_file_path = $file->uri;
-    
-    $base_abs_path = $_SERVER['DOCUMENT_ROOT'];
+
     $pdf_full_path = drupal_realpath($file->uri);
     $jpg_prefix = $file->filename."-";
-    
-    drupal_set_message($file->uri);
+
+    if (!is_file($pdf_full_path)) {
+        drupal_set_message("File doesn't exist: ".$file->uri);
+        return FALSE;
+    }
     //$command = "java -jar c:/AspriseJavaPDF-free.jar $pdf_full_path $folder_full_path $jpg_prefix";
     // $command = "java -jar ../AspriseJavaPDF-free.jar $pdf_full_path $folder_full_path $jpg_prefix";
     $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/AspriseJavaPDF-free.jar $pdf_full_path $dir_url $jpg_prefix";
@@ -208,9 +208,8 @@ function convert_pdf_to_jpg($file, $dir_url) {
     watchdog('java-cmd', $command);
     $output = shell_exec($command);
 
-    //echo $output;
-    //exit;
-    file_delete($file);
+    $pdf_file = clone $file;
+
     $error = false;
     $file->uri .=".jpg";
     $file->filename .=".jpg";
@@ -218,32 +217,35 @@ function convert_pdf_to_jpg($file, $dir_url) {
     $file->filepath = str_replace("public://", "sites/default/files/", $file->uri);
 
     if (!is_file("$dir_url/$jpg_prefix"."1.jpg")){
-    
-    if (is_file("$dir_url/$jpg_prefix".".jpg")){
-        $res = copy("$dir_url/$jpg_prefix".".jpg" , drupal_realpath($file->uri));
-        if (!$res) { $error=true; }
+
+        if (is_file("$dir_url/$jpg_prefix".".jpg")){
+            $res = copy("$dir_url/$jpg_prefix".".jpg" , drupal_realpath($file->uri));
+            if (!$res) { $error=true; }
         } else {
-            return FALSE;       
+            return FALSE;
         }
     } else {
         $res = copy("$dir_url/$jpg_prefix"."1.jpg" , drupal_realpath($file->uri));
         if (!$res) { $error=true; }
     }
-    
+
     if (is_file("$dir_url/$jpg_prefix".".jpg")){
         @unlink("$dir_url/$jpg_prefix".".jpg");
     }
-    
+
     for ($i=1; $i<300; $i++) {
         if (is_file("$dir_url/$jpg_prefix"."$i.jpg")){
             @unlink("$dir_url/$jpg_prefix"."$i.jpg");
         } else {
             break;
         }
-    }   
+    }
+
+    file_delete($pdf_file);
+
     if ($error) {
         return FALSE;
-    }   
+    }
     return $file;
 }
 

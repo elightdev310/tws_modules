@@ -3155,9 +3155,16 @@ function ncn_admin_make_cover_sheet($pdf_file_url, $data, $b_logo = false)
     watchdog('java-cmd', $command);
     $output = shell_exec($command);
 
+    unlink("$drupal_root/$tmp_doc_name");
+    if (!is_file("$drupal_root/$tmp_pdf_name")) {
+        drupal_set_message("File doesn't exist (soffice): ". $tmp_pdf_name, "error");
+        return FALSE;
+    }
     if (rename("$drupal_root/$tmp_pdf_name", "$drupal_root/$pdf_file_url")) {
+        unlink("$drupal_root/$tmp_pdf_name");
         return TRUE;
     }
+
     return FALSE;
 }
 
