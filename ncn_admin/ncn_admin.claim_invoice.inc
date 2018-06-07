@@ -190,7 +190,7 @@ function ncn_admin_invoiceform_1_submit($form, &$form_state)
         // Final Invoice
         if ($live == 1) {
             // Auto Post in Claim Feed
-            $msg = "NCN uploaded new invoice file ($res->filename).";
+            $msg = "TWC uploaded new invoice file ($res->filename).";
             ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $msg, $res->fid);
         }
     }
@@ -785,7 +785,7 @@ function _add_pdf_invoice($file, $claim_id) {
     
     ncn_admin_insert_claim_log($claim_id, date('U'), $log_message);
     // Auto Post - Create Invoice
-    $msg = "NCN created new invoice file ($db_file->filename).";
+    $msg = "TWC created new invoice file ($db_file->filename).";
     ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $msg, $db_file->fid);
 }
 

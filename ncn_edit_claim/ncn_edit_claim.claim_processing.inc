@@ -17,6 +17,11 @@ function ncn_edit_claim_processing_page($claim_id) {
             $send_to_admin = true;
             break;
         case 'out for review':
+            $editable = false;
+            $send_to_archive = false;
+            $send_to_admin = false;
+            $approve_deny = true;
+            break;
         case 'returned':
         case 'approved':
             $editable = true;
@@ -217,4 +222,29 @@ function ncn_edit_claim_add_room($claim_id) {
     }
 
     echo json_encode($json_result);
+}
+
+/**
+ *
+ * @param $claim_id
+ *
+ * @return bool
+ *      Claim Editable
+ */
+function twc_member_is_claim_editable($claim_id) {
+    global $user;
+
+    $claim = get_claim_data($claim_id);
+    if ($claim) {
+        if (is_member_user($user) || is_subuser($user)) {
+            $editable = true;
+            if ($claim['claim_status'] == 'out for review' || $claim['claim_status'] == 'archived') {
+                $editable = false;
+            }
+            return $editable;
+        } else {
+            return true;
+        }
+    }
+    return false;
 }

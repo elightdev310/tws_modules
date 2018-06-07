@@ -39,6 +39,11 @@
                     $send_to_admin = true;
                     break;
                 case 'out for review':
+                    $editable = false;
+                    $send_to_archive = false;
+                    $send_to_admin = false;
+                    $approve_deny = true;
+                    break;
                 case 'returned':
                 case 'approved':
                     $editable = true;

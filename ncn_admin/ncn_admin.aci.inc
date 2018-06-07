@@ -666,8 +666,9 @@ function ncn_admin_aci_render_dcl_log_list($claim_id) {
         <td class='dcl-total-hours'><?php $t_hours = $item['men'] * $item['hours_day']; if ($t_hours) { echo $t_hours." Hours"; } ?></td>
         <td class='dcl-after-hours'><?php echo $item['after_hours']; ?></td>
         <td class='dcl-operation'>
-            <a href="" onclick="render_aci_dcl_log_action_panel(<?php echo $claim_id.", "."'edit', $key"; ?>); return false;">Edit</a>
-            <a href="" onclick="on_click_aci_dcl_delete_log(<?php echo $claim_id.", $key"; ?>); return false;">Delete</a>
+            <?php if (twc_member_is_claim_editable($claim_id)): ?>
+            <a href="" onclick="render_aci_dcl_log_action_panel(<?php echo $claim_id.", "."'edit', $key"; ?>); return false;">Edit</a>|<a href="" onclick="on_click_aci_dcl_delete_log(<?php echo $claim_id.", $key"; ?>); return false;">Delete</a>
+            <?php endif; ?>
         </td>
     </tr>
 <?php endforeach; ?>

@@ -15,5 +15,7 @@
         *ONLY record hours for travel to and from jobsite, equipment setup, inspection, monitoring, taking photos, moisture readings, and take down of equipment
     </p>
     </div>
+    <?php if (twc_member_is_claim_editable($claim_id)): ?>
     <?php print ncn_admin_aci_render_dcl_action_panel($claim_id, 'new'); ?>
+    <?php endif; ?>
 </div>

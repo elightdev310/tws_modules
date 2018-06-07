@@ -40,6 +40,8 @@
         </div>
     </div>
 
+    <?php if (twc_member_is_claim_editable($claim_id)): ?>
     <div class='aci-actions text-center p20'><input type='submit' class="btn btn-primary pl30 pr30" value='Save'/></div>
+    <?php endif; ?>
 </form>
 </div>
