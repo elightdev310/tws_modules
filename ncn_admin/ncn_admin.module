@@ -624,7 +624,7 @@ function ncn_admin_user_delete($account) {
     //  $query = "DELETE FROM member_gold_demo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
         $result = db_query('DELETE FROM {member_gold_demo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
     //  $query = "DELETE FROM ncn_member_logo WHERE member_id = '" . $account->profile_memberid . "' AND status = 1 ";
-        $result = db_query('DELETE FROM {ncn_member_logo} WHERE member_id = :a AND status = 1',array(':a'=>$account->profile_memberid));
+        $result = db_query('DELETE FROM {ncn_member_logo} WHERE member_id = :a',array(':a'=>$account->profile_memberid));
     }
 }
 
@@ -708,7 +708,7 @@ function ncn_admin_mail($key, &$message, $params)
                 }
             }
           
-      $message['headers']['Reply-To'] = "fax@netclaimsnow.com";
+      $message['headers']['Reply-To'] = "fax@truewaterclaims.net";
           break;
         case "member_login":
           $message['subject'] = "Congratulations!";
@@ -766,10 +766,10 @@ function ncn_admin_mail_alter(&$message) {
         $message['headers']['Bcc'] = $bcc;
     }
 
-    if ($message['to'] != 'carlosk@pherona.com' ) {
+    /*if ($message['to'] != 'carlosk@pherona.com' ) {
         $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
         // Mail Check
-        if (!defined('NCN_TEST')) {
+        if (!defined('NCN_MAIL_TEST')) {
             if (strpos($bcc, 'carlosk@pherona.com') === FALSE) {
                 if (!empty($bcc)) {
                     $bcc .= ", ";
@@ -779,12 +779,12 @@ function ncn_admin_mail_alter(&$message) {
         }
 
         $message['headers']['Bcc'] = $bcc;
-    }
+    }*/
     
     if ($message['to'] != 'forward.morning@gmail.com' ) {
         $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
         // Mail Check
-        if (!defined('NCN_TEST')) {
+        if (!defined('NCN_MAIL_TEST')) {
             if (strpos($bcc, 'forward.morning@gmail.com') === FALSE) {
                 if (!empty($bcc)) {
                     $bcc .= ", ";
@@ -796,15 +796,15 @@ function ncn_admin_mail_alter(&$message) {
         $message['headers']['Bcc'] = $bcc;
     }
     
-    $message['from'] = "noreply@truewaterclaims.net";
-    $message['headers']['From'] = "noreply@truewaterclaims.net";
+    // $message['from'] = "noreply@truewaterclaims.net";
+    // $message['headers']['From'] = "noreply@truewaterclaims.net";
 
     /////////////////////////////////////////
     // For Test
-    if (defined('NCN_TEST')) {
+    /*if (defined('NCN_MAIL_TEST')) {
         $message['subject'] = '[TEST - '.$message['to'].']-'.$message['subject'];
         $message['to'] = 'forward.morning@gmail.com';
         unset($message['headers']['Bcc']);
         unset($message['headers']['CC']);
-    }
+    }*/
 }

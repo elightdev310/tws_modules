@@ -23,7 +23,7 @@ function ncn_admin_invoiceform_3_submit($form, &$form_state)
     if ($res)
     {
         if ($live == 3 || $live == 4) {
-            $res_file = convert_pdf_to_jpg($res, $invoice_dir);
+            $res_file = convert_pdf_to_jpg($res, drupal_realpath($invoice_dir));
             if ($res_file === FALSE) {
                 drupal_set_message('Failed to convert uploaded PDF file to Image', 'error');
                 return;

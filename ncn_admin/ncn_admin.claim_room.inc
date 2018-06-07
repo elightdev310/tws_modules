@@ -183,20 +183,26 @@ function _get_blank_room_image_url($type, $index){
     
     return $image_url;
 }
-    
+
+/**
+ * @param $file
+ * @param $dir_url string
+ *  absolute path
+ *
+ * @return bool
+ */
 function convert_pdf_to_jpg($file, $dir_url) {
     
     $old_file_path = $file->uri;
     
     $base_abs_path = $_SERVER['DOCUMENT_ROOT'];
     $pdf_full_path = drupal_realpath($file->uri);
-    $folder_full_path = drupal_realpath($dir_url);
     $jpg_prefix = $file->filename."-";
     
-    
+    drupal_set_message($file->uri);
     //$command = "java -jar c:/AspriseJavaPDF-free.jar $pdf_full_path $folder_full_path $jpg_prefix";
     // $command = "java -jar ../AspriseJavaPDF-free.jar $pdf_full_path $folder_full_path $jpg_prefix";
-    $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/AspriseJavaPDF-free.jar $pdf_full_path $folder_full_path $jpg_prefix";
+    $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/AspriseJavaPDF-free.jar $pdf_full_path $dir_url $jpg_prefix";
     //$command = "c:/pdf2image -o $folder_full_path $pdf_full_path --format jpg --prefix $jpg_prefix --verb 3 ";
     //$command = "./../pdf2image -o $folder_full_path $pdf_full_path --format jpg --prefix $jpg_prefix --verb 3 ";
     watchdog('java-cmd', $command);

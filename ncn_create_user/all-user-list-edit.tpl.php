@@ -721,12 +721,12 @@ switch ($tfunction)
                     <td class="td-label">Member Type:</td>
                     <td><select id="member_type" name="member_type">
                             <option value="0" <?php if($member_type == MT_GOLD)         { echo "selected"; } ?> >Gold</option>
-                            <option value="1" <?php if($member_type == MT_SILVER)       { echo "selected"; } ?> >Silver</option>
-                            <option value="2" <?php if($member_type == MT_GOLD_LITE)    { echo "selected"; } ?> >NCN Gold Lite Member</option>
-                            <option value="3" <?php if($member_type == MT_COACH_ON_CALL){ echo "selected"; } ?> >NCN Coach on Call Member</option>
-                            <option value="4" <?php if($member_type == MT_GOLD_COACH)   { echo "selected"; } ?> >NCN Gold Coach Member</option>
-                            <option value="5" <?php if($member_type == MT_CSI)          { echo "selected"; } ?> >CSI Member</option>
-                            <option value="6" <?php if($member_type == MT_PLATINUM)     { echo "selected"; } ?> >Platinum</option>
+                            <!--<option value="1" <?php /*if($member_type == MT_SILVER)       { echo "selected"; } */?> >Silver</option>
+                            <option value="2" <?php /*if($member_type == MT_GOLD_LITE)    { echo "selected"; } */?> >NCN Gold Lite Member</option>
+                            <option value="3" <?php /*if($member_type == MT_COACH_ON_CALL){ echo "selected"; } */?> >NCN Coach on Call Member</option>
+                            <option value="4" <?php /*if($member_type == MT_GOLD_COACH)   { echo "selected"; } */?> >NCN Gold Coach Member</option>
+                            <option value="5" <?php /*if($member_type == MT_CSI)          { echo "selected"; } */?> >CSI Member</option>
+                            <option value="6" <?php /*if($member_type == MT_PLATINUM)     { echo "selected"; } */?> >Platinum</option>-->
                         </select>
                     </td>
                 </tr>

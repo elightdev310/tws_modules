@@ -49,5 +49,5 @@
   <p>** Not required but highly recommended. You will not be able to add more photos after pressing "Continue".</p>
   <p>By pressing "Continue" you are stating that you have submitted all completed claim documents to True Water Claims and uploaded all available photos for this claim. You may click "cancel" if you do not want to continue or have not sent all of your documents.</p>
   <p>If your claim documents are incomplete and/or documented poorly, your documents will be required to be clarified and/or rewritten for further processing.</p>
-  <p>We will send you an email with what information is needed. Please send your clarifications/answers to fax@netclaimsnow.com to add information to your claim documents.</p>
+  <p>We will send you an email with what information is needed. Please send your clarifications/answers to fax@truewaterclaims.net to add information to your claim documents.</p>
 </div>

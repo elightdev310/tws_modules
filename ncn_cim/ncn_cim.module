@@ -1,20 +1,30 @@
 <?php
 
-$GLOBALS['ncn_debug'] = true;
+$GLOBALS['ncn_debug'] = true;   // Test Mode
 
 // LIVE
 if (!isset($GLOBALS['ncn_debug']) || $GLOBALS['ncn_debug'] == false)
 {
-    $GLOBALS['g_loginname'] = "9WB3k7y8Ej3";
-    $GLOBALS['g_transactionkey'] = "38gT3tr2dMx7bV85";
+    // For NCN
+    // $GLOBALS['g_loginname'] = "9WB3k7y8Ej3";
+    // $GLOBALS['g_transactionkey'] = "38gT3tr2dMx7bV85";
+
+    // For TWC
+    $GLOBALS['g_loginname'] = "97KYxe4pV";
+    $GLOBALS['g_transactionkey'] = "4k62C9z6n7STxL7s";
+
     $GLOBALS['g_apihost'] = "api.authorize.net";
     $GLOBALS['g_apipath'] = "/xml/v1/request.api";
 }
 // TEST
 else
 {
-    $GLOBALS['g_loginname'] = "97KYxe4pV";
-    $GLOBALS['g_transactionkey'] = "4k62C9z6n7STxL7s";
+    // 9Gv2Ek2rea   API Login
+    // 3T67c572AR6yb6hP  Transactions Key
+    // Simon  Key
+
+    $GLOBALS['g_loginname'] = "9Gv2Ek2rea";
+    $GLOBALS['g_transactionkey'] = "3T67c572AR6yb6hP";
     
     $GLOBALS['g_apihost'] = "apitest.authorize.net";
     $GLOBALS['g_apipath'] = "/xml/v1/request.api";
@@ -28,6 +38,13 @@ function ncn_cim_menu()
       'page callback' => 'cim_patch_distributor',
       'type' => MENU_CALLBACK,
       'access arguments' => array('access content'),
+    );
+
+    // Test authorize.net payment action
+    $items['test/authorize'] = array(
+        'page callback' => 'twc_authorize_test_action',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
     );
     return $items;
 }
@@ -424,6 +441,9 @@ function getNcnCimCustomerProfileInfo($vars)
     $response = send_xml_request($content);
     $parsedresponse = parse_api_response($response);
 
+    // TO DO: remove
+    // print_r($parsedresponse);
+
     if ($parsedresponse->messages->resultCode == 'Error')
     {
         drupal_set_message(t('Could not create user profile'), 'error');
@@ -463,7 +483,9 @@ function getNcnCimCustomerProfileInfo($vars)
         
         $response = send_xml_request($content);
         $parsedresponse = parse_api_response($response);
-        
+
+        // TO DO: remove
+        // print_r($parsedresponse);
     
         // check for cc/details errors
         if ($parsedresponse->messages->resultCode == 'Error')
@@ -539,7 +561,7 @@ function ncn_get_member_cim($member_id) {
 }
 
 function ncn_get_distributor_cim($username) {
-    $result = db_query('SELECT * FROM {member_distributor_cim} WHERE username=:a',array(':a'=>$user->name));
+    $result = db_query('SELECT * FROM {member_distributor_cim} WHERE username=:a',array(':a'=>$username));
     if ($row = $result->fetchAssoc()) {
       $customerProfileId = $row['customerProfileId'];
       $customerPaymentProfileId = $row['customerPaymentProfileId'];
@@ -547,5 +569,32 @@ function ncn_get_distributor_cim($username) {
     } else {
       return false;
     }
+}
+
+function twc_authorize_test_action() {
+    return;
+
+    $cim_vars = array(
+        'expiration_date'           => "10/18",
+        'merchant_customer_id'      => "007".date("U"),
+        'first_name'                => "Kevin",
+        'last_name'                 => "J",
+        'contactemail'              => "forward.morning@gmail.com",
+        'address'                   => "3013 Wenyor Way",
+        'city'                      => "Lake Isabella",
+        'state'                     => "CA",
+        'zip'                       => "93240",
+        'card_number'               => "4007000000027",
+        'security_code'             => "999",
+    );
+    echo "<pre>";
+    $cim = getNcnCimCustomerProfileInfo($cim_vars);
+    print_r($cim);
+    $customerProfileId = $cim[0];
+    $customerPaymentProfileId = $cim[1];
+    $product_nid = 34; // $99
+    $result_charge = charge_retail_kit($customerProfileId, $customerPaymentProfileId, $product_nid, 0, 0);
+    echo "</pre>";
+    exit;
 }
 ?>

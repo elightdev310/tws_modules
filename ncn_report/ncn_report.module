@@ -409,7 +409,7 @@ function send_daily_mail() {
     $subject = 'NCN Daily Sales Report ('.date('D, d M Y', $report_date).')';
     $msg = compose_daily_mail($report_date);
     
-    $to = 'reports@netclaimsnow.com';
+    $to = 'reports@truewaterclaims.net';
     return drupal_mail('ncn_report', 'daily_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
 }
 
@@ -439,7 +439,7 @@ function send_weekly_mail() {
     $subject = 'NCN Weekly Sales Report ('.date("Y/m/d", $from_date).'~'.date("Y/m/d", strtotime("-1 day", $to_date)).')';
     $msg = compose_weekly_mail($report_date);
     
-    $to = 'reports@netclaimsnow.com';
+    $to = 'reports@truewaterclaims.net';
     drupal_mail('ncn_report', 'weekly_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
 }
 
@@ -464,7 +464,7 @@ function send_monthly_mail() {
     $subject = 'NCN Monthly Sales Report ('.date('F Y', $report_date).')';
     $msg = compose_monthly_mail($report_date);
     
-    $to = 'reports@netclaimsnow.com';
+    $to = 'reports@truewaterclaims.net';
     drupal_mail('ncn_report', 'monthly_report', $to, language_default(), array('subject'=>$subject, 'body'=>$msg));
 }
 

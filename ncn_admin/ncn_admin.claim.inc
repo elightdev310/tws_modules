@@ -1098,7 +1098,11 @@ GLOBAL $base_url;
         }
 
         // $command = "java -jar ../jod/lib/jodconverter-core-3.0-beta-3.jar ".$tmp_xls_name." ".$tmp_pdf_name;
-        $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_xls_name $tmp_pdf_name";
+        // $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_xls_name $tmp_pdf_name";
+
+        $dir_path = dirname($tmp_xls_name);
+        $command = "soffice --headless --convert-to pdf --outdir $dir_path $tmp_xls_name";
+
         watchdog('java-cmd', $command);
         $output = shell_exec($command);
 
@@ -1375,13 +1379,13 @@ function ncn_admin_list_claims()
     $result = db_query($query);
     $row_count = $result->rowCount();
     if (user_access('ncn claim report')) {
-        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/tws/tws_claim_report' target='_blank'>NCN Claim Report</a></div>"; 
+        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/twc/twc_claim_report' target='_blank'>TWC Claim Report</a></div>";
     }
     if (user_access("ncn claim report for qa & ms")) {
-        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/tws/tws_claim_report_qa_ms' target='_blank'>NCN Claim Report For QA&MS</a></div>"; 
+        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/twc/twc_claim_report_qa_ms' target='_blank'>TWC Claim Report For QA&MS</a></div>";
     }
     if (user_access("ncn claim report for am")) {
-        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/tws/tws_claim_report_am' target='_blank'>NCN Claim Report For Account Managers</a></div>"; 
+        echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/twc/twc_claim_report_am' target='_blank'>TWC Claim Report For Account Managers</a></div>";
     }
   
   echo "<div style='float:left; margin-right: 20px;'><a href='$base_url/download/claim_list'>Download Claim List</a></div>"; 

@@ -235,7 +235,7 @@ function ncn_subuser_create_subuser($member_id, $data) {
  */
 function ncn_subuser_user_delete($account) {
     if (!empty($account->profile_memberid)) {
-        db_query('UPDATE {member_subuser) SET member_id =0 WHERE member_id=:a',array(':a'=>$account->profile_memberid));
+        db_query('UPDATE {member_subuser} SET member_id =0 WHERE member_id=:a',array(':a'=>$account->profile_memberid));
     }
     db_query('DELETE FROM {member_subuser} WHERE sub_uid=:d',array(':d'=>$account->uid));
 }

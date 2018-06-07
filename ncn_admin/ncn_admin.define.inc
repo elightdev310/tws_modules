@@ -1,5 +1,5 @@
 <?php
-// define('NCN_TEST', 'TEST');
+define('NCN_MAIL_TEST', 'TEST');
 
 // User Role
 define('USER_ROLE_AUTHENTICATE',                     2);

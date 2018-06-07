@@ -180,7 +180,7 @@ function ncn_create_user_mail($key, &$message, $params)
         case "id_to_member":
             $message['subject'] = t(variable_get('ncn_id_to_member_subject', ''), $params, $options);
             $message['body'][] = ncn_admin_get_mail_body(t(variable_get('ncn_id_to_member_body', ''), $params, $options), $message, $params);
-            $bcc = "newmembers@netclaimsnow.com";
+            $bcc = "newmembers@truewaterclaims.net";
             $message['headers']['Bcc'] = $bcc;
             break;
 

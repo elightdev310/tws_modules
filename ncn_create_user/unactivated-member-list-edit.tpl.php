@@ -84,7 +84,7 @@ drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/ncn_admin.js');
                                     'name'  => 'state', 
                                     'class' => '', 
                                     'disabled' => false, 
-                                    'required' => flase, 
+                                    'required' => false,
                                     'sel_val'  => $member['state'], 
                                     'country'  => $member['country'] )); ?>
                     </td>
@@ -130,12 +130,12 @@ drupal_add_js(drupal_get_path('module', 'ncn_admin') . '/ncn_admin.js');
                     <td class="td-label">Member Type</td>
                     <td>
                         <select id="member_type" name="member_type">
-                            <option value="0" <?php if($member['member_type'] == 0){ echo "selected"; } ?> >NCN Gold Member</option>
-                            <option value="1" <?php if($member['member_type'] == 1){ echo "selected"; } ?> >NCN Silver Member</option>
-                            <option value="2" <?php if($member['member_type'] == 2){ echo "selected"; } ?> >NCN Gold Lite Member</option>
-                            <option value="3" <?php if($member['member_type'] == 3){ echo "selected"; } ?> >NCN Coach on Call Member</option>
-                            <option value="4" <?php if($member['member_type'] == 4){ echo "selected"; } ?> >NCN Gold Coach Member</option>
-                            <option value="5" <?php if($member['member_type'] == 5){ echo "selected"; } ?> >CSI Member</option>
+                            <option value="0" <?php if($member['member_type'] == 0){ echo "selected"; } ?> >Gold Member</option>
+                            <!--<option value="1" <?php /*if($member['member_type'] == 1){ echo "selected"; } */?> >Silver Member</option>
+                            <option value="2" <?php /*if($member['member_type'] == 2){ echo "selected"; } */?> >Gold Lite Member</option>
+                            <option value="3" <?php /*if($member['member_type'] == 3){ echo "selected"; } */?> >Coach on Call Member</option>
+                            <option value="4" <?php /*if($member['member_type'] == 4){ echo "selected"; } */?> >Gold Coach Member</option>
+                            <option value="5" <?php /*if($member['member_type'] == 5){ echo "selected"; } */?> >CSI Member</option>-->
                         </select>
                     </td>
                 </tr>

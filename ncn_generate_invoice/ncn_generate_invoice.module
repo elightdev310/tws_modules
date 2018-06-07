@@ -60,9 +60,9 @@ function doctopdf_and_serve()
     {
         $doc_desc = base64_decode(arg(3));
         $logo = ncn_admin_get_member_logo_info($user->profile_memberid);
-        
+
         // build the filenames
-        $tmp_filename = file_directory_temp(). "/tmp".$GLOBALS['user']->uid.date('U').microtime(true);
+        $tmp_filename = file_directory_temp()."/tmp".$GLOBALS['user']->uid.date('U').microtime(true);
         $tmp_doc_name = $tmp_filename.".doc";
         $tmp_pdf_name = $tmp_filename.".pdf";
 
@@ -127,22 +127,19 @@ function doctopdf_and_serve()
         //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/jod/lib/jodconverter-core-3.0-beta-4.jar $in_file $out_file";
         //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].base_path()."jod/lib/jodconverter-core-3.0-beta-4.jar $tmp_doc_name $tmp_pdf_name";
 
-        //$command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
+        // $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
 
-        // soffice --headless --convert-to pdf file.doc
         $drupal_root = DRUPAL_ROOT;
-        $command = "soffice --headless --convert-to pdf $drupal_root/$tmp_doc_name";
+        $dir_path = dirname("$drupal_root/$tmp_doc_name");
+        $command = "soffice --headless --convert-to pdf --outdir $dir_path $drupal_root/$tmp_doc_name";
 
         watchdog('java-cmd', $command);
         $output = shell_exec($command);
 
-        // output the pdf
-        header('Content-type: application/pdf');
-        header('Content-Disposition: attachment; filename="'.$outfile.'"');
         ///////////////////////////////////////////////////////////////////////////
         $b_image_placed = false;
         $doc_desc = trim($doc_desc);
-        if (strpos($doc_desc, "Service")!==FALSE && strpos($doc_desc, "Contract") && strpos($doc_desc, "Assignment") && strpos($doc_desc, "Benefits")) {
+        if ( ( strpos($doc_desc, "Service")!==FALSE && strpos($doc_desc, "Contract") && strpos($doc_desc, "Assignment") && strpos($doc_desc, "Benefits")) ) {
         //Service Contract & Assignment of Benefits
             $b_image_placed = true;
             $logo_params = array(
@@ -167,8 +164,11 @@ function doctopdf_and_serve()
         if (empty($logo)) {
             $b_image_placed = false;
         }
-        /*print $output;*/
-        
+
+        // output the pdf
+        header('Content-type: application/pdf');
+        header('Content-Disposition: attachment; filename="'.$outfile.'"');
+
         if ($b_image_placed) {
             $file = new stdClass();
             $file->filepath = $tmp_pdf_name;
@@ -178,10 +178,10 @@ function doctopdf_and_serve()
 
             $dir_url = "public://tmp/";
             $result = file_copy($file, $dir_url);
-      
+
             try{
                 $final_pdf = generate_pdf_with_member_logo($user->profile_memberid, $result, $logo_params);
-                
+
                 if ($final_pdf) {
                 readfile($final_pdf);
                 unlink($final_pdf);
@@ -203,8 +203,9 @@ function doctopdf_and_serve()
 
 function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
     $tmp_dir_url = "sites/default/files/tmp/";
-    $pdf_jpg = convert_pdf_to_jpg($file, $tmp_dir_url);
+    $pdf_jpg = convert_pdf_to_jpg($file, DRUPAL_ROOT."/".$tmp_dir_url);
     if ($pdf_jpg) {
+
     } else {
         drupal_set_message(t('error: convert_pdf_to_jpg, please report to web master'), 'error');
     }
@@ -261,4 +262,14 @@ function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
     } 
     return '';
 }
+
+function file_public_path() {
+    return "sites/default/files";
+    // if ($wrapper = file_stream_wrapper_get_instance_by_uri('public://')) {
+    //     $realpath = $wrapper->realpath();
+    //     return $realpath;
+    // }
+    // return '';
+}
 //------------------------------------------------------------------------------
+

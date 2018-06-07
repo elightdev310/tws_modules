@@ -752,12 +752,12 @@ function ncn_claims_manager_serve_invoice_file()
     $row = $result->fetchAssoc();
 
     //if (isset($user->profile_memberid) && is_member($user->profile_memberid)) {
-    if (ncn_admin_get_claim_first_free_locked($claim_id) == 'LOCKED') {
-        if (is_file(ncn_admin_get_locked_invoice_filename($row['filepath']))) {
-            $row['filename'] = ncn_admin_get_locked_invoice_filename($row['filename']);
-            $row['filepath'] = ncn_admin_get_locked_invoice_filename($row['filepath']);
-        }
-    }
+    // if (ncn_admin_get_claim_first_free_locked($claim_id) == 'LOCKED') {
+    //     if (is_file(ncn_admin_get_locked_invoice_filename($row['filepath']))) {
+    //         $row['filename'] = ncn_admin_get_locked_invoice_filename($row['filename']);
+    //         $row['filepath'] = ncn_admin_get_locked_invoice_filename($row['filepath']);
+    //     }
+    // }
     //}
 
     // serve file

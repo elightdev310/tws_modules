@@ -99,7 +99,7 @@ function ncn_admin_claim_workflow_change($claim_id) {
                     
                     $_claim_user = user_load($claim['user_id']);
                     $member = get_member_from_id($_claim_user->profile_memberid);
-          $from_mail = "fax@netclaimsnow.com";    // $site_mail
+          $from_mail = "fax@truewaterclaims.net";    // $site_mail
                     drupal_mail( 'ncn_admin', 'claim_docs_rejected', $_claim_user->mail, language_default(), array('subject'=>$subject, '!claim_id'=>$claim_id, '!owner_name'=>$owner_name, '!reason'=>$msg), $from_mail );
                     
                     /*drupal_mail( 'ncn_admin', 'claim_docs_rejected', $admin_mail, language_default(), array('subject'=>$subject, 'body'=>$msg), $site_mail );

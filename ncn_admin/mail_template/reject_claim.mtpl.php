@@ -49,7 +49,7 @@
 				The information transmitted is intended solely for the individual or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of or taking action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you have received this email in error please contact the sender and delete the material from any computer.
 			</div>
 			<div style="margin:15px 0px; text-align: center; font-size: 11px;">
-				&copy; 2011 True Water Claims, LLC<br/>
+				&copy; 2018 True Water Claims, LLC<br/>
 				True Water Claims, the True Water Claims logo are trademarks of True Water Claims,</br>
 				LLC. All other brand names may be trademarks of their respective owners
 			</div>

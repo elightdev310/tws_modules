@@ -2955,7 +2955,10 @@ function ncn_admin_make_cover_sheet($pdf_file_url, $data, $b_logo = false)
     }
 
     $base_abs_path = $_SERVER['DOCUMENT_ROOT'];
-    $tmp_doc_name = file_directory_temp() . "/tmp" . $GLOBALS['user']->uid . date('U') . microtime(true) . ".doc";
+
+    $tmp_filename = file_directory_temp()."/tmp".$GLOBALS['user']->uid.date('U').microtime(true);
+    $tmp_doc_name = $tmp_filename.".doc";
+    $tmp_pdf_name = $tmp_filename.".pdf";
 
     watchdog('ncn_debug', 'tpl_path: '.$tpl_path);
     $cs = file_get_contents($tpl_path);
@@ -3143,10 +3146,19 @@ function ncn_admin_make_cover_sheet($pdf_file_url, $data, $b_logo = false)
     // 
     // $command = "java -jar ../jod/lib/jodconverter-core-3.0-beta-3.jar " . $tmp_doc_name . " " . ($base_abs_path . "/" . $pdf_file_url);
     // $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/jod/lib/jodconverter-core-3.0-beta-3.jar " . $tmp_doc_name . " " . ($base_abs_path . "/" . $pdf_file_url);
-    $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER . " $tmp_doc_name " . ($base_abs_path . "/" . $pdf_file_url);
+    // $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER . " $tmp_doc_name " . ($base_abs_path . "/" . $pdf_file_url);
+
+    $drupal_root = DRUPAL_ROOT;
+    $dir_path = dirname("$drupal_root/$tmp_doc_name");
+    $command = "soffice --headless --convert-to pdf --outdir $dir_path $drupal_root/$tmp_doc_name";
+
     watchdog('java-cmd', $command);
     $output = shell_exec($command);
-    return TRUE;
+
+    if (rename("$drupal_root/$tmp_pdf_name", "$drupal_root/$pdf_file_url")) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 function ncn_admin_verify_coversheet_data($data, $metadata)
