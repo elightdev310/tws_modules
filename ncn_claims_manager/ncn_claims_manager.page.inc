@@ -200,7 +200,12 @@ global $user;
             ->fetchAll();
 
     ob_start();
-    @include get_realpath('ncn_claims_manager', 'ui/claims_list.php');
+    $amount_show_list = array("approved");
+    if (in_array($filter, $amount_show_list)) {
+        @include get_realpath('ncn_claims_manager', 'ui/claims_list_amount.php');
+    } else {
+        @include get_realpath('ncn_claims_manager', 'ui/claims_list.php');
+    }
     $content = ob_get_contents();
     ob_end_clean();
 

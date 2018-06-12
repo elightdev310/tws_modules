@@ -1084,9 +1084,9 @@ GLOBAL $base_url;
     else
     {
 
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
 
-        $tmp_xls_name = DRUPAL_ROOT.'/tmp/claim-data_'.$claim_id.'.xlsx';
+        $tmp_xls_name = DRUPAL_ROOT.'/tmp/claim-data_'.$claim_id.'.xls';
 
         $tmp_pdf_name = DRUPAL_ROOT.'/tmp/claim-data_'.$claim_id.'.pdf';
 
@@ -1103,10 +1103,20 @@ GLOBAL $base_url;
         $dir_path = dirname($tmp_xls_name);
         $command = "soffice --headless --convert-to pdf --outdir $dir_path $tmp_xls_name";
 
-        watchdog('java-cmd', $command);
-        $output = shell_exec($command);
-
-        echo $output;
+        // Repeat 3 times at maximum
+        $repeated = 0;
+        while (!is_file($tmp_pdf_name)) {
+            watchdog('java-cmd', $command);
+            $output = exec($command);
+            if (!empty($output)) {
+                watchdog('office-message', $output);
+            }
+            sleep(1);
+            $repeated++;
+            if ($repeated > 3) {
+                break;
+            }
+        }
 
         header('Content-type: application/pdf');
         header('Content-Disposition: attachment;filename="claim-data_'.$claim_id.'.pdf"');

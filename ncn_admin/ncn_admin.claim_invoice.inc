@@ -881,8 +881,20 @@ function generate_final_invoice($claim_id) {
             //$command = "java -jar ../pdfsam/lib/pdfsam-console-2.3.1e.jar $foption $out_option concat";
             $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/pdfsam/lib/pdfsam-console-2.3.1e.jar $foption $out_option concat";
             
-            $output = shell_exec($command);
-            
+            $output = exec($command);
+            if (!empty($output)) {
+                watchdog('java-message', $output);
+            }
+
+            $repeated = 0;
+            while (!is_file($final_invoice_name)) {
+                sleep(3);
+                $repeated++;
+                if ($repeated > 3) {
+                    break;
+                }
+            }
+
             if (!is_file($final_invoice_name)) {
                 drupal_set_message('Failed to create an invoice.', 'error');
                 //drupal_set_message('You need to upload essential files to create an invoice.', 'error');
@@ -895,9 +907,21 @@ function generate_final_invoice($claim_id) {
                     //$command = "java -jar ../pdfwatermark/ncn_pdf_watermark.jar $base_abs_path/$final_invoice_name";
                     $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/pdfwatermark/ncn_pdf_watermark.jar $base_abs_path/$final_invoice_name";
 
-                    $output = shell_exec($command);
+                    $output = exec($command);
+                    if (!empty($output)) {
+                        watchdog('java-message', $output);
+                    }
                     $final_locked_invoice_name = ncn_admin_get_locked_invoice_filename($final_invoice_name);
-                    
+
+                    $repeated = 0;
+                    while (!is_file($final_locked_invoice_name)) {
+                        sleep(3);
+                        $repeated++;
+                        if ($repeated > 3) {
+                            break;
+                        }
+                    }
+
                     if (!is_file($final_locked_invoice_name)) {
                         drupal_set_message('Failed to create an locked invoice.', 'error');
                     }

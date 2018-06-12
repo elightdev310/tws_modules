@@ -3152,8 +3152,20 @@ function ncn_admin_make_cover_sheet($pdf_file_url, $data, $b_logo = false)
     $dir_path = dirname("$drupal_root/$tmp_doc_name");
     $command = "soffice --headless --convert-to pdf --outdir $dir_path $drupal_root/$tmp_doc_name";
 
-    watchdog('java-cmd', $command);
-    $output = shell_exec($command);
+    // Repeat 3 times at maximum
+    $repeated = 0;
+    while (!is_file("$drupal_root/$tmp_pdf_name")) {
+        watchdog('java-cmd', $command);
+        $output = exec($command);
+        if (!empty($output)) {
+            watchdog('office-message', $output);
+        }
+        sleep(1);
+        $repeated++;
+        if ($repeated > 3) {
+            break;
+        }
+    }
 
     unlink("$drupal_root/$tmp_doc_name");
     if (!is_file("$drupal_root/$tmp_pdf_name")) {
@@ -3161,7 +3173,6 @@ function ncn_admin_make_cover_sheet($pdf_file_url, $data, $b_logo = false)
         return FALSE;
     }
     if (rename("$drupal_root/$tmp_pdf_name", "$drupal_root/$pdf_file_url")) {
-        unlink("$drupal_root/$tmp_pdf_name");
         return TRUE;
     }
 

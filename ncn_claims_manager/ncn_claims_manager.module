@@ -169,6 +169,21 @@ function ncn_claims_manager_menu()
         'file path' => drupal_get_path('module', 'dblog'),
     );
 
+    $items['ajax/claim/%/accept'] = array(
+        'title' => 'accept claim',
+        'page callback' => 'ncn_claims_manager_claim_accept',
+        'page arguments' => array(2),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+    $items['ajax/claim/%/decline'] = array(
+        'title' => 'accept claim',
+        'page callback' => 'ncn_claims_manager_claim_decline',
+        'page arguments' => array(2),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
     ncn_claims_manager_menu_note($items);
     ncn_claims_manager_menu_search($items);
 

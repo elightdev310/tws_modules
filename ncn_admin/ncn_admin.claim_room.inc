@@ -192,9 +192,9 @@ function _get_blank_room_image_url($type, $index){
  * @return bool
  */
 function convert_pdf_to_jpg($file, $dir_url) {
-
+    $dir_url = rtrim($dir_url, "/");
     $pdf_full_path = drupal_realpath($file->uri);
-    $jpg_prefix = $file->filename."-";
+    $jpg_prefix = basename($file->filename, ".pdf");
 
     if (!is_file($pdf_full_path)) {
         drupal_set_message("File doesn't exist: ".$file->uri);
@@ -205,8 +205,22 @@ function convert_pdf_to_jpg($file, $dir_url) {
     $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"]."/AspriseJavaPDF-free.jar $pdf_full_path $dir_url $jpg_prefix";
     //$command = "c:/pdf2image -o $folder_full_path $pdf_full_path --format jpg --prefix $jpg_prefix --verb 3 ";
     //$command = "./../pdf2image -o $folder_full_path $pdf_full_path --format jpg --prefix $jpg_prefix --verb 3 ";
+
     watchdog('java-cmd', $command);
-    $output = shell_exec($command);
+
+    $output = exec($command);
+    if (!empty($output)) {
+        watchdog('java-message', $output);
+    }
+
+    $repeated = 0;
+    while (!is_file("$dir_url/$jpg_prefix".".jpg") && !is_file("$dir_url/$jpg_prefix"."1.jpg")) {
+        sleep(3);
+        $repeated++;
+        if ($repeated > 3) {
+            break;
+        }
+    }
 
     $pdf_file = clone $file;
 
@@ -222,6 +236,7 @@ function convert_pdf_to_jpg($file, $dir_url) {
             $res = copy("$dir_url/$jpg_prefix".".jpg" , drupal_realpath($file->uri));
             if (!$res) { $error=true; }
         } else {
+            drupal_set_message("$dir_url/$jpg_prefix".".jpg doesn't exist");
             return FALSE;
         }
     } else {

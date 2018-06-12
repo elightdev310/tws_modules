@@ -7,7 +7,7 @@ function ncn_action_claim_add_room($claim_id, $room_name) {
     if ($room_name == '')
     {
         return array(
-            'status' => 'error', 
+            'status' => 'error',
             'msg'    => t("Room name is empty.")
         );
     }
@@ -36,8 +36,8 @@ function ncn_action_claim_add_room($claim_id, $room_name) {
     if (array_key_exists($room_name, $scope))
     {
         return array(
-            'status'  => 'error', 
-            'msg'     => t("Room(!room_name) exists already.", array('!room_name' => $room_name)) 
+            'status'  => 'error',
+            'msg'     => t("Room(!room_name) exists already.", array('!room_name' => $room_name))
         );
     }
 
@@ -67,7 +67,7 @@ function ncn_action_claim_add_room($claim_id, $room_name) {
     if ($result->rowCount()==0)
     {
         return array(
-            'status' => 'error', 
+            'status' => 'error',
             'msg'    => t('Failed to add a room.')
         );
     }
@@ -80,8 +80,8 @@ function ncn_action_claim_add_room($claim_id, $room_name) {
     ncn_admin_insert_claim_log($claim_id, date('U') , $log_message);
 
     return array(
-        'status' => 'success', 
-        'msg'    => t('Added a room(!room_name), successfully.', array('!room_name' => $room_name)), 
+        'status' => 'success',
+        'msg'    => t('Added a room(!room_name), successfully.', array('!room_name' => $room_name)),
         'room_name' => $room_name
     );
 }
@@ -102,7 +102,7 @@ function get_account_manager_id($distributor_id)
     $lowest_key = -1;
 
 
-    for ($i = 0; $i < $row_count; $i++) 
+    for ($i = 0; $i < $row_count; $i++)
     foreach($result as $row)
     {
         $row = (array)$row;
@@ -135,7 +135,7 @@ function get_claim_file($claim_id, $live) {
         $row = $result->fetchAssoc();
         return $row;
     }
-    return array(); 
+    return array();
 }
 
 function get_claim_file_count($claim_id, $live) {
@@ -149,7 +149,7 @@ function get_claim_scope_file($claim_id) {
 //  $query = "SELECT * FROM claims_scope WHERE claim_id=$claim_id ORDER BY timestamp DESC";
     $result = db_query('SELECT * FROM {claims_scope} WHERE claim_id=:a ORDER BY timestamp DESC',array(':a'=>$claim_id ));
     if ($result)
-    {   
+    {
         $row_count = $result->rowCount();
         $files = array();
         for ($i=0; $i<$row_count; $i++) {
@@ -158,7 +158,7 @@ function get_claim_scope_file($claim_id) {
         }
         return $files;
     }
-    return array(); 
+    return array();
 }
 
 /**
@@ -316,7 +316,7 @@ function ncn_claims_manager_approve_invoice($claim_id=0,$uid=0,$ret=false)
     }
     //echo $claim_id;exit;
     //echo '<pre>';print_r(ncn_amin_get_user_role_and_name());exit;
-    
+
 
     // if (!is_numeric($revision)) {
     //     $revision_sql = "";
@@ -336,7 +336,7 @@ function ncn_claims_manager_approve_invoice($claim_id=0,$uid=0,$ret=false)
     ncn_admin_insert_claim_log($claim_id, date('U'), $log_message);
 
     watchdog('claim', 'approve invoice notification(claim moved from "Out for Review" to "Receivables") for %name.', array('%name' => $user->name));
-    
+
     // get live/preview
     $user_id_sql = '';
     $query = "SELECT * FROM claims WHERE claim_id=" . $claim_id . $user_id_sql;
@@ -370,7 +370,7 @@ function ncn_claims_manager_approve_invoice($claim_id=0,$uid=0,$ret=false)
 function send_approve_invoice_mail($to,$claim_id) {
     $subject = 'Member Action Notification';
     $msg = 'Claim#'.$claim_id.' has been moved from "Out for Review" to "Receivables"';
-    
+
     //$to = 'webdesigns@imageproz.com';
     //$to = 'kalpesh.thakkar@imobdevtech.com';
     //$to = 'nikhil.parmar@keyideasglobal.com';
@@ -640,7 +640,7 @@ function ncn_claims_manager_submit_claim_outforreview($claim_id=0,$uid=0,$ret=fa
         } else {
             drupal_set_message($msg);
         }
-    } 
+    }
     else // check invoice exists and user has permissions
     {
         $msg = t("Access denied to invoice file, or file not found.");
@@ -789,7 +789,7 @@ function ncn_claims_manager_delete_invoice_file()
 
     // get the "live"
     $live = arg(3);
-    
+
     // get the revision
     $revision = arg(4);
     $invoice_id = arg(5);
@@ -952,7 +952,7 @@ function invoiced_to_date($uid, $number=false)
     if ($number) {
         return $total;
     }
-    
+
     // fix display
     $total = '$' . number_format($total, 2);
     return ($total);
@@ -1053,4 +1053,71 @@ function send_returned_claim_mail_update($mail_key, $params, $admin_email_addres
         $to=$object['mail'];
         drupal_mail('ncn_message', $mail_key, $to, language_default(), $params, $admin_email_address, TRUE);
     }
+}
+
+/**
+ * Change claim status
+ *
+ * @param $claim_id int
+ * @param $status string
+ */
+function ncn_change_claim_status_action($claim_id, $status) {
+    $num_updated = db_update('claims')
+        ->fields(array('claim_status' => $status))
+        ->condition('claim_id', $claim_id)
+        ->execute();
+
+    if ($num_updated) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * URL: ajax/claim/%/accept
+ * Change claim status to Contractor Purchased Approved (con_approved)
+ *
+ * @param $claim_id int
+ */
+function ncn_claims_manager_claim_accept($claim_id) {
+    global $user;
+
+    $result = ncn_change_claim_status_action($claim_id, 'con_approved');
+
+    $json = array();
+    $json['code'] = 'success';
+    if ($result) {
+        $log_msg = sprintf("Status updated by %s to '%s'", user_fullname($user), ncn_get_claim_status_label('con_approved'));
+        ncn_admin_insert_claim_log($claim_id, date('U'), $log_msg);
+        $json['msg'] = sprintf("Claim(#%s) was moved to %s", $claim_id, ncn_get_claim_status_label('con_approved'));
+    } else {
+        $json['code'] = "error";
+        $json['msg']  = "Failed to accept claim(#{$claim_id})";
+    }
+    echo json_encode($json);
+    exit;
+}
+
+/**
+ * URL: ajax/claim/%/decline
+ * Change claim status to Contractor Purchased Declined (con_declined)
+ *
+ * @param $claim_id int
+ */
+function ncn_claims_manager_claim_decline($claim_id) {
+    global $user;
+    $result = ncn_change_claim_status_action($claim_id, 'con_declined');
+
+    $json = array();
+    $json['code'] = 'success';
+    if ($result) {
+        $log_msg = sprintf("Status updated by %s to '%s'", user_fullname($user), ncn_get_claim_status_label('con_declined'));
+        ncn_admin_insert_claim_log($claim_id, date('U'), $log_msg);
+        $json['msg'] = sprintf("Claim(#%s) was moved to %s", $claim_id, ncn_get_claim_status_label('con_declined'));
+    } else {
+        $json['code'] = "error";
+        $json['msg']  = "Failed to decline claim(#{$claim_id})";
+    }
+    echo json_encode($json);
+    exit;
 }

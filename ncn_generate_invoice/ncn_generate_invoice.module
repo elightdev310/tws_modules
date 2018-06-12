@@ -20,6 +20,8 @@ function ncn_generate_invoice_menu()
 //------------------------------------------------------------------------------
 function doctopdf_and_serve()
 {
+    $drupal_root = DRUPAL_ROOT;
+
     $user = user_load($GLOBALS['user']->uid);
     $user_id = $GLOBALS['user']->uid;
     
@@ -86,6 +88,7 @@ function doctopdf_and_serve()
 
         $data = str_replace('{---------------------companyname----------------------------------------------}', str_pad($user->profile_legalname, 80), $data);
         $data = str_replace('{=====================companyname==============================================}', str_pad($user->profile_legalname, 80, "\n", STR_PAD_BOTH), $data);
+        $data = str_replace('{=====================companyname_medium===================}', str_pad($user->profile_legalname, 60, "\n", STR_PAD_BOTH), $data);
 
         $data = str_replace('\{companyname\}', $user->profile_legalname, $data);
         $data = str_replace('{memberid}', str_pad ($user->profile_memberid, 10), $data);
@@ -97,6 +100,10 @@ function doctopdf_and_serve()
         $data = str_replace('{---------------------citystatezip----------------------}', str_pad($citystatezip, strlen('{---------------------citystatezip----------------------}')), $data);
         $data = str_replace('{--------------------accountmanager---------------------}', str_pad($accountmanager, 57), $data);
         $data = str_replace('\{--------------------------------website------------------------------------\}', str_pad($website_address, strlen('\{--------------------------------website------------------------------------\}')), $data);
+
+        $data = str_replace('{========contact_phone=======}', str_pad(get_format_phone_string($user->profile_officephone), 30, "\n", STR_PAD_BOTH), $data);
+        $data = str_replace('{====================email=======================}', str_pad($user->mail, 50, "\n", STR_PAD_BOTH), $data);
+
         
         if (empty($logo)) {
             $data = str_replace('{---------------------companyname_logo-----------------------------------------}', str_pad($user->profile_legalname, 80, "\n", STR_PAD_BOTH), $data);
@@ -113,10 +120,11 @@ function doctopdf_and_serve()
             echo "File failed to load.";
         }
         fclose($fp);
-        //echo $tmp_doc_name."<br/>".$tmp_pdf_name."<br/>".$filename;
-        //exit;
-        $in_file = $_SERVER["DOCUMENT_ROOT"]."/invoice_cover_sheet.doc";
-        $out_file = $_SERVER["DOCUMENT_ROOT"]."/sites/default/files/invoice_cover_sheet.pdf";
+
+        if (!is_file("$drupal_root/$tmp_doc_name")) {
+            echo "Failed auto-filled file.";
+            exit;
+        }
         
         set_time_limit(59);
         
@@ -129,12 +137,29 @@ function doctopdf_and_serve()
 
         // $command = "java -jar ".$_SERVER["DOCUMENT_ROOT"].JAR_JODCONVERTER." $tmp_doc_name $tmp_pdf_name";
 
-        $drupal_root = DRUPAL_ROOT;
         $dir_path = dirname("$drupal_root/$tmp_doc_name");
         $command = "soffice --headless --convert-to pdf --outdir $dir_path $drupal_root/$tmp_doc_name";
 
-        watchdog('java-cmd', $command);
-        $output = shell_exec($command);
+        // Repeat 3 times at maximum
+        $repeated = 0;
+        while (!is_file("$drupal_root/$tmp_pdf_name")) {
+            watchdog('java-cmd', $command);
+            $output = exec($command);
+            if (!empty($output)) {
+                watchdog('office-message', $output);
+            }
+            sleep(1);
+            $repeated++;
+            if ($repeated > 3) {
+                break;
+            }
+        }
+
+        if (!is_file("$drupal_root/$tmp_pdf_name")) {
+            unlink("$drupal_root/$tmp_doc_name");
+            drupal_goto("account/document-center.html");
+            return;
+        }
 
         ///////////////////////////////////////////////////////////////////////////
         $b_image_placed = false;
@@ -181,22 +206,22 @@ function doctopdf_and_serve()
 
             try{
                 $final_pdf = generate_pdf_with_member_logo($user->profile_memberid, $result, $logo_params);
-
+                // Check if $final_pdf is absolute
                 if ($final_pdf) {
-                readfile($final_pdf);
-                unlink($final_pdf);
+                    readfile($final_pdf);
+                    unlink($final_pdf);
                 } else {
                     drupal_goto('account/document-center.html');
                 }
             } catch (Exception $e) {
                 drupal_set_message('This document missed logo image.('.$e->getMessage().')', 'warning');
-                readfile($tmp_pdf_name);
+                readfile("$drupal_root/$tmp_pdf_name");
             }
         } else {
-            readfile($tmp_pdf_name);
+            readfile("$drupal_root/$tmp_pdf_name");
         }
-        unlink($tmp_doc_name);
-        unlink($tmp_pdf_name);
+        unlink("$drupal_root/$tmp_doc_name");
+        unlink("$drupal_root/$tmp_pdf_name");
         exit;
     }
 }
@@ -205,7 +230,7 @@ function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
     $tmp_dir_url = "sites/default/files/tmp/";
     $pdf_jpg = convert_pdf_to_jpg($file, DRUPAL_ROOT."/".$tmp_dir_url);
     if ($pdf_jpg) {
-
+        return '';
     } else {
         drupal_set_message(t('error: convert_pdf_to_jpg, please report to web master'), 'error');
     }
@@ -253,7 +278,7 @@ function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
     
     $pdf_file_url = $tmp_dir_url.$GLOBALS['user']->uid.date('U').microtime(true).".pdf";
     
-    $pdf->Output($pdf_file_url, 'F');
+    $pdf->Output(DRUPAL_ROOT."/".$pdf_file_url, 'F');
     
     unlink($pdf_jpg->filepath);
 
