@@ -786,7 +786,7 @@ function _add_pdf_invoice($file, $claim_id) {
     ncn_admin_insert_claim_log($claim_id, date('U'), $log_message);
     // Auto Post - Create Invoice
     $msg = "TWC created new invoice file ($db_file->filename).";
-    ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $msg, $db_file->fid);
+    ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $msg, $db_file->fid, 1);
 }
 
 /**
@@ -1069,10 +1069,9 @@ function _get_first_pdf($claim_id, $dir_url) {
                 'height' => 150,
                 'valign' => 'bottom',
             );
-            
+
         $final_cv_pdf = generate_pdf_with_member_logo($_user->profile_memberid, $file, $logo_params);
 
-        //file_delete($pdf_file_url);
         if ($final_cv_pdf) {
             return $final_cv_pdf;
         } else {

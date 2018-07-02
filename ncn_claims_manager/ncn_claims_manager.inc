@@ -1089,7 +1089,9 @@ function ncn_claims_manager_claim_accept($claim_id) {
     if ($result) {
         $log_msg = sprintf("Status updated by %s to '%s'", user_fullname($user), ncn_get_claim_status_label('con_approved'));
         ncn_admin_insert_claim_log($claim_id, date('U'), $log_msg);
+
         $json['msg'] = sprintf("Claim(#%s) was moved to %s", $claim_id, ncn_get_claim_status_label('con_approved'));
+        ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $json['msg']);
     } else {
         $json['code'] = "error";
         $json['msg']  = "Failed to accept claim(#{$claim_id})";
@@ -1113,7 +1115,9 @@ function ncn_claims_manager_claim_decline($claim_id) {
     if ($result) {
         $log_msg = sprintf("Status updated by %s to '%s'", user_fullname($user), ncn_get_claim_status_label('con_declined'));
         ncn_admin_insert_claim_log($claim_id, date('U'), $log_msg);
+
         $json['msg'] = sprintf("Claim(#%s) was moved to %s", $claim_id, ncn_get_claim_status_label('con_declined'));
+        ncn_chatter_auto_post_in_claim($claim_id, FEED_TYPE_CLAIM, $json['msg']);
     } else {
         $json['code'] = "error";
         $json['msg']  = "Failed to decline claim(#{$claim_id})";

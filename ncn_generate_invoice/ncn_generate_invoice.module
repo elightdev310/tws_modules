@@ -230,9 +230,10 @@ function generate_pdf_with_member_logo($member_id, $file, $params=array()) {
     $tmp_dir_url = "sites/default/files/tmp/";
     $pdf_jpg = convert_pdf_to_jpg($file, DRUPAL_ROOT."/".$tmp_dir_url);
     if ($pdf_jpg) {
-        return '';
+
     } else {
         drupal_set_message(t('error: convert_pdf_to_jpg, please report to web master'), 'error');
+        return '';
     }
 
 

@@ -753,26 +753,15 @@ function ncn_admin_mail_alter(&$message) {
     if ($message['id'] == 'user_register_pending_approval') {   //"modulename_key"
         $message['headers']['Bcc'] = $_admin->mail;
     }
-    if ($message['to'] != $_admin->mail ) {
-        // Add admin mail as bcc
-        $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
-        if (strpos($bcc, $_admin->mail) === FALSE) {
-            if (!empty($bcc)) {
-                $bcc .= ", ";
-            }
-            $bcc .= $_admin->mail;
-        }
 
-        $message['headers']['Bcc'] = $bcc;
-    }
-
+    //carlosk@pherona.com
     if ($message['to'] != 'carlosk@pherona.com' ) {
         $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
         // Mail Check
         if (defined('NCN_MAIL_TEST')) {
             if (strpos($bcc, 'carlosk@pherona.com') === FALSE) {
                 if (!empty($bcc)) {
-                    $bcc .= ", ";
+                    $bcc .= ",";
                 }
                 $bcc .= 'carlosk@pherona.com';
             }
@@ -787,7 +776,7 @@ function ncn_admin_mail_alter(&$message) {
         if (defined('NCN_MAIL_TEST')) {
             if (strpos($bcc, 'forward.morning@gmail.com') === FALSE) {
                 if (!empty($bcc)) {
-                    $bcc .= ", ";
+                    $bcc .= ",";
                 }
                 $bcc .= 'forward.morning@gmail.com';
             }
@@ -795,7 +784,20 @@ function ncn_admin_mail_alter(&$message) {
 
         $message['headers']['Bcc'] = $bcc;
     }
-    
+
+    // if ($message['to'] != $_admin->mail ) {
+    //     // Add admin mail as bcc
+    //     $bcc = isset($message['headers']['Bcc'])?$message['headers']['Bcc']:'';
+    //     if (strpos($bcc, $_admin->mail) === FALSE) {
+    //         if (!empty($bcc)) {
+    //             $bcc .= ",";
+    //         }
+    //         $bcc .= $_admin->mail;
+    //     }
+    //
+    //     $message['headers']['Bcc'] = $bcc;
+    // }
+
     // $message['from'] = "noreply@truewaterclaims.net";
     // $message['headers']['From'] = "noreply@truewaterclaims.net";
 
