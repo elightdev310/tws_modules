@@ -24,6 +24,11 @@ function ncn_user_permission()
 function ncn_user_menu()
 {
     $items = array();
+    $items['dashboard'] = array(
+        'page callback' => 'ncn_user_dashboard',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
     // user account edit
     $items['account/my-account.html'] = array(
         'page callback' => 'ncn_edit_my_account',

@@ -1,4 +1,20 @@
 <?php
+
+/**
+ * URL: dashboard
+ * version: v2
+ */
+function ncn_user_dashboard() {
+    GLOBAL $user;
+    if ($user->uid) {
+        if (is_member_user($user) || is_subuser($user)) {
+            drupal_goto('account');
+        } else {
+            drupal_goto('admin');
+        }
+    }
+    drupal_goto('user/login');
+}
 /**
  * URL: account/my-account.html
  * version: v2
