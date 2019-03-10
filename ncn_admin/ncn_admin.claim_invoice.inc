@@ -1,9 +1,5 @@
 <?php
-function ncn_admin_invoiceform_3_submit($form, &$form_state)
-{
-    $live = $form_state['values']['live'];
-    $claim_id = arg(4);
-
+function ncn_admin_invoiceform_submit_handler($form, $form_state, $claim_id, $live) {
     // we know the file was good
     $invoice_dir = 'public://invoices/'.$claim_id;
     if (is_dir($invoice_dir)===false) {
@@ -12,11 +8,7 @@ function ncn_admin_invoiceform_3_submit($form, &$form_state)
 
     $file = file_load($form_state['values']['fid']);
     $newFilename = @strtr($file->filename,array("( "=>"", " )"=>"", "("=>"", ")"=>"", " "=>"_"));
-    
-    if(isset($form_state['clicked_button']['#post']['current_scroll_position']))
-    {
-        $_SESSION['current_scroll_position'] = $form_state['clicked_button']['#post']['current_scroll_position'];
-    }
+
     $file->status = FILE_STATUS_PERMANENT;
     $res = file_move($file, "public://invoices/{$claim_id}/{$newFilename}");
     // add invoice to database
@@ -32,11 +24,11 @@ function ncn_admin_invoiceform_3_submit($form, &$form_state)
         }else{
             $file = $res;
         }
-        
+
         // get last revision
         //echo $query = "SELECT * FROM claims_invoices WHERE claim_id=".$claim_id." AND `live`=".$live." ORDER BY revision DESC";
         $result = db_query('SELECT * FROM {claims_invoices} WHERE claim_id=:a AND live=:b ORDER BY revision DESC',
-        array(':a'=>$claim_id,':b'=>$live));
+            array(':a'=>$claim_id,':b'=>$live));
         $row_count = $result->rowCount();
 
         if($live == 11){
@@ -47,8 +39,8 @@ function ncn_admin_invoiceform_3_submit($form, &$form_state)
         {
             $file->filepath = str_replace("public://","sites/default/files/",$file->uri);
 
-            $revision = 0;  
-        //  $query = "INSERT INTO claims_invoices VALUES(NULL, ".$claim_id.", ".$revision.", \"".AddSlashes($file->filename)."\", \"".AddSlashes($file->filepath)."\", \"".AddSlashes($file->filemime)."\", ".date('U').", ".$live.");";
+            $revision = 0;
+            //  $query = "INSERT INTO claims_invoices VALUES(NULL, ".$claim_id.", ".$revision.", \"".AddSlashes($file->filename)."\", \"".AddSlashes($file->filepath)."\", \"".AddSlashes($file->filemime)."\", ".date('U').", ".$live.");";
             $query = db_query('INSERT INTO {claims_invoices} VALUES(NULL,:a,:b,:c,:d,:e,:f,:g)',
                 array(':a'=>$claim_id,':b'=>$revision,':c'=>$file->filename,':d'=>$file->filepath,':e'=>$file->filemime,
                     ':f'=>date('U'),':g'=>$live));
@@ -69,22 +61,35 @@ function ncn_admin_invoiceform_3_submit($form, &$form_state)
 
             $query = db_query('UPDATE {claims_invoices} SET filename=:a, filepath=:b, filemime=:c, timestamp=:d 
                                         WHERE claim_id=:e AND live=:f',
-                                array(':a'=>$file->filename,
-                                      ':b'=>$file->filepath,
-                                      ':c'=>$file->filemime,
-                                      ':d'=>date('U'),
-                                      ':e'=>$claim_id,
-                                      ':f'=>$live));
+                array(':a'=>$file->filename,
+                    ':b'=>$file->filepath,
+                    ':c'=>$file->filemime,
+                    ':d'=>date('U'),
+                    ':e'=>$claim_id,
+                    ':f'=>$live));
         }
-        
+
         $result = $query;
-        
+
         // success!
         $claim_file_title = ncn_admin_get_claim_file_title($live);
-        drupal_set_message( $claim_file_title.' "'.$file->filename.'" was uploaded.', 'status');    
+        drupal_set_message( $claim_file_title.' "'.$file->filename.'" was uploaded.', 'status');
         $log_message = t("!user_name uploaded !file_title  : !file_name", array('!user_name'=>ncn_amin_get_user_role_and_name(), '!file_title'=>$claim_file_title, '!file_name'=>$file->filename));
         ncn_admin_insert_claim_log($claim_id, date('U'), $log_message);
     }
+}
+
+function ncn_admin_invoiceform_3_submit($form, &$form_state)
+{
+    $live = $form_state['values']['live'];
+    $claim_id = arg(4);
+
+    if(isset($form_state['clicked_button']['#post']['current_scroll_position']))
+    {
+        $_SESSION['current_scroll_position'] = $form_state['clicked_button']['#post']['current_scroll_position'];
+    }
+
+    ncn_admin_invoiceform_submit_handler($form, $form_state, $claim_id, $live);
 }
 function ncn_admin_invoiceform_4_submit($form, &$form_state)
 {
@@ -197,10 +202,7 @@ function ncn_admin_invoiceform_1_submit($form, &$form_state)
 }
 
 //------------------------------------------------------------------------------
-function ncn_admin_invoiceform_3_validate($form, &$form_state)
-{
-    $live = $form_state['values']['live'];
-
+function ncn_admin_invoiceform_validate($form, &$form_state, $live) {
     // check file was uploaded
     $file = file_save_upload('invoice_upload'.$live);
 
@@ -218,10 +220,15 @@ function ncn_admin_invoiceform_3_validate($form, &$form_state)
         case 3:
         case 4:
         case 5: if ($file->filemime != "application/pdf") {
-                    form_set_error('invoice_upload'.$live, 'Only PDF file could be uploaded.');
-                }
-        break;
+            form_set_error('invoice_upload'.$live, 'Only PDF file could be uploaded.');
+        }
+            break;
     }
+}
+function ncn_admin_invoiceform_3_validate($form, &$form_state)
+{
+    $live = $form_state['values']['live'];
+    ncn_admin_invoiceform_validate($form, $form_state, $live);
 }
 
 function ncn_admin_invoiceform_4_validate($form, &$form_state)
