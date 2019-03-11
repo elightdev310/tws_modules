@@ -3,7 +3,7 @@
 	<div style="width: 580px; margin: 0px auto; padding-top: 10px; padding-bottom: 20px;">
 		<div style="color: #1d5ca8; font-style: italic;	width: 100%; margin: 5px 0px; overflow: hidden;">
 			<div style="float: left;"><b>True Water Claims</b> - Email</div>
-			<div style="float: right">Contact us today! <b>877.654.8668</b></div>
+			<div style="float: right">Contact us today! <b>(407) 720-4003</b></div>
 		</div>
 		<div style="width: 100%; background-color: white;">
 			<div style="width: 540px; margin: 0px auto; padding: 10px 0px;">
@@ -49,7 +49,7 @@
 				The information transmitted is intended solely for the individual or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of or taking action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you have received this email in error please contact the sender and delete the material from any computer.
 			</div>
 			<div style="margin:15px 0px; text-align: center; font-size: 11px;">
-				&copy; 2018 True Water Claims, LLC<br/>
+				&copy; <?php echo date('Y'); ?> True Water Claims, LLC<br/>
 				True Water Claims, the True Water Claims logo are trademarks of True Water Claims,</br>
 				LLC. All other brand names may be trademarks of their respective owners
 			</div>

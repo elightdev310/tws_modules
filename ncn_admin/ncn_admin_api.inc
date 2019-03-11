@@ -871,9 +871,9 @@ global $user;
 }
 
 function ncn_admin_get_am_fax($am_uid) {
-    $fax = "877.654.8668 ext. 103";
+    $fax = "(407) 720-4003";
     if ($am_uid == 373) {
-        $fax = "877.654.8668 ext. 111";
+        $fax = "(407) 720-4003";
     }
     return $fax;
 }

@@ -148,7 +148,7 @@ function user_register()
     // $form['#validate'][] = 'user_register_anwser_question';
 
     $form['#validate'][] = 'user_register_validate';
-    $form['#validate'][] = 'user_register_confirm';
+    // $form['#validate'][] = 'user_register_confirm';
     $form['#attributes']['id'] = 'user-register';
     //$form['#submit'][] = 'user_register_form_submit';
 
@@ -380,25 +380,27 @@ function user_apply()
     $form = drupal_render($u_form);
     //$form = str_replace('name="profile_taxstatus"', 'onchange="change_tax_status(this.checked);" name="profile_taxstatus"', $form);
     $content.= $form;
-    $form_errors = form_get_errors();
-    if ($form_errors)
-    {
-        if (isset($form_errors['next-confirm']))
-        {
-            $content = "<div id=\"user_register_form\" style=\"display: none;\">$content</div>";
-            /*$javascript =
-            "\r\t<script type='text/javascript'>
-            jQuery().ready(function() {
-            jQuery('#edit-user-confirm-page').val('1');
-            });
-            </script>";*/
 
-            // $content .=$javascript;
-
-            $confirm_page = get_user_confirm_page();
-            $content.= $confirm_page;
-        }
-    }
+    // Terms and Conditions Page
+    // $form_errors = form_get_errors();
+    // if ($form_errors)
+    // {
+    //     if (isset($form_errors['next-confirm']))
+    //     {
+    //         $content = "<div id=\"user_register_form\" style=\"display: none;\">$content</div>";
+    //         /*$javascript =
+    //         "\r\t<script type='text/javascript'>
+    //         jQuery().ready(function() {
+    //         jQuery('#edit-user-confirm-page').val('1');
+    //         });
+    //         </script>";*/
+    //
+    //         // $content .=$javascript;
+    //
+    //         $confirm_page = get_user_confirm_page();
+    //         $content.= $confirm_page;
+    //     }
+    // }
     return $content;
 }
 
@@ -451,7 +453,6 @@ function user_activate_page()
 {
     $form = drupal_get_form('user_activate');
     $output = drupal_render($form);
-    $output.= '<br /><strong>Office</strong> 877.654.8668<br /><strong>Fax</strong> 877.654.8667';
     return $output;
 }
 function user_activate()

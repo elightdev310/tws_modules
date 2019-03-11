@@ -3,7 +3,7 @@
 	<div style="width: 580px; margin: 0px auto; padding-top: 10px; padding-bottom: 20px;">
 		<div style="color: #1d5ca8; font-style: italic;	width: 100%; margin: 5px 0px; overflow: hidden;">
 			<div style="float: left;"><b>True Water Claims</b> - Email</div>
-			<div style="float: right">Contact us today! <b>wecare@truewaterclaims.net - 877.654.8668</b></div>
+			<div style="float: right">Contact us today! <b>wecare@truewaterclaims.com - (407) 720-4003</b></div>
 		</div>
 		<div style="width: 100%; background-color: white;">
 			<div style="width: 540px; margin: 0px auto; padding: 10px 0px;">
@@ -13,55 +13,32 @@
 						<img src="<?php echo $img_basepath."member_login.jpg";?>" alt="Activate Your Membership!"/>
 					</a> -->
 				</div>
-				<div style="font-size: 24px; color: #1d5ca8; margin:15px 0px;">
-					<b><span style="font-size: 28px; color: #86b536">Thank You</span> for activating your membership.</b>
+				<div style="font-size: 24px; line-height:36px; color: #1d5ca8; margin:15px 0px;">
+                    <b>Congratulations! </b><br/>
+                    <b style="font-size: 28px;">Your TWC Contractor Portal has been created</b>
 				</div>
 				<div style="margin:15px 0px;" >
-					<b><?php echo $params['!name']; ?>,</b>
+                    <b>Next Step:</b> Schedule your webinar training
 				</div>
-				<div style="margin:15px 0px;" >
-          <?php 
-            $guidebook = ncn_admin_create_user_get_doc_info_by_hint($params['!docs'], "guidebook");
-            $training_doc = ncn_admin_create_user_get_doc_info_by_hint($params['!docs'], "sample");
-          ?>
-					<b>Below in in this email are the training documents.</b> Please print out and read through your <a href='<?php echo "$base_url/account/serve_pdf/".base64_encode($guidebook['filepath'])."/".base64_encode('Guidebook'); ?>' style="color: #1d5ca8;">Guidebook</a> before your training session. You may also print out the <a href='<?php echo "$base_url/account/serve_pdf/".base64_encode($training_doc['filepath'])."/".base64_encode('Training Claim Document'); ?>' style="color: #1d5ca8;">Training Claim Documents</a> for reference. Please contact your Account Manager within 24 hours of your activation to schedule your training at <span style="color: #1d5ca8;">877.654.8668.</span>
-				</div>
-				<div style="margin:15px 0px;" >
-					Your Account Manager will be training on how to use the Virtual Office and most importantly how to fill out claim documents such as scope sheets. It would be best to have all project managers in training as well so they will have an understanding of how to <b>BEST DOCUMENT</b> each claim.
-				</div>
-				<div style="margin:15px 0px;" >
-					After completion of training, we will send you your username and password so your business can start sending in claims through your company's personalized Virtual Office Suite. You will be able to download and print your company's branded claim documents within your Virtual Office Suite.
-				</div>
-				
-				<div style="margin:15px 0px; font-size: 9px; font-style: italic; color: #1d5ca8;" >
-					If you have the need to reschedule your training session, please give us 24 hour notice and contact us to reschedule.
-				</div>
+                <div style="margin:15px 0px;" >
+                    Please follow the following link to schedule your training.<br/>
+                    <a href="http://link.truewaterclaims.net/twc_training" style='color: #1d5ca8;'>Click here to choose times for training</a>
+                </div>
+                <div style="margin:15px 0px;" >
+                    After successfully completing your training, we will send you your login information.
+                </div>
+
+                <div style="margin:15px 0px;" >
+                    Please let us know if you have any questions.
+                </div>
 				<div style="margin:20px 0px;" >
 					Sincerely,</br>
 					<b>Your True Water Claims Team</b>
 				</div>
-			</div>
-		</div>
-		
-		<div style="width: 100%; background-color: white; margin-top:10px;">
-			<div style="width: 540px; margin: 0px auto; padding: 10px 0px;">
-				<div style="margin:15px 0px;" >
-					<b>Documents.</b> Please click the icon to download the documents.
-					<div style="overflow: hidden; margin-top: 10px;">
-						<?php foreach( $params['!docs'] as $name=>$data ) {
-							echo "<div style='float: left; margin-right: 10px;'>";
-								echo "<img style='float: left;' src='".$img_basepath."pdf.jpg' />";
-								echo "<div style='float: left; margin-left: 5px;'>";
-									echo "<b>".$name."</b><br/>";
-									echo "<a href='$base_url/account/serve_pdf/".base64_encode($data['filepath'])."/".base64_encode($name)."' style='font-size: 11px; color: #1d5ca8;'>download</a>";
-								echo "</div>";
-							echo "</div>";
-						}?>
-					</div>
-					<div style="font-style: italic; padding: 5px 0px; text-align: center; background-color: #e4ebf4; font-size: 11px; margin-top: 50px; margin-bottom: 5px;" style="margin:15px 0px;" >
-						Please do not reply to this email. If you have questions about your account in general, email us at <a href="mailto:wecare@truewaterclaims.net" style="color: #1d5ca8" >wecare@truewaterclaims.net</a> or contact member services at <span style="color: #1d5ca8">877.654.8668</span>
-					</div>
-				</div>
+
+                <div style="font-style: italic; padding: 5px 0px; text-align: center; background-color: #e4ebf4; font-size: 11px; margin-top: 50px; margin-bottom: 5px;" style="margin:15px 0px;" >
+                    Please do not reply to this email. If you have questions about your account in general, email us at <a href="mailto:wecare@truewaterclaims.com" style="color: #1d5ca8" >wecare@truewaterclaims.com</a> or contact member services at <span style="color: #1d5ca8">(407) 720-4003</span>
+                </div>
 			</div>
 		</div>
 		
@@ -71,7 +48,7 @@
 				The information transmitted is intended solely for the individual or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of or taking action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you have received this email in error please contact the sender and delete the material from any computer.
 			</div>
 			<div style="margin:15px 0px; text-align: center; font-size: 11px;">
-				&copy; 2018 True Water Claims, LLC<br/>
+				&copy; <?php echo date('Y'); ?> True Water Claims, LLC<br/>
 				True Water Claims, the True Water Claims logo are trademarks of True Water Claims,</br>
 				LLC. All other brand names may be trademarks of their respective owners
 			</div>
