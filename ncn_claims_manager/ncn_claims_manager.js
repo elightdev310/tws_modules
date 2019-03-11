@@ -214,6 +214,17 @@ function check_options_for_submit()
 
 }
 
+function check_all_checkboxes() {
+    jQuery('.buy-claim-section input.buy-checkbox').each(function() {
+        if (jQuery(this).is(":checked")) {
+            document.getElementById('continue_button').disabled = false;
+        } else {
+            document.getElementById('continue_button').disabled = true;
+            return false;
+        }
+    });
+}
+
 //------------------------------------------------------------------------------
 function open_submit_box(claim_id)
 {

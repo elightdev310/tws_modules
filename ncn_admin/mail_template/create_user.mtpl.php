@@ -21,8 +21,8 @@
                     <b>Next Step:</b> Schedule your webinar training
 				</div>
                 <div style="margin:15px 0px;" >
-                    Please follow the following link to schedule your training.<br/>
-                    <a href="http://link.truewaterclaims.net/twc_training" style='color: #1d5ca8;'>Click here to choose times for training</a>
+                    <div>Please follow the following link to schedule your training.</div>
+                    <div><a href="http://link.truewaterclaims.net/twc_training" style='color: #1d5ca8;'>Click here to choose times for training</a></div>
                 </div>
                 <div style="margin:15px 0px;" >
                     After successfully completing your training, we will send you your login information.
